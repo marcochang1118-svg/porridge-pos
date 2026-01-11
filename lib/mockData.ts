@@ -24,11 +24,13 @@ export const PRODUCTS = [
 ];
 
 export const MODIFIERS = [
-    { id: 'm1', name: '加起司', nameEn: 'Add Cheese', price: 15 },
-    { id: 'm2', name: '加皮蛋', nameEn: 'Add Century Egg', price: 20 },
-    { id: 'm3', name: '加雞蛋', nameEn: 'Add Egg', price: 15 },
-    { id: 'm4', name: '加玉米', nameEn: 'Add Corn', price: 20 },
-    { id: 'm6', name: '加肉類', nameEn: 'Add Meat', price: 40 },
-    { id: 'm5', name: '不加芹菜', nameEn: 'No Celery', price: 0 },
-    { id: 'm7', name: '加大碗', nameEn: 'Large Size', price: 25 },
+    { id: 'm1', name: '加起司', nameEn: 'Add Cheese', price: 15, category: 'option' },
+    { id: 'm2', name: '加皮蛋', nameEn: 'Add Century Egg', price: 20, category: 'option' },
+    { id: 'm3', name: '加雞蛋', nameEn: 'Add Egg', price: 15, category: 'option' },
+    { id: 'm4', name: '加玉米', nameEn: 'Add Corn', price: 20, category: 'option' },
+    { id: 'm6', name: '加肉類', nameEn: 'Add Meat', price: 40, category: 'option' },
+    { id: 'm5', name: '不加芹菜', nameEn: 'No Celery', price: 0, category: 'option' },
+    { id: 'm7', name: '加大碗', nameEn: 'Large Size', price: 25, category: 'option' },
+    { id: 'm8', name: '牛蒡絲(加購)', nameEn: 'Burdock (Add-on)', price: 20, category: 'addon' },
+    { id: 'm9', name: '皮蛋豆腐(加購)', nameEn: 'Tofu (Add-on)', price: 35, category: 'addon' },
 ];
