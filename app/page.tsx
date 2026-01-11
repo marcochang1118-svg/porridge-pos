@@ -632,12 +632,16 @@ export default function PosPage() {
                 // Single item render (Standard)
                 if (count === 1) {
                   const item = firstItem;
+                  const product = PRODUCTS.find(p => p.id === item.productId);
+                  const isSide = product?.category_id === 'cat_sides';
+
                   return (
                     <div
                       key={item.internalId}
-                      onClick={() => openModifierModal(item)}
+                      onClick={isSide ? undefined : () => openModifierModal(item)}
                       className={clsx(
-                        "group relative flex cursor-pointer items-center justify-between rounded-lg p-4 shadow-sm border-2 transition-all",
+                        "group relative flex items-center justify-between rounded-lg p-4 shadow-sm border-2 transition-all",
+                        !isSide && "cursor-pointer",
                         bgColor, groupColor
                       )}
                     >
@@ -692,39 +696,46 @@ export default function PosPage() {
                     {/* Expanded Items */}
                     {isExpanded && (
                       <div className="border-t border-gray-100 bg-gray-50/50 p-2 space-y-2">
-                        {items.map((item, idx) => (
-                          <div
-                            key={item.internalId}
-                            onClick={() => openModifierModal(item)}
-                            className="flex cursor-pointer items-center justify-between rounded-md bg-white p-3 shadow-sm border border-gray-100 hover:border-blue-300 ml-4"
-                          >
-                            <div className="flex-1 min-w-0 pr-2">
-                              <div className="flex items-center gap-2">
-                                <span className={clsx("font-serif font-bold opacity-50 w-8 text-center flex-shrink-0", groupColor.replace('border-', 'text-').split(' ')[0])}>{toRoman(idx + 1)}.</span>
-                                <span className="text-gray-700 font-medium">{t.customization} ({item.modifierIds.length})</span>
-                              </div>
-                              {item.modifierIds.length > 0 ? (
-                                <p className="text-sm text-blue-600 mt-1 truncate">
-                                  {item.modifierIds.map(mid => {
-                                    const m = MODIFIERS.find(mod => mod.id === mid);
-                                    return m ? (lang === 'en' ? (m.nameEn || m.name) : m.name) : '';
-                                  }).join(', ')}
-                                </p>
-                              ) : (
-                                <p className="text-sm text-gray-400 mt-1">{t.noNotes}</p>
+                        {items.map((item, idx) => {
+                          const product = PRODUCTS.find(p => p.id === item.productId);
+                          const isSide = product?.category_id === 'cat_sides';
+
+                          return (
+                            <div
+                              key={item.internalId}
+                              onClick={isSide ? undefined : () => openModifierModal(item)}
+                              className={clsx(
+                                "flex items-center justify-between rounded-md bg-white p-3 shadow-sm border border-gray-100 ml-4",
+                                !isSide && "cursor-pointer hover:border-blue-300"
                               )}
+                            >
+                              <div className="flex-1 min-w-0 pr-2">
+                                <div className="flex items-center gap-2">
+                                  <span className={clsx("font-serif font-bold opacity-50 w-8 text-center flex-shrink-0", groupColor.replace('border-', 'text-').split(' ')[0])}>{toRoman(idx + 1)}.</span>
+                                  <span className="text-gray-700 font-medium">{t.customization} ({item.modifierIds.length})</span>
+                                </div>
+                                {item.modifierIds.length > 0 ? (
+                                  <p className="text-sm text-blue-600 mt-1 truncate">
+                                    {item.modifierIds.map(mid => {
+                                      const m = MODIFIERS.find(mod => mod.id === mid);
+                                      return m ? (lang === 'en' ? (m.nameEn || m.name) : m.name) : '';
+                                    }).join(', ')}
+                                  </p>
+                                ) : (
+                                  <p className="text-sm text-gray-400 mt-1">{t.noNotes}</p>
+                                )}
+                              </div>
+                              <div className="flex items-center gap-3 flex-shrink-0">
+                                <span className="text-sm font-medium">${item.totalPrice}</span>
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); removeFromCart(item.internalId); }}
+                                  className="rounded-full p-2 text-gray-300 hover:text-red-500 hover:bg-red-50 transition-colors"
+                                >
+                                  <Trash2 size={24} />
+                                </button>
+                              </div>
                             </div>
-                            <div className="flex items-center gap-3 flex-shrink-0">
-                              <span className="text-sm font-medium">${item.totalPrice}</span>
-                              <button
-                                onClick={(e) => { e.stopPropagation(); removeFromCart(item.internalId); }}
-                                className="rounded-full p-2 text-gray-300 hover:text-red-500 hover:bg-red-50 transition-colors"
-                              >
-                                <Trash2 size={24} />
-                              </button>
-                            </div>
-                          </div>
-                        ))}
+                          ))}
                       </div>
                     )}
                   </div>
