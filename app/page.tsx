@@ -273,18 +273,8 @@ export default function PosPage() {
       type: product.type,
     };
 
-    // Create new cart and sort it
+    // Create new cart (append only, no sorting for List View)
     const newCart = [...cart, newItem];
-    newCart.sort((a, b) => {
-      const indexA = PRODUCTS.findIndex(p => p.id === a.productId);
-      const indexB = PRODUCTS.findIndex(p => p.id === b.productId);
-      // If same product, keep order based on when it was added (internalId)
-      if (indexA === indexB) {
-        return a.internalId.localeCompare(b.internalId);
-      }
-      return indexA - indexB;
-    });
-
     setCart(newCart);
   };
 
@@ -310,7 +300,11 @@ export default function PosPage() {
   }, {} as Record<string, CartItem[]>);
 
   // Unique IDs for group iteration
-  const uniqueProductIds = Array.from(new Set(cart.map(item => item.productId)));
+  const uniqueProductIds = Array.from(new Set(cart.map(item => item.productId))).sort((a, b) => {
+    const indexA = PRODUCTS.findIndex(p => p.id === a);
+    const indexB = PRODUCTS.findIndex(p => p.id === b);
+    return indexA - indexB;
+  });
 
   // Open modal for a specific cart item
   const openModifierModal = (item: CartItem) => {
