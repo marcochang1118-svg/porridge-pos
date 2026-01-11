@@ -584,10 +584,10 @@ export default function PosPage() {
       </div>
 
       {/* RIGHT: Cart */}
-      <div className={clsx(
-        "bg-gray-50 h-[40%] lg:h-full transition-all duration-300",
-        viewMode === 'dashboard' ? "!hidden" : "flex flex-col w-full lg:w-[30%]"
-      )}>
+      <div
+        className="flex flex-col bg-gray-50 h-[40%] lg:h-full transition-all duration-300 w-full lg:w-[30%]"
+        style={{ display: viewMode === 'dashboard' ? 'none' : 'flex' }}
+      >
         {/* Cart Header */}
         <div className="flex h-16 items-center justify-between border-b border-gray-200 px-4 shadow-sm bg-white flex-shrink-0">
           <div className="flex items-center gap-2">
