@@ -134,7 +134,7 @@ export default function ModifierModal({
                         <span className="text-sm font-medium text-gray-500">
                             {lang === 'en' ? 'Total' : '總金額'}
                         </span>
-                        <span className="text-3xl font-bold text-gray-800">
+                        <span className="text-3xl font-bold text-blue-600">
                             ${totalPrice}
                         </span>
                     </div>
