@@ -71,38 +71,12 @@ export default function ModifierModal({
                 {/* Modifiers Grid */}
                 <div className="flex-1 overflow-y-auto p-6 space-y-8">
                     {/* Standard Options */}
-                    <div className="grid grid-cols-2 gap-4">
-                        {MODIFIERS.filter((mod: any) => mod.category !== 'addon').map((mod: any) => {
-                            const isSelected = selectedModifiers.includes(mod.id);
-                            const displayName = lang === 'en' ? (mod.nameEn || mod.name) : mod.name;
-
-                            return (
-                                <button
-                                    key={mod.id}
-                                    onClick={() => onToggleModifier(mod.id)}
-                                    className={clsx(
-                                        'flex items-center justify-between rounded-xl border-2 p-6 transition-all',
-                                        isSelected
-                                            ? 'border-blue-600 bg-blue-50 text-blue-800 ring-2 ring-blue-600/20'
-                                            : 'border-gray-200 bg-white text-gray-700 hover:border-blue-300'
-                                    )}
-                                >
-                                    <span className="text-2xl font-bold">{displayName}</span>
-                                    <span className={clsx("text-xl font-medium", isSelected ? "text-blue-600" : "text-gray-500")}>
-                                        {mod.price > 0 ? `+$${mod.price}` : t.free}
-                                    </span>
-                                </button>
-                            );
-                        })}
-                    </div>
-
-                    {/* Add-ons Section */}
                     <div>
                         <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center">
-                            🔥 {lang === 'en' ? 'Special Add-ons (-$10)' : '超值加購 (現折$10)'}
+                            🛠️ {lang === 'en' ? 'Custom Adjustments' : '客製化調整'}
                         </h3>
                         <div className="grid grid-cols-2 gap-4">
-                            {MODIFIERS.filter((mod: any) => mod.category === 'addon').map((mod: any) => {
+                            {MODIFIERS.filter((mod: any) => mod.category !== 'addon').map((mod: any) => {
                                 const isSelected = selectedModifiers.includes(mod.id);
                                 const displayName = lang === 'en' ? (mod.nameEn || mod.name) : mod.name;
 
@@ -113,39 +87,69 @@ export default function ModifierModal({
                                         className={clsx(
                                             'flex items-center justify-between rounded-xl border-2 p-6 transition-all',
                                             isSelected
-                                                ? 'border-green-600 bg-green-50 text-green-800 ring-2 ring-green-600/20'
-                                                : 'border-green-200 bg-white text-gray-700 hover:border-green-400'
+                                                ? 'border-blue-600 bg-blue-50 text-blue-800 ring-2 ring-blue-600/20'
+                                                : 'border-gray-200 bg-white text-gray-700 hover:border-blue-300'
                                         )}
                                     >
                                         <span className="text-2xl font-bold">{displayName}</span>
-                                        <span className={clsx("text-xl font-bold", isSelected ? "text-green-700" : "text-red-500")}>
+                                        <span className={clsx("text-xl font-medium", isSelected ? "text-blue-600" : "text-gray-500")}>
                                             {mod.price > 0 ? `+$${mod.price}` : t.free}
                                         </span>
                                     </button>
                                 );
                             })}
                         </div>
-                    </div>
-                </div>
 
-                {/* Footer */}
-                <div className="border-t border-gray-100 bg-gray-50 p-6 flex items-center justify-between gap-6">
-                    <div className="flex flex-col">
-                        <span className="text-sm font-medium text-gray-500">
-                            {lang === 'en' ? 'Total' : '總金額'}
-                        </span>
-                        <span className="text-3xl font-bold text-blue-600">
-                            ${totalPrice}
-                        </span>
+                        {/* Add-ons Section */}
+                        <div>
+                            <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                                🔥 {lang === 'en' ? 'Special Add-ons (-$10)' : '超值加購 (現折$10)'}
+                            </h3>
+                            <div className="grid grid-cols-2 gap-4">
+                                {MODIFIERS.filter((mod: any) => mod.category === 'addon').map((mod: any) => {
+                                    const isSelected = selectedModifiers.includes(mod.id);
+                                    const displayName = lang === 'en' ? (mod.nameEn || mod.name) : mod.name;
+
+                                    return (
+                                        <button
+                                            key={mod.id}
+                                            onClick={() => onToggleModifier(mod.id)}
+                                            className={clsx(
+                                                'flex items-center justify-between rounded-xl border-2 p-6 transition-all',
+                                                isSelected
+                                                    ? 'border-green-600 bg-green-50 text-green-800 ring-2 ring-green-600/20'
+                                                    : 'border-green-200 bg-white text-gray-700 hover:border-green-400'
+                                            )}
+                                        >
+                                            <span className="text-2xl font-bold">{displayName}</span>
+                                            <span className={clsx("text-xl font-bold", isSelected ? "text-green-700" : "text-red-500")}>
+                                                {mod.price > 0 ? `+$${mod.price}` : t.free}
+                                            </span>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
                     </div>
-                    <button
-                        onClick={onConfirm}
-                        className="flex-1 rounded-xl bg-blue-600 py-4 text-3xl font-bold text-white shadow-lg transition-transform active:scale-95 hover:bg-blue-700"
-                    >
-                        {t.confirm}
-                    </button>
+
+                    {/* Footer */}
+                    <div className="border-t border-gray-100 bg-gray-50 p-6 flex items-center justify-between gap-6">
+                        <div className="flex flex-col">
+                            <span className="text-sm font-medium text-gray-500">
+                                {lang === 'en' ? 'Total' : '總金額'}
+                            </span>
+                            <span className="text-3xl font-bold text-blue-600">
+                                ${totalPrice}
+                            </span>
+                        </div>
+                        <button
+                            onClick={onConfirm}
+                            className="flex-1 rounded-xl bg-blue-600 py-4 text-3xl font-bold text-white shadow-lg transition-transform active:scale-95 hover:bg-blue-700"
+                        >
+                            {t.confirm}
+                        </button>
+                    </div>
                 </div>
             </div>
-        </div>
-    );
+            );
 }
