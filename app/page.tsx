@@ -640,7 +640,7 @@ export default function PosPage() {
                 if (count === 1) {
                   const item = firstItem;
                   const product = PRODUCTS.find(p => p.id === item.productId);
-                  const isSide = product?.category_id === 'cat_sides';
+                  const isSide = product?.category_id === 'cat_sides' || product?.category_id === 'cat_drinks';
 
                   return (
                     <div
@@ -705,7 +705,7 @@ export default function PosPage() {
                       <div className="border-t border-gray-100 bg-gray-50/50 p-2 space-y-2">
                         {items.map((item, idx) => {
                           const product = PRODUCTS.find(p => p.id === item.productId);
-                          const isSide = product?.category_id === 'cat_sides';
+                          const isSide = product?.category_id === 'cat_sides' || product?.category_id === 'cat_drinks';
 
                           return (
                             <div
