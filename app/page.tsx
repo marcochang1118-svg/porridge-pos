@@ -854,8 +854,8 @@ export default function PosPage() {
           </button>
         </div>
       </div>
-      <div className="fixed bottom-1 left-1 z-50 pointer-events-none opacity-30 text-[10px] text-gray-400 font-mono">
-        v1.4
+      <div className="fixed bottom-4 left-4 z-50 pointer-events-none opacity-70 text-xl text-gray-500 font-bold font-mono bg-white/80 px-2 py-1 rounded-md shadow-sm">
+        v1.5
       </div>
     </div >
   );
