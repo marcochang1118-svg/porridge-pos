@@ -322,6 +322,7 @@ export default function PosPage() {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         productName={editingItemName}
+        basePrice={editingCartItem?.basePrice || 0}
         selectedModifiers={tempModifierIds}
         onToggleModifier={toggleModifier}
         onConfirm={confirmModifiers}

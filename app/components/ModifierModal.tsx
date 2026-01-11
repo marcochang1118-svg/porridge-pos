@@ -22,6 +22,7 @@ type ModifierModalProps = {
     isOpen: boolean;
     onClose: () => void;
     productName: string;
+    basePrice: number;
     selectedModifiers: string[]; // List of modifier IDs
     onToggleModifier: (modId: string) => void;
     onConfirm: () => void;
@@ -32,6 +33,7 @@ export default function ModifierModal({
     isOpen,
     onClose,
     productName,
+    basePrice,
     selectedModifiers,
     onToggleModifier,
     onConfirm,
@@ -40,6 +42,13 @@ export default function ModifierModal({
     if (!isOpen) return null;
 
     const t = MODAL_TEXT[lang];
+
+    // Calculate Total Price
+    const modifiersTotal = selectedModifiers.reduce((sum, modId) => {
+        const mod = MODIFIERS.find((m: any) => m.id === modId);
+        return sum + (mod ? mod.price : 0);
+    }, 0);
+    const totalPrice = basePrice + modifiersTotal;
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
@@ -120,10 +129,18 @@ export default function ModifierModal({
                 </div>
 
                 {/* Footer */}
-                <div className="border-t border-gray-100 bg-gray-50 p-6">
+                <div className="border-t border-gray-100 bg-gray-50 p-6 flex items-center justify-between gap-6">
+                    <div className="flex flex-col">
+                        <span className="text-sm font-medium text-gray-500">
+                            {lang === 'en' ? 'Total' : '總金額'}
+                        </span>
+                        <span className="text-3xl font-bold text-gray-800">
+                            ${totalPrice}
+                        </span>
+                    </div>
                     <button
                         onClick={onConfirm}
-                        className="w-full rounded-xl bg-blue-600 py-4 text-3xl font-bold text-white shadow-lg transition-transform active:scale-95 hover:bg-blue-700"
+                        className="flex-1 rounded-xl bg-blue-600 py-4 text-3xl font-bold text-white shadow-lg transition-transform active:scale-95 hover:bg-blue-700"
                     >
                         {t.confirm}
                     </button>
