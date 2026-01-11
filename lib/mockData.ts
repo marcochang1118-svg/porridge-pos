@@ -22,8 +22,8 @@ export const PRODUCTS = [
     { id: 's2', category_id: 'cat_sides', name: '牛蒡絲', nameEn: 'Burdock Root', price: 30, type: 'addon' },
     { id: 's3', category_id: 'cat_sides', name: '油條肉鬆', nameEn: 'Fried Dough & Meat Floss', price: 15, type: 'side' },
     { id: 's4', category_id: 'cat_sides', name: '皮蛋豆腐', nameEn: 'Century Egg Tofu', price: 45, type: 'addon' },
-    { id: 'd1', category_id: 'cat_drinks', name: '冬瓜茶', nameEn: 'Winter Melon Tea', price: 25, type: 'drink' },
-    { id: 'd2', category_id: 'cat_drinks', name: '冷泡綠茶', nameEn: 'Cold Brew Green Tea', price: 25, type: 'drink' },
+    { id: 'd1', category_id: 'cat_drinks', name: '冬瓜茶 (500cc)', nameEn: 'Winter Melon Tea (500cc)', price: 25, type: 'drink' },
+    { id: 'd2', category_id: 'cat_drinks', name: '冷泡綠茶 (500cc)', nameEn: 'Cold Brew Green Tea (500cc)', price: 25, type: 'drink' },
 ];
 
 export const MODIFIERS = [
