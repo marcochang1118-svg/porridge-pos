@@ -64,6 +64,7 @@ const ProductCard = ({ product, addToCart, lang }: { product: any, addToCart: (p
   if (product.type === 'cheese') colorClass = 'bg-yellow-50 border-yellow-100 hover:bg-yellow-100 hover:border-yellow-300 text-yellow-900';
   if (product.type === 'special') colorClass = 'bg-purple-50 border-purple-100 hover:bg-purple-100 hover:border-purple-300 text-purple-900';
   if (product.type === 'side') colorClass = 'bg-gray-50 border-gray-200 hover:bg-gray-100 hover:border-gray-300 text-gray-800';
+  if (product.type === 'addon') colorClass = 'bg-green-50 border-green-100 hover:bg-green-100 hover:border-green-300 text-green-900';
 
   return (
     <button
@@ -513,7 +514,7 @@ export default function PosPage() {
                 {PRODUCTS
                   .filter((p) => p.category_id === activeCategory)
                   .sort((a, b) => {
-                    const typeOrder: Record<string, number> = { meat: 1, seafood: 2, cheese: 3, special: 4, side: 5 };
+                    const typeOrder: Record<string, number> = { meat: 1, seafood: 2, cheese: 3, special: 4, side: 5, addon: 6 };
                     return (typeOrder[a.type] || 99) - (typeOrder[b.type] || 99);
                   })
                   .map((product: any) => (
@@ -523,7 +524,7 @@ export default function PosPage() {
 
               {/* Desktop View: Separated Rows by Type */}
               <div className="hidden lg:block space-y-8">
-                {['meat', 'seafood', 'cheese', 'special', 'side'].map((type) => {
+                {['meat', 'seafood', 'cheese', 'special', 'side', 'addon'].map((type) => {
                   const items = PRODUCTS.filter(p => p.category_id === activeCategory && p.type === type);
                   if (items.length === 0) return null;
 

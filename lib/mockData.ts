@@ -1,6 +1,6 @@
 export const CATEGORIES = [
     { id: 'cat_porridge', name: '粥品', nameEn: 'Porridge', sort_order: 1 },
-    { id: 'cat_sides', name: '小菜/加料', nameEn: 'Sides/Extras', sort_order: 2 },
+    { id: 'cat_sides', name: '小菜/加購', nameEn: 'Sides/Add-ons', sort_order: 2 },
 ];
 
 export const PRODUCTS = [
@@ -18,9 +18,9 @@ export const PRODUCTS = [
     { id: 'p12', category_id: 'cat_porridge', name: '鮮肉鮑魚粥', nameEn: 'Abalone & Pork Porridge', price: 120, type: 'seafood' },
     { id: 'p13', category_id: 'cat_porridge', name: '綜合粥', nameEn: 'House Special Porridge', price: 140, type: 'special' },
     { id: 's1', category_id: 'cat_sides', name: '肉鬆', nameEn: 'Meat Floss', price: 50, type: 'side' },
-    { id: 's2', category_id: 'cat_sides', name: '牛蒡絲', nameEn: 'Burdock Root', price: 30, type: 'side' },
+    { id: 's2', category_id: 'cat_sides', name: '牛蒡絲', nameEn: 'Burdock Root', price: 30, type: 'addon' },
     { id: 's3', category_id: 'cat_sides', name: '油條肉鬆', nameEn: 'Fried Dough & Meat Floss', price: 15, type: 'side' },
-    { id: 's4', category_id: 'cat_sides', name: '皮蛋豆腐', nameEn: 'Century Egg Tofu', price: 45, type: 'side' },
+    { id: 's4', category_id: 'cat_sides', name: '皮蛋豆腐', nameEn: 'Century Egg Tofu', price: 45, type: 'addon' },
 ];
 
 export const MODIFIERS = [
