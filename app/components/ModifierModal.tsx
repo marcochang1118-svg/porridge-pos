@@ -115,7 +115,7 @@ export default function ModifierModal({
                     {/* Add-ons Section */}
                     <div>
                         <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center">
-                            🔥 {lang === 'en' ? 'Special Add-ons (Pick 2+ for extra $5 off/item)' : '超值加購 (任選2項，每項再折$5)'}
+                            🔥 {lang === 'en' ? 'Special Add-ons ($5 off from 2nd item)' : '超值加購 (第2項起，每項再折$5)'}
                         </h3>
                         <div className="grid grid-cols-2 gap-4">
                             {MODIFIERS.filter((mod: any) => mod.category === 'addon').map((mod: any) => {
