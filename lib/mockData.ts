@@ -36,4 +36,6 @@ export const MODIFIERS = [
     { id: 'm7', name: '加大碗', nameEn: 'Large Size', price: 25, category: 'option' },
     { id: 'm8', name: '牛蒡絲(加購)', nameEn: 'Burdock (Add-on)', price: 20, category: 'addon' },
     { id: 'm9', name: '皮蛋豆腐(加購)', nameEn: 'Tofu (Add-on)', price: 35, category: 'addon' },
+    { id: 'm10', name: '冬瓜茶(加購)', nameEn: 'Winter Melon (500cc)', price: 15, category: 'addon' },
+    { id: 'm11', name: '冷泡綠茶(加購)', nameEn: 'Green Tea (500cc)', price: 15, category: 'addon' },
 ];
