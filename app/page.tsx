@@ -539,12 +539,12 @@ export default function PosPage() {
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
                 <h2 className="text-2xl font-bold text-gray-800">
                   {lang === 'en' ? 'Sales Report' : '營收報表'}
-                  <span className="text-base font-normal text-gray-500 ml-2">
-                    ({reportPeriod === 'day' ? todayStr :
-                      reportPeriod === 'month' ? `${today.getFullYear()}/${today.getMonth() + 1}` :
-                        reportPeriod === 'quarter' ? `${today.getFullYear()} Q${currentQuarter + 1}` :
-                          reportPeriod === 'year' ? today.getFullYear() :
-                            `${customStart || '?'} ~ ${customEnd || '?'}`})
+                  <span className="text-base font-normal text-gray-500 ml-3 bg-gray-100 px-3 py-1 rounded-full">
+                    {reportPeriod === 'day' ? (lang === 'en' ? todayStr : `${today.getFullYear()}年${today.getMonth() + 1}月${today.getDate()}日`) :
+                      reportPeriod === 'month' ? (lang === 'en' ? `${today.getFullYear()}/${today.getMonth() + 1}` : `${today.getFullYear()}年 ${today.getMonth() + 1}月`) :
+                        reportPeriod === 'quarter' ? (lang === 'en' ? `${today.getFullYear()} Q${currentQuarter + 1}` : `${today.getFullYear()}年 第${currentQuarter + 1}季`) :
+                          reportPeriod === 'year' ? (lang === 'en' ? today.getFullYear() : `${today.getFullYear()}年`) :
+                            `${customStart || '?'} ~ ${customEnd || '?'}`}
                   </span>
                 </h2>
 
