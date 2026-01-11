@@ -345,7 +345,7 @@ export default function PosPage() {
             <div className="max-w-4xl mx-auto space-y-6">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
                 <h2 className="text-2xl font-bold text-gray-800">
-                  {lang === 'en' ? '💰 Performance' : '💰 今日戰績'}
+                  {lang === 'en' ? 'Sales Report' : '營收報表'}
                   <span className="text-base font-normal text-gray-500 ml-2">
                     ({reportPeriod === 'day' ? todayStr : reportPeriod === 'month' ? `${today.getFullYear()}/${today.getMonth() + 1}` : reportPeriod === 'quarter' ? `${today.getFullYear()} Q${currentQuarter + 1}` : today.getFullYear()})
                   </span>
