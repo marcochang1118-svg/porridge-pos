@@ -734,18 +734,28 @@ export default function PosPage() {
                               <div className="flex-1 min-w-0 pr-2">
                                 <div className="flex items-center gap-2">
                                   <span className={clsx("font-serif font-bold opacity-50 w-8 text-center flex-shrink-0", groupColor.replace('border-', 'text-').split(' ')[0])}>{toRoman(idx + 1)}.</span>
-                                  <span className="text-gray-700 font-medium">{t.customization} ({item.modifierIds.length})</span>
-                                </div>
-                                {item.modifierIds.length > 0 ? (
-                                  <p className="text-sm text-blue-600 mt-1 truncate">
-                                    {item.modifierIds.map(mid => {
-                                      const m = MODIFIERS.find(mod => mod.id === mid);
-                                      return m ? (lang === 'en' ? (m.nameEn || m.name) : m.name) : '';
-                                    }).join(', ')}
-                                  </p>
-                                ) : (
-                                  <p className="text-sm text-gray-400 mt-1">{t.noNotes}</p>
-                                )}
+                                  {!isSide ? (
+                                    <>
+                                      <span className="text-gray-700 font-medium">{t.customization} ({item.modifierIds.length})</span>
+                                      </div>
+                                      {item.modifierIds.length > 0 ? (
+                                        <p className="text-sm text-blue-600 mt-1 truncate">
+                                          {item.modifierIds.map(mid => {
+                                            const m = MODIFIERS.find(mod => mod.id === mid);
+                                            return m ? (lang === 'en' ? (m.nameEn || m.name) : m.name) : '';
+                                          }).join(', ')}
+                                        </p>
+                                      ) : (
+                                        <p className="text-sm text-gray-400 mt-1">{t.noNotes}</p>
+                                      )}
+                                    </>
+                                  ) : (
+                                    <>
+                                      <span className="text-gray-500 font-medium">{lang === 'en' ? 'Standard' : '標準'} (500cc)</span>
+                                      </div>
+                                      <p className="text-sm text-gray-400 mt-1">{lang === 'en' ? 'No Add-ons' : '無客製化'}</p>
+                                    </>
+                                  )}
                               </div>
                               <div className="flex items-center gap-3 flex-shrink-0">
                                 <span className="text-sm font-medium">${item.totalPrice}</span>
@@ -757,94 +767,95 @@ export default function PosPage() {
                                 </button>
                               </div>
                             </div>
-                          );
+                    );
                         })}
-                      </div>
-                    )}
                   </div>
-                );
+                )
+              }
+                  </div>
+        );
               })
-            ) : (
+        ) : (
               // --- NOT GROUPED MODE (FLAT LIST) ---
               cart.map((item) => {
-                // Color map
-                let cartItemColor = 'bg-white border-gray-100 hover:border-blue-300';
-                if (item.type === 'meat') cartItemColor = 'bg-red-50 border-red-100 hover:border-red-300 text-red-900';
-                if (item.type === 'seafood') cartItemColor = 'bg-blue-50 border-blue-100 hover:border-blue-300 text-blue-900';
-                if (item.type === 'cheese') cartItemColor = 'bg-yellow-50 border-yellow-100 hover:border-yellow-300 text-yellow-900';
-                if (item.type === 'special') cartItemColor = 'bg-purple-50 border-purple-100 hover:border-purple-300 text-purple-900';
+          // Color map
+          let cartItemColor = 'bg-white border-gray-100 hover:border-blue-300';
+        if (item.type === 'meat') cartItemColor = 'bg-red-50 border-red-100 hover:border-red-300 text-red-900';
+        if (item.type === 'seafood') cartItemColor = 'bg-blue-50 border-blue-100 hover:border-blue-300 text-blue-900';
+        if (item.type === 'cheese') cartItemColor = 'bg-yellow-50 border-yellow-100 hover:border-yellow-300 text-yellow-900';
+        if (item.type === 'special') cartItemColor = 'bg-purple-50 border-purple-100 hover:border-purple-300 text-purple-900';
 
                 // Logic for numbering (#I, #II) same as flat approach
                 const sameProductItems = cart.filter(c => c.productId === item.productId);
                 const myIndex = sameProductItems.findIndex(c => c.internalId === item.internalId);
                 const showIndex = sameProductItems.length > 1;
 
-                const displayName = lang === 'en' ? (item.nameEn || item.name) : item.name;
+        const displayName = lang === 'en' ? (item.nameEn || item.name) : item.name;
 
-                return (
-                  <div
-                    key={item.internalId}
-                    onClick={() => openModifierModal(item)}
-                    className={clsx(
-                      "group relative flex cursor-pointer items-center justify-between rounded-lg p-4 shadow-sm border-2 transition-all",
-                      cartItemColor
-                    )}
-                  >
-                    <div className="flex-1 min-w-0 pr-2">
-                      <h3 className="text-lg font-bold flex items-center leading-tight">
-                        <span className="truncate">{displayName}</span>
-                        {showIndex && (
-                          <span className="ml-2 flex-shrink-0 rounded-md bg-black/5 px-2 py-0.5 text-sm font-bold opacity-80 font-serif">
-                            {toRoman(myIndex + 1)}
-                          </span>
-                        )}
-                      </h3>
-                      {item.modifierIds.length > 0 && (
-                        <p className="text-sm opacity-80 mt-1 truncate">
-                          {item.modifierIds.map(mid => {
-                            const m = MODIFIERS.find(mod => mod.id === mid);
-                            return m ? (lang === 'en' ? (m.nameEn || m.name) : m.name) : null;
-                          }).filter(Boolean).join(', ')}
-                        </p>
-                      )}
-                      <p className="text-md font-medium mt-1">${item.totalPrice}</p>
-                    </div>
-                    {/* Actions */}
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        removeFromCart(item.internalId);
-                      }}
-                      className={clsx(
-                        "flex-shrink-0 rounded-full p-4 transition-colors",
-                        "text-gray-400 hover:text-red-600 hover:bg-black/5 active:bg-red-100"
-                      )}
-                    >
-                      <Trash2 size={28} />
-                    </button>
-                  </div>
-                );
-              })
-            )
+        return (
+        <div
+          key={item.internalId}
+          onClick={() => openModifierModal(item)}
+          className={clsx(
+            "group relative flex cursor-pointer items-center justify-between rounded-lg p-4 shadow-sm border-2 transition-all",
+            cartItemColor
           )}
-        </div>
-
-        {/* Cart Footer / Checkout */}
-        <div className="border-t border-gray-200 bg-white p-4 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] flex-shrink-0 flex items-center gap-3">
-          <div className="flex flex-col items-start w-24 flex-shrink-0">
-            <span className="text-sm text-gray-500 font-medium">{t.total}</span>
-            <span className="text-2xl font-bold text-blue-600 truncate w-full">${cartTotal}</span>
+        >
+          <div className="flex-1 min-w-0 pr-2">
+            <h3 className="text-lg font-bold flex items-center leading-tight">
+              <span className="truncate">{displayName}</span>
+              {showIndex && (
+                <span className="ml-2 flex-shrink-0 rounded-md bg-black/5 px-2 py-0.5 text-sm font-bold opacity-80 font-serif">
+                  {toRoman(myIndex + 1)}
+                </span>
+              )}
+            </h3>
+            {item.modifierIds.length > 0 && (
+              <p className="text-sm opacity-80 mt-1 truncate">
+                {item.modifierIds.map(mid => {
+                  const m = MODIFIERS.find(mod => mod.id === mid);
+                  return m ? (lang === 'en' ? (m.nameEn || m.name) : m.name) : null;
+                }).filter(Boolean).join(', ')}
+              </p>
+            )}
+            <p className="text-md font-medium mt-1">${item.totalPrice}</p>
           </div>
-
+          {/* Actions */}
           <button
-            onClick={handleCheckout}
-            className="flex-1 rounded-xl bg-blue-600 py-3 text-xl font-bold text-white shadow-lg transition-all hover:bg-blue-700 active:scale-95 disabled:bg-gray-300 disabled:cursor-not-allowed"
-            disabled={cart.length === 0}
+            onClick={(e) => {
+              e.stopPropagation();
+              removeFromCart(item.internalId);
+            }}
+            className={clsx(
+              "flex-shrink-0 rounded-full p-4 transition-colors",
+              "text-gray-400 hover:text-red-600 hover:bg-black/5 active:bg-red-100"
+            )}
           >
-            {t.checkout}
+            <Trash2 size={28} />
           </button>
         </div>
+        );
+              })
+        )
+          )}
+      </div>
+
+      {/* Cart Footer / Checkout */}
+      <div className="border-t border-gray-200 bg-white p-4 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] flex-shrink-0 flex items-center gap-3">
+        <div className="flex flex-col items-start w-24 flex-shrink-0">
+          <span className="text-sm text-gray-500 font-medium">{t.total}</span>
+          <span className="text-2xl font-bold text-blue-600 truncate w-full">${cartTotal}</span>
+        </div>
+
+        <button
+          onClick={handleCheckout}
+          className="flex-1 rounded-xl bg-blue-600 py-3 text-xl font-bold text-white shadow-lg transition-all hover:bg-blue-700 active:scale-95 disabled:bg-gray-300 disabled:cursor-not-allowed"
+          disabled={cart.length === 0}
+        >
+          {t.checkout}
+        </button>
       </div>
     </div>
+    </div >
   );
 }
