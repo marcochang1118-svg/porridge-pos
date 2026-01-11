@@ -174,7 +174,7 @@ export default function ModifierModal({
                 <div className="border-t border-gray-100 bg-gray-50 p-6 flex items-center justify-between gap-6">
                     <div className="flex flex-col">
                         <span className="text-sm font-medium text-gray-500">
-                            {lang === 'en' ? 'Total' : '總金額'}
+                            {lang === 'en' ? 'Total' : '總金額'} <span className="text-[10px] opacity-30">v1.2</span>
                         </span>
                         <span className="text-3xl font-bold text-blue-600">
                             ${totalPrice}
