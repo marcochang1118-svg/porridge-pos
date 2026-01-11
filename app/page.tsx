@@ -6,6 +6,7 @@ import { Trash2, ChevronDown, ChevronRight, Layers, List, Globe, TrendingUp, Tre
 import { clsx } from 'clsx';
 import ModifierModal from './components/ModifierModal';
 import AddExpenseModal from './components/AddExpenseModal';
+import ProfitChart from './components/ProfitChart';
 
 // Helper for Roman Numerals
 function toRoman(num: number): string {
@@ -629,6 +630,18 @@ export default function PosPage() {
                     {lang === 'en' ? 'Margin' : '淨利率'}: {totalRevenue > 0 ? Math.round((netProfit / totalRevenue) * 100) : 0}%
                   </p>
                 </div>
+              </div>
+
+              {/* Profit Chart (New) */}
+              <div className="mb-6">
+                <ProfitChart
+                  orders={filteredOrders}
+                  expenses={filteredExpenses}
+                  startDate={rangeStart}
+                  endDate={rangeEnd}
+                  period={reportPeriod}
+                  lang={lang}
+                />
               </div>
 
               {/* Expense List (New) */}
