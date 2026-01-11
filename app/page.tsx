@@ -484,30 +484,38 @@ export default function PosPage() {
             </div>
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {PRODUCTS.filter((p) => p.category_id === activeCategory).map((product: any) => {
-                // Color mapping based on type
-                let colorClass = 'bg-white border-gray-200 hover:border-blue-400';
-                if (product.type === 'meat') colorClass = 'bg-red-50 border-red-100 hover:bg-red-100 hover:border-red-300 text-red-900';
-                if (product.type === 'seafood') colorClass = 'bg-blue-50 border-blue-100 hover:bg-blue-100 hover:border-blue-300 text-blue-900';
-                if (product.type === 'cheese') colorClass = 'bg-yellow-50 border-yellow-100 hover:bg-yellow-100 hover:border-yellow-300 text-yellow-900';
-                if (product.type === 'special') colorClass = 'bg-purple-50 border-purple-100 hover:bg-purple-100 hover:border-purple-300 text-purple-900';
+              {PRODUCTS
+                .filter((p) => p.category_id === activeCategory)
+                .sort((a, b) => {
+                  const typeOrder: Record<string, number> = { meat: 1, seafood: 2, cheese: 3, special: 4, side: 5 };
+                  const orderA = typeOrder[a.type] || 99;
+                  const orderB = typeOrder[b.type] || 99;
+                  return orderA - orderB;
+                })
+                .map((product: any) => {
+                  // Color mapping based on type
+                  let colorClass = 'bg-white border-gray-200 hover:border-blue-400';
+                  if (product.type === 'meat') colorClass = 'bg-red-50 border-red-100 hover:bg-red-100 hover:border-red-300 text-red-900';
+                  if (product.type === 'seafood') colorClass = 'bg-blue-50 border-blue-100 hover:bg-blue-100 hover:border-blue-300 text-blue-900';
+                  if (product.type === 'cheese') colorClass = 'bg-yellow-50 border-yellow-100 hover:bg-yellow-100 hover:border-yellow-300 text-yellow-900';
+                  if (product.type === 'special') colorClass = 'bg-purple-50 border-purple-100 hover:bg-purple-100 hover:border-purple-300 text-purple-900';
 
-                return (
-                  <button
-                    key={product.id}
-                    onClick={() => addToCart(product)}
-                    className={clsx(
-                      "flex flex-col items-center justify-center gap-1 rounded-xl border p-4 shadow-sm transition-all active:scale-95 active:shadow-inner hover:shadow-md",
-                      colorClass
-                    )}
-                  >
-                    <span className="text-xl font-bold text-center leading-tight">
-                      {lang === 'en' ? (product.nameEn || product.name) : product.name}
-                    </span>
-                    <span className="text-lg font-medium opacity-80">${product.price}</span>
-                  </button>
-                );
-              })}
+                  return (
+                    <button
+                      key={product.id}
+                      onClick={() => addToCart(product)}
+                      className={clsx(
+                        "flex flex-col items-center justify-center gap-1 rounded-xl border p-4 shadow-sm transition-all active:scale-95 active:shadow-inner hover:shadow-md",
+                        colorClass
+                      )}
+                    >
+                      <span className="text-xl font-bold text-center leading-tight">
+                        {lang === 'en' ? (product.nameEn || product.name) : product.name}
+                      </span>
+                      <span className="text-lg font-medium opacity-80">${product.price}</span>
+                    </button>
+                  );
+                })}
             </div>
           )}
         </div>
