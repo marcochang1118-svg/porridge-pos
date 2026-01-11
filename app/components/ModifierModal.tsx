@@ -48,7 +48,15 @@ export default function ModifierModal({
         const mod = MODIFIERS.find((m: any) => m.id === modId);
         return sum + (mod ? mod.price : 0);
     }, 0);
-    const totalPrice = basePrice + modifiersTotal;
+
+    // Dynamic Discount Logic: If 2+ add-ons, extra -$5 per add-on
+    const addonCount = selectedModifiers.filter(id => {
+        const m = MODIFIERS.find((mod: any) => mod.id === id);
+        return m?.category === 'addon';
+    }).length;
+    const volumeDiscount = addonCount >= 2 ? addonCount * 5 : 0;
+
+    const totalPrice = basePrice + modifiersTotal - volumeDiscount;
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
@@ -104,7 +112,7 @@ export default function ModifierModal({
                     {/* Add-ons Section */}
                     <div>
                         <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center">
-                            🔥 {lang === 'en' ? 'Special Add-ons (-$10)' : '超值加購 (現折$10)'}
+                            🔥 {lang === 'en' ? 'Special Add-ons (Pick 2+ for extra $5 off/item)' : '超值加購 (任選2項，每項再折$5)'}
                         </h3>
                         <div className="grid grid-cols-2 gap-4">
                             {MODIFIERS.filter((mod: any) => mod.category === 'addon').map((mod: any) => {
@@ -136,6 +144,11 @@ export default function ModifierModal({
                 {/* Footer */}
                 <div className="border-t border-gray-100 bg-gray-50 p-6 flex items-center justify-between gap-6">
                     <div className="flex flex-col">
+                        {volumeDiscount > 0 && (
+                            <span className="text-xs font-bold text-green-600 animate-pulse mb-1">
+                                {lang === 'en' ? `Combo Discount: -$${volumeDiscount}` : `已折抵 $${volumeDiscount}`}
+                            </span>
+                        )}
                         <span className="text-sm font-medium text-gray-500">
                             {lang === 'en' ? 'Total' : '總金額'}
                         </span>
