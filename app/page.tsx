@@ -89,7 +89,9 @@ export default function PosPage() {
   // Dashboard State
   const [viewMode, setViewMode] = useState<'pos' | 'dashboard'>('pos');
   const [dailyOrders, setDailyOrders] = useState<{ id: string, items: CartItem[], total: number, date: string, timestamp: number }[]>([]);
-  const [reportPeriod, setReportPeriod] = useState<'day' | 'month' | 'quarter' | 'year'>('day');
+  const [reportPeriod, setReportPeriod] = useState<'day' | 'month' | 'quarter' | 'year' | 'custom'>('day');
+  const [customStart, setCustomStart] = useState('');
+  const [customEnd, setCustomEnd] = useState('');
 
   // Language Preference
   const [lang, setLang] = useState<'zh' | 'en'>('zh');
@@ -130,6 +132,14 @@ export default function PosPage() {
     }
     if (reportPeriod === 'year') {
       return orderDate.getFullYear() === today.getFullYear();
+    }
+    if (reportPeriod === 'custom') {
+      if (!customStart || !customEnd) return false;
+      const start = new Date(customStart);
+      start.setHours(0, 0, 0, 0);
+      const end = new Date(customEnd);
+      end.setHours(23, 59, 59, 999);
+      return orderDate >= start && orderDate <= end;
     }
     return false;
   });
@@ -372,26 +382,51 @@ export default function PosPage() {
                 <h2 className="text-2xl font-bold text-gray-800">
                   {lang === 'en' ? 'Sales Report' : '營收報表'}
                   <span className="text-base font-normal text-gray-500 ml-2">
-                    ({reportPeriod === 'day' ? todayStr : reportPeriod === 'month' ? `${today.getFullYear()}/${today.getMonth() + 1}` : reportPeriod === 'quarter' ? `${today.getFullYear()} Q${currentQuarter + 1}` : today.getFullYear()})
+                    ({reportPeriod === 'day' ? todayStr :
+                      reportPeriod === 'month' ? `${today.getFullYear()}/${today.getMonth() + 1}` :
+                        reportPeriod === 'quarter' ? `${today.getFullYear()} Q${currentQuarter + 1}` :
+                          reportPeriod === 'year' ? today.getFullYear() :
+                            `${customStart || '?'} ~ ${customEnd || '?'}`})
                   </span>
                 </h2>
 
                 {/* Period Toggles */}
-                <div className="flex bg-white rounded-lg p-1 shadow-sm border border-gray-200">
-                  {(['day', 'month', 'quarter', 'year'] as const).map(p => (
-                    <button
-                      key={p}
-                      onClick={() => setReportPeriod(p)}
-                      className={clsx(
-                        "px-4 py-1.5 rounded-md text-sm font-medium transition-all",
-                        reportPeriod === p ? "bg-purple-100 text-purple-700 shadow-sm" : "text-gray-500 hover:bg-gray-50"
-                      )}
-                    >
-                      {lang === 'en'
-                        ? (p === 'day' ? 'Today' : p === 'month' ? 'Month' : p === 'quarter' ? 'Quarter' : 'Year')
-                        : (p === 'day' ? '今日' : p === 'month' ? '本月' : p === 'quarter' ? '本季' : '本年')}
-                    </button>
-                  ))}
+                <div className="flex flex-col gap-2 items-end">
+                  <div className="flex bg-white rounded-lg p-1 shadow-sm border border-gray-200">
+                    {(['day', 'month', 'quarter', 'year', 'custom'] as const).map(p => (
+                      <button
+                        key={p}
+                        onClick={() => setReportPeriod(p)}
+                        className={clsx(
+                          "px-4 py-1.5 rounded-md text-sm font-medium transition-all",
+                          reportPeriod === p ? "bg-purple-100 text-purple-700 shadow-sm" : "text-gray-500 hover:bg-gray-50"
+                        )}
+                      >
+                        {lang === 'en'
+                          ? (p === 'day' ? 'Today' : p === 'month' ? 'Month' : p === 'quarter' ? 'Quarter' : p === 'year' ? 'Year' : 'Custom')
+                          : (p === 'day' ? '本日' : p === 'month' ? '本月' : p === 'quarter' ? '本季' : p === 'year' ? '本年' : '自選')}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Custom Date Inputs */}
+                  {reportPeriod === 'custom' && (
+                    <div className="flex items-center gap-2 bg-white p-2 rounded-lg shadow-sm border border-gray-200 animate-in fade-in slide-in-from-top-2">
+                      <input
+                        type="date"
+                        value={customStart}
+                        onChange={(e) => setCustomStart(e.target.value)}
+                        className="border border-gray-300 rounded px-2 py-1 text-sm outline-none focus:border-purple-500"
+                      />
+                      <span className="text-gray-400">~</span>
+                      <input
+                        type="date"
+                        value={customEnd}
+                        onChange={(e) => setCustomEnd(e.target.value)}
+                        className="border border-gray-300 rounded px-2 py-1 text-sm outline-none focus:border-purple-500"
+                      />
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -400,16 +435,16 @@ export default function PosPage() {
                 <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
                   <p className="text-gray-500 font-medium mb-1">
                     {lang === 'en'
-                      ? (reportPeriod === 'day' ? "Today's Revenue" : reportPeriod === 'month' ? "Monthly Revenue" : reportPeriod === 'quarter' ? "Quarterly Revenue" : "Yearly Revenue")
-                      : (reportPeriod === 'day' ? "今日總營業額" : reportPeriod === 'month' ? "本月總營業額" : reportPeriod === 'quarter' ? "本季總營業額" : "本年總營業額")}
+                      ? (reportPeriod === 'day' ? "Today's Revenue" : reportPeriod === 'month' ? "Monthly Revenue" : reportPeriod === 'quarter' ? "Quarterly Revenue" : reportPeriod === 'year' ? "Yearly Revenue" : "Revenue (Custom)")
+                      : (reportPeriod === 'day' ? "本日總營業額" : reportPeriod === 'month' ? "本月總營業額" : reportPeriod === 'quarter' ? "本季總營業額" : reportPeriod === 'year' ? "本年總營業額" : "指定期間總營業額")}
                   </p>
                   <p className="text-4xl font-bold text-blue-600">${totalRevenue}</p>
                 </div>
                 <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
                   <p className="text-gray-500 font-medium mb-1">
                     {lang === 'en'
-                      ? (reportPeriod === 'day' ? "Today's Orders" : reportPeriod === 'month' ? "Monthly Orders" : reportPeriod === 'quarter' ? "Quarterly Orders" : "Yearly Orders")
-                      : (reportPeriod === 'day' ? "今日訂單數" : reportPeriod === 'month' ? "本月訂單數" : reportPeriod === 'quarter' ? "本季訂單數" : "本年訂單數")}
+                      ? (reportPeriod === 'day' ? "Today's Orders" : reportPeriod === 'month' ? "Monthly Orders" : reportPeriod === 'quarter' ? "Quarterly Orders" : reportPeriod === 'year' ? "Yearly Orders" : "Orders (Custom)")
+                      : (reportPeriod === 'day' ? "本日訂單數" : reportPeriod === 'month' ? "本月訂單數" : reportPeriod === 'quarter' ? "本季訂單數" : reportPeriod === 'year' ? "本年訂單數" : "指定期間訂單數")}
                   </p>
                   <p className="text-4xl font-bold text-gray-800">{totalOrdersCount}</p>
                 </div>
