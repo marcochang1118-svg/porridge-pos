@@ -376,396 +376,238 @@ export default function PosPage() {
                   </span>
                 </h2>
 
-                {/* Modifiers Grid */}
-                <div className="flex-1 overflow-y-auto p-4">
-                  <div className="grid grid-cols-2 gap-3">
-                    {MODIFIERS.filter((m: any) => m.category !== 'addon').map((modifier) => {
-                      const isSelected = tempModifierIds.includes(modifier.id);
-                      return (
-                        <button
-                          key={modifier.id}
-                          onClick={() => toggleModifier(modifier.id)}
-                          className={clsx(
-                            'flex flex-col items-center justify-center p-3 rounded-lg border-2 transition-all',
-                            isSelected
-                              ? 'border-purple-600 bg-purple-50 text-purple-700'
-                              : 'border-gray-200 bg-white hover:border-gray-300'
-                          )}
-                        >
-                          <span className="font-bold">{lang === 'en' ? (modifier.nameEn || modifier.name) : modifier.name}</span>
-                          <span className="text-sm text-gray-500">
-                            {modifier.price > 0 ? `+$${modifier.price}` : 'Free'}
-                          </span>
-                        </button>
-                      );
-                    })}
-                  </div>
-
-                  {/* Add-ons Section */}
-                  <div className="mt-6">
-                    <h3 className="text-lg font-bold text-gray-800 mb-3 flex items-center">
-                      🔥 {lang === 'en' ? 'Special Add-ons (-$10)' : '超值加購 (現折$10)'}
-                    </h3>
-                    <div className="grid grid-cols-2 gap-3">
-                      {MODIFIERS.filter((m: any) => m.category === 'addon').map((modifier) => {
-                        const isSelected = tempModifierIds.includes(modifier.id);
-                        return (
-                          <button
-                            key={modifier.id}
-                            onClick={() => toggleModifier(modifier.id)}
-                            className={clsx(
-                              'flex flex-col items-center justify-center p-3 rounded-lg border-2 transition-all',
-                              isSelected
-                                ? 'border-green-600 bg-green-50 text-green-700'
-                                : 'border-green-200 bg-white hover:border-green-300'
-                            )}
-                          >
-                            <span className="font-bold">{lang === 'en' ? (modifier.nameEn || modifier.name) : modifier.name}</span>
-                            <span className="text-sm font-bold text-red-500">
-                              {modifier.price > 0 ? `+$${modifier.price}` : 'Free'}
-                            </span>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Key Metrics */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
-                    <p className="text-gray-500 font-medium mb-1">
+                {/* Period Toggles */}
+                <div className="flex bg-white rounded-lg p-1 shadow-sm border border-gray-200">
+                  {(['day', 'month', 'quarter', 'year'] as const).map(p => (
+                    <button
+                      key={p}
+                      onClick={() => setReportPeriod(p)}
+                      className={clsx(
+                        "px-4 py-1.5 rounded-md text-sm font-medium transition-all",
+                        reportPeriod === p ? "bg-purple-100 text-purple-700 shadow-sm" : "text-gray-500 hover:bg-gray-50"
+                      )}
+                    >
                       {lang === 'en'
-                        ? (reportPeriod === 'day' ? "Today's Revenue" : reportPeriod === 'month' ? "Monthly Revenue" : reportPeriod === 'quarter' ? "Quarterly Revenue" : "Yearly Revenue")
-                        : (reportPeriod === 'day' ? "今日總營業額" : reportPeriod === 'month' ? "本月總營業額" : reportPeriod === 'quarter' ? "本季總營業額" : "本年總營業額")}
-                    </p>
-                    <p className="text-4xl font-bold text-blue-600">${totalRevenue}</p>
-                  </div>
-                  <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
-                    <p className="text-gray-500 font-medium mb-1">
-                      {lang === 'en'
-                        ? (reportPeriod === 'day' ? "Today's Orders" : reportPeriod === 'month' ? "Monthly Orders" : reportPeriod === 'quarter' ? "Quarterly Orders" : "Yearly Orders")
-                        : (reportPeriod === 'day' ? "今日訂單數" : reportPeriod === 'month' ? "本月訂單數" : reportPeriod === 'quarter' ? "本季訂單數" : "本年訂單數")}
-                    </p>
-                    <p className="text-4xl font-bold text-gray-800">{totalOrdersCount}</p>
-                  </div>
+                        ? (p === 'day' ? 'Today' : p === 'month' ? 'Month' : p === 'quarter' ? 'Quarter' : 'Year')
+                        : (p === 'day' ? '今日' : p === 'month' ? '本月' : p === 'quarter' ? '本季' : '本年')}
+                    </button>
+                  ))}
                 </div>
+              </div>
 
-                {/* Product Breakdown */}
+              {/* Key Metrics */}
+              <div className="grid grid-cols-2 gap-4">
                 <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
-                  <h3 className="text-lg font-bold text-gray-800 mb-4 border-b pb-2">
-                    {lang === 'en' ? 'Product Sales' : '熱銷商品統計'}
-                  </h3>
-                  <div className="space-y-3">
-                    {Object.keys(productStats).length === 0 ? (
-                      <p className="text-gray-400 text-center py-4">{lang === 'en' ? 'No sales yet today.' : '尚無銷售資料'}</p>
-                    ) : (
-                      Object.entries(productStats)
-                        .sort(([, a], [, b]) => b - a)
-                        .map(([name, count]) => (
-                          <div key={name} className="flex items-center justify-between">
-                            <span className="text-gray-700 font-medium">{name}</span>
-                            <span className="bg-gray-100 text-gray-600 px-3 py-1 rounded-full text-sm font-bold">x {count}</span>
-                          </div>
-                        ))
-                    )}
-                  </div>
+                  <p className="text-gray-500 font-medium mb-1">
+                    {lang === 'en'
+                      ? (reportPeriod === 'day' ? "Today's Revenue" : reportPeriod === 'month' ? "Monthly Revenue" : reportPeriod === 'quarter' ? "Quarterly Revenue" : "Yearly Revenue")
+                      : (reportPeriod === 'day' ? "今日總營業額" : reportPeriod === 'month' ? "本月總營業額" : reportPeriod === 'quarter' ? "本季總營業額" : "本年總營業額")}
+                  </p>
+                  <p className="text-4xl font-bold text-blue-600">${totalRevenue}</p>
                 </div>
-
-                {/* Hourly Analysis (Peak Hours) */}
                 <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
-                  <h3 className="text-lg font-bold text-gray-800 mb-6 border-b pb-2">
-                    {lang === 'en' ? 'Hourly Sales (Peak Times)' : '熱銷時段分析'}
-                  </h3>
+                  <p className="text-gray-500 font-medium mb-1">
+                    {lang === 'en'
+                      ? (reportPeriod === 'day' ? "Today's Orders" : reportPeriod === 'month' ? "Monthly Orders" : reportPeriod === 'quarter' ? "Quarterly Orders" : "Yearly Orders")
+                      : (reportPeriod === 'day' ? "今日訂單數" : reportPeriod === 'month' ? "本月訂單數" : reportPeriod === 'quarter' ? "本季訂單數" : "本年訂單數")}
+                  </p>
+                  <p className="text-4xl font-bold text-gray-800">{totalOrdersCount}</p>
+                </div>
+              </div>
 
-                  {Object.keys(hourlyStats).length === 0 ? (
-                    <p className="text-gray-400 text-center py-4">{lang === 'en' ? 'No sales yet today.' : '尚無時段資料'}</p>
+              {/* Product Breakdown */}
+              <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
+                <h3 className="text-lg font-bold text-gray-800 mb-4 border-b pb-2">
+                  {lang === 'en' ? 'Product Sales' : '熱銷商品統計'}
+                </h3>
+                <div className="space-y-3">
+                  {Object.keys(productStats).length === 0 ? (
+                    <p className="text-gray-400 text-center py-4">{lang === 'en' ? 'No sales yet today.' : '尚無銷售資料'}</p>
                   ) : (
-                    <div className="space-y-6">
-                      {/* Chart & Details */}
-                      {Object.entries(hourlyStats)
-                        .sort(([hourA], [hourB]) => parseInt(hourA) - parseInt(hourB))
-                        .map(([hourStr, stats]) => {
-                          const hour = parseInt(hourStr);
-                          const listTime = `${hour}:00 - ${hour + 1}:00`;
-                          const percentage = (stats.revenue / maxHourlyRevenue) * 100;
-                          const topProducts = Object.entries(stats.products)
-                            .sort(([, a], [, b]) => b - a)
-                            .slice(0, 3); // Top 3
-
-                          return (
-                            <div key={hour} className="flex flex-col gap-2">
-                              {/* Header row */}
-                              <div className="flex justify-between items-end">
-                                <span className="font-bold text-gray-700 w-32">{listTime}</span>
-                                <div className="flex gap-4 text-sm">
-                                  <span className="text-blue-600 font-bold">${stats.revenue}</span>
-                                  <span className="text-gray-500">{stats.count} {lang === 'en' ? 'orders' : '單'}</span>
-                                </div>
-                              </div>
-
-                              {/* Bar Chart */}
-                              <div className="w-full bg-gray-100 rounded-full h-2.5 mb-1 overflow-hidden">
-                                <div
-                                  className="bg-blue-500 h-2.5 rounded-full transition-all duration-500"
-                                  style={{ width: `${percentage}%` }}
-                                ></div>
-                              </div>
-
-                              {/* Detailed Product Breakdown for this hour */}
-                              <div className="pl-2 border-l-2 border-gray-200 ml-1">
-                                <div className="flex flex-wrap gap-2 mt-1">
-                                  {topProducts.map(([pName, pCount]) => (
-                                    <span key={pName} className="text-xs bg-orange-50 text-orange-800 px-2 py-0.5 rounded border border-orange-100">
-                                      {pName} <span className="font-bold opacity-70">x{pCount}</span>
-                                    </span>
-                                  ))}
-                                </div>
-                              </div>
-                            </div>
-                          );
-                        })}
-                    </div>
+                    Object.entries(productStats)
+                      .sort(([, a], [, b]) => b - a)
+                      .map(([name, count]) => (
+                        <div key={name} className="flex items-center justify-between">
+                          <span className="text-gray-700 font-medium">{name}</span>
+                          <span className="bg-gray-100 text-gray-600 px-3 py-1 rounded-full text-sm font-bold">x {count}</span>
+                        </div>
+                      ))
                   )}
                 </div>
-
-                <div className="text-center pt-8">
-                  <button
-                    onClick={() => {
-                      if (confirm(lang === 'en' ? 'Clear all history?' : '確定要清除所有紀錄嗎？')) {
-                        setDailyOrders([]);
-                        localStorage.removeItem('dailyOrders');
-                      }
-                    }}
-                    className="text-red-500 text-sm hover:underline opacity-60"
-                  >
-                    {lang === 'en' ? 'Reset Data' : '清除所有資料'}
-                  </button>
-                </div>
               </div>
-              ) : (
-              <>
-                {/* Mobile View: Single Grid (Sorted) */}
-                <div className="grid grid-cols-2 gap-4 lg:hidden">
-                  {PRODUCTS
-                    .filter((p) => p.category_id === activeCategory)
-                    .sort((a, b) => {
-                      const typeOrder: Record<string, number> = { meat: 1, seafood: 2, cheese: 3, special: 4, side: 5, addon: 6 };
-                      return (typeOrder[a.type] || 99) - (typeOrder[b.type] || 99);
-                    })
-                    .map((product: any) => (
-                      <ProductCard key={product.id} product={product} addToCart={addToCart} lang={lang} />
-                    ))}
-                </div>
 
-                {/* Desktop View: Separated Rows by Type */}
-                <div className="hidden lg:block space-y-8">
-                  {['meat', 'seafood', 'cheese', 'special', 'side', 'addon'].map((type) => {
-                    const items = PRODUCTS.filter(p => p.category_id === activeCategory && p.type === type);
-                    if (items.length === 0) return null;
+              {/* Hourly Analysis (Peak Hours) */}
+              <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
+                <h3 className="text-lg font-bold text-gray-800 mb-6 border-b pb-2">
+                  {lang === 'en' ? 'Hourly Sales (Peak Times)' : '熱銷時段分析'}
+                </h3>
 
-                    return (
-                      <div key={type} className="space-y-3">
-                        <div className="grid grid-cols-4 gap-4">
-                          {items.map((product: any) => (
-                            <ProductCard key={product.id} product={product} addToCart={addToCart} lang={lang} />
-                          ))}
-                        </div>
-                        <div className="h-px bg-gray-200 w-full"></div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </>
-          )}
-            </div>
-      </div>
+                {Object.keys(hourlyStats).length === 0 ? (
+                  <p className="text-gray-400 text-center py-4">{lang === 'en' ? 'No sales yet today.' : '尚無時段資料'}</p>
+                ) : (
+                  <div className="space-y-6">
+                    {/* Chart & Details */}
+                    {Object.entries(hourlyStats)
+                      .sort(([hourA], [hourB]) => parseInt(hourA) - parseInt(hourB))
+                      .map(([hourStr, stats]) => {
+                        const hour = parseInt(hourStr);
+                        const listTime = `${hour}:00 - ${hour + 1}:00`;
+                        const percentage = (stats.revenue / maxHourlyRevenue) * 100;
+                        const topProducts = Object.entries(stats.products)
+                          .sort(([, a], [, b]) => b - a)
+                          .slice(0, 3); // Top 3
 
-        {/* RIGHT: Cart */}
-        <div className="flex w-full lg:w-[30%] h-[40%] lg:h-full flex-col bg-gray-50">
-
-          {/* Cart Header */}
-          <div className="flex h-16 items-center justify-between border-b border-gray-200 px-4 shadow-sm bg-white flex-shrink-0">
-            <div className="flex items-center gap-2">
-              <h2 className="text-xl font-bold text-gray-800">{t.cartTitle}</h2>
-              <span className="rounded-full bg-blue-100 px-3 py-1 text-sm font-bold text-blue-800">
-                {cart.length} {t.items}
-              </span>
-            </div>
-
-            {/* View Toggle */}
-            <button
-              onClick={() => setIsGroupingEnabled(!isGroupingEnabled)}
-              className="flex items-center gap-1 rounded-md bg-gray-100 px-3 py-1.5 text-sm font-medium text-gray-600 hover:bg-gray-200 transition-colors"
-            >
-              {isGroupingEnabled ? <Layers size={16} /> : <List size={16} />}
-              <span>{isGroupingEnabled ? t.grouping : t.noGrouping}</span>
-            </button>
-          </div>
-
-          {/* Cart Items List */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-3">
-            {cart.length === 0 ? (
-              <div className="flex h-full flex-col items-center justify-center text-gray-400 opacity-50">
-                <span className="text-6xl">🛒</span>
-                <p className="mt-4 text-lg">{t.emptyCartTitle}</p>
-              </div>
-            ) : (
-              // RENDER LOGIC
-              isGroupingEnabled ? (
-                // --- IS GROUPED MODE ---
-                uniqueProductIds.map((productId) => {
-                  const items = groupedCart[productId];
-                  const firstItem = items[0];
-                  const count = items.length;
-                  const isExpanded = expandedGroups.includes(productId);
-
-                  // Color map
-                  let groupColor = 'border-gray-100 hover:border-blue-300';
-                  let bgColor = 'bg-white';
-                  if (firstItem.type === 'meat') { groupColor = 'border-red-100 hover:border-red-300 text-red-900'; bgColor = 'bg-red-50'; }
-                  if (firstItem.type === 'seafood') { groupColor = 'border-blue-100 hover:border-blue-300 text-blue-900'; bgColor = 'bg-blue-50'; }
-                  if (firstItem.type === 'cheese') { groupColor = 'border-yellow-100 hover:border-yellow-300 text-yellow-900'; bgColor = 'bg-yellow-50'; }
-                  if (firstItem.type === 'special') { groupColor = 'border-purple-100 hover:border-purple-300 text-purple-900'; bgColor = 'bg-purple-50'; }
-
-                  const displayName = lang === 'en' ? (firstItem.nameEn || firstItem.name) : firstItem.name;
-
-                  // Single item render (Standard)
-                  if (count === 1) {
-                    const item = firstItem;
-                    return (
-                      <div
-                        key={item.internalId}
-                        onClick={() => openModifierModal(item)}
-                        className={clsx(
-                          "group relative flex cursor-pointer items-center justify-between rounded-lg p-4 shadow-sm border-2 transition-all",
-                          bgColor, groupColor
-                        )}
-                      >
-                        <div className="flex-1 min-w-0 pr-2">
-                          <h3 className="text-lg font-bold leading-tight truncate">{displayName}</h3>
-                          {item.modifierIds.length > 0 && (
-                            <p className="text-sm opacity-80 mt-1 truncate">
-                              {item.modifierIds.map(mid => {
-                                const m = MODIFIERS.find(mod => mod.id === mid);
-                                return m ? (lang === 'en' ? (m.nameEn || m.name) : m.name) : null;
-                              }).filter(Boolean).join(', ')}
-                            </p>
-                          )}
-                          <p className="text-md font-medium mt-1">${item.totalPrice}</p>
-                        </div>
-                        <button
-                          onClick={(e) => { e.stopPropagation(); removeFromCart(item.internalId); }}
-                          className={clsx(
-                            "flex-shrink-0 rounded-full p-4 transition-colors",
-                            "text-gray-400 hover:text-red-600 hover:bg-black/5 active:bg-red-100"
-                          )}
-                        >
-                          <Trash2 size={28} />
-                        </button>
-                      </div>
-                    );
-                  }
-
-                  // Multiple items render (Group)
-                  return (
-                    <div key={productId} className="rounded-lg shadow-sm overflow-hidden border border-gray-200 bg-white">
-                      {/* Group Header */}
-                      <div
-                        onClick={() => toggleGroup(productId)}
-                        className={clsx(
-                          "flex cursor-pointer items-center justify-between p-4 transition-colors",
-                          bgColor
-                        )}
-                      >
-                        <div className="flex items-center gap-2 min-w-0">
-                          {isExpanded ? <ChevronDown size={20} className="flex-shrink-0" /> : <ChevronRight size={20} className="flex-shrink-0" />}
-                          <h3 className={clsx("text-lg font-bold leading-tight truncate", groupColor.replace('border-', 'text-').split(' ')[0])}>
-                            {displayName}
-                            <span className="ml-2 rounded-full bg-black/80 px-2 py-0.5 text-sm text-white">x{count}</span>
-                          </h3>
-                        </div>
-                        <div className="text-right pl-2 flex-shrink-0">
-                          <p className="font-bold text-gray-700">${items.reduce((sum, i) => sum + i.totalPrice, 0)}</p>
-                        </div>
-                      </div>
-
-                      {/* Expanded Items */}
-                      {isExpanded && (
-                        <div className="border-t border-gray-100 bg-gray-50/50 p-2 space-y-2">
-                          {items.map((item, idx) => (
-                            <div
-                              key={item.internalId}
-                              onClick={() => openModifierModal(item)}
-                              className="flex cursor-pointer items-center justify-between rounded-md bg-white p-3 shadow-sm border border-gray-100 hover:border-blue-300 ml-4"
-                            >
-                              <div className="flex-1 min-w-0 pr-2">
-                                <div className="flex items-center gap-2">
-                                  <span className={clsx("font-serif font-bold opacity-50 w-8 text-center flex-shrink-0", groupColor.replace('border-', 'text-').split(' ')[0])}>{toRoman(idx + 1)}.</span>
-                                  <span className="text-gray-700 font-medium">{t.customization} ({item.modifierIds.length})</span>
-                                </div>
-                                {item.modifierIds.length > 0 ? (
-                                  <p className="text-sm text-blue-600 mt-1 truncate">
-                                    {item.modifierIds.map(mid => {
-                                      const m = MODIFIERS.find(mod => mod.id === mid);
-                                      return m ? (lang === 'en' ? (m.nameEn || m.name) : m.name) : '';
-                                    }).join(', ')}
-                                  </p>
-                                ) : (
-                                  <p className="text-sm text-gray-400 mt-1">{t.noNotes}</p>
-                                )}
-                              </div>
-                              <div className="flex items-center gap-3 flex-shrink-0">
-                                <span className="text-sm font-medium">${item.totalPrice}</span>
-                                <button
-                                  onClick={(e) => { e.stopPropagation(); removeFromCart(item.internalId); }}
-                                  className="rounded-full p-2 text-gray-300 hover:text-red-500 hover:bg-red-50 transition-colors"
-                                >
-                                  <Trash2 size={24} />
-                                </button>
+                        return (
+                          <div key={hour} className="flex flex-col gap-2">
+                            {/* Header row */}
+                            <div className="flex justify-between items-end">
+                              <span className="font-bold text-gray-700 w-32">{listTime}</span>
+                              <div className="flex gap-4 text-sm">
+                                <span className="text-blue-600 font-bold">${stats.revenue}</span>
+                                <span className="text-gray-500">{stats.count} {lang === 'en' ? 'orders' : '單'}</span>
                               </div>
                             </div>
-                          ))}
-                        </div>
-                      )}
+
+                            {/* Bar Chart */}
+                            <div className="w-full bg-gray-100 rounded-full h-2.5 mb-1 overflow-hidden">
+                              <div
+                                className="bg-blue-500 h-2.5 rounded-full transition-all duration-500"
+                                style={{ width: `${percentage}%` }}
+                              ></div>
+                            </div>
+
+                            {/* Detailed Product Breakdown for this hour */}
+                            <div className="pl-2 border-l-2 border-gray-200 ml-1">
+                              <div className="flex flex-wrap gap-2 mt-1">
+                                {topProducts.map(([pName, pCount]) => (
+                                  <span key={pName} className="text-xs bg-orange-50 text-orange-800 px-2 py-0.5 rounded border border-orange-100">
+                                    {pName} <span className="font-bold opacity-70">x{pCount}</span>
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                  </div>
+                )}
+              </div>
+
+              <div className="text-center pt-8">
+                <button
+                  onClick={() => {
+                    if (confirm(lang === 'en' ? 'Clear all history?' : '確定要清除所有紀錄嗎？')) {
+                      setDailyOrders([]);
+                      localStorage.removeItem('dailyOrders');
+                    }
+                  }}
+                  className="text-red-500 text-sm hover:underline opacity-60"
+                >
+                  {lang === 'en' ? 'Reset Data' : '清除所有資料'}
+                </button>
+              </div>
+            </div>
+          ) : (
+            <>
+              {/* Mobile View: Single Grid (Sorted) */}
+              <div className="grid grid-cols-2 gap-4 lg:hidden">
+                {PRODUCTS
+                  .filter((p) => p.category_id === activeCategory)
+                  .sort((a, b) => {
+                    const typeOrder: Record<string, number> = { meat: 1, seafood: 2, cheese: 3, special: 4, side: 5, addon: 6 };
+                    return (typeOrder[a.type] || 99) - (typeOrder[b.type] || 99);
+                  })
+                  .map((product: any) => (
+                    <ProductCard key={product.id} product={product} addToCart={addToCart} lang={lang} />
+                  ))}
+              </div>
+
+              {/* Desktop View: Separated Rows by Type */}
+              <div className="hidden lg:block space-y-8">
+                {['meat', 'seafood', 'cheese', 'special', 'side', 'addon'].map((type) => {
+                  const items = PRODUCTS.filter(p => p.category_id === activeCategory && p.type === type);
+                  if (items.length === 0) return null;
+
+                  return (
+                    <div key={type} className="space-y-3">
+                      <div className="grid grid-cols-4 gap-4">
+                        {items.map((product: any) => (
+                          <ProductCard key={product.id} product={product} addToCart={addToCart} lang={lang} />
+                        ))}
+                      </div>
+                      <div className="h-px bg-gray-200 w-full"></div>
                     </div>
                   );
-                })
-              ) : (
-                // --- NOT GROUPED MODE (FLAT LIST) ---
-                cart.map((item) => {
-                  // Color map
-                  let cartItemColor = 'bg-white border-gray-100 hover:border-blue-300';
-                  if (item.type === 'meat') cartItemColor = 'bg-red-50 border-red-100 hover:border-red-300 text-red-900';
-                  if (item.type === 'seafood') cartItemColor = 'bg-blue-50 border-blue-100 hover:border-blue-300 text-blue-900';
-                  if (item.type === 'cheese') cartItemColor = 'bg-yellow-50 border-yellow-100 hover:border-yellow-300 text-yellow-900';
-                  if (item.type === 'special') cartItemColor = 'bg-purple-50 border-purple-100 hover:border-purple-300 text-purple-900';
+                })}
+              </div>
+            </>
+          )}
+        </div>
+      </div>
 
-                  // Logic for numbering (#I, #II) same as flat approach
-                  const sameProductItems = cart.filter(c => c.productId === item.productId);
-                  const myIndex = sameProductItems.findIndex(c => c.internalId === item.internalId);
-                  const showIndex = sameProductItems.length > 1;
+      {/* RIGHT: Cart */}
+      <div className="flex w-full lg:w-[30%] h-[40%] lg:h-full flex-col bg-gray-50">
 
-                  const displayName = lang === 'en' ? (item.nameEn || item.name) : item.name;
+        {/* Cart Header */}
+        <div className="flex h-16 items-center justify-between border-b border-gray-200 px-4 shadow-sm bg-white flex-shrink-0">
+          <div className="flex items-center gap-2">
+            <h2 className="text-xl font-bold text-gray-800">{t.cartTitle}</h2>
+            <span className="rounded-full bg-blue-100 px-3 py-1 text-sm font-bold text-blue-800">
+              {cart.length} {t.items}
+            </span>
+          </div>
 
+          {/* View Toggle */}
+          <button
+            onClick={() => setIsGroupingEnabled(!isGroupingEnabled)}
+            className="flex items-center gap-1 rounded-md bg-gray-100 px-3 py-1.5 text-sm font-medium text-gray-600 hover:bg-gray-200 transition-colors"
+          >
+            {isGroupingEnabled ? <Layers size={16} /> : <List size={16} />}
+            <span>{isGroupingEnabled ? t.grouping : t.noGrouping}</span>
+          </button>
+        </div>
+
+        {/* Cart Items List */}
+        <div className="flex-1 overflow-y-auto p-4 space-y-3">
+          {cart.length === 0 ? (
+            <div className="flex h-full flex-col items-center justify-center text-gray-400 opacity-50">
+              <span className="text-6xl">🛒</span>
+              <p className="mt-4 text-lg">{t.emptyCartTitle}</p>
+            </div>
+          ) : (
+            // RENDER LOGIC
+            isGroupingEnabled ? (
+              // --- IS GROUPED MODE ---
+              uniqueProductIds.map((productId) => {
+                const items = groupedCart[productId];
+                const firstItem = items[0];
+                const count = items.length;
+                const isExpanded = expandedGroups.includes(productId);
+
+                // Color map
+                let groupColor = 'border-gray-100 hover:border-blue-300';
+                let bgColor = 'bg-white';
+                if (firstItem.type === 'meat') { groupColor = 'border-red-100 hover:border-red-300 text-red-900'; bgColor = 'bg-red-50'; }
+                if (firstItem.type === 'seafood') { groupColor = 'border-blue-100 hover:border-blue-300 text-blue-900'; bgColor = 'bg-blue-50'; }
+                if (firstItem.type === 'cheese') { groupColor = 'border-yellow-100 hover:border-yellow-300 text-yellow-900'; bgColor = 'bg-yellow-50'; }
+                if (firstItem.type === 'special') { groupColor = 'border-purple-100 hover:border-purple-300 text-purple-900'; bgColor = 'bg-purple-50'; }
+
+                const displayName = lang === 'en' ? (firstItem.nameEn || firstItem.name) : firstItem.name;
+
+                // Single item render (Standard)
+                if (count === 1) {
+                  const item = firstItem;
                   return (
                     <div
                       key={item.internalId}
                       onClick={() => openModifierModal(item)}
                       className={clsx(
                         "group relative flex cursor-pointer items-center justify-between rounded-lg p-4 shadow-sm border-2 transition-all",
-                        cartItemColor
+                        bgColor, groupColor
                       )}
                     >
                       <div className="flex-1 min-w-0 pr-2">
-                        <h3 className="text-lg font-bold flex items-center leading-tight">
-                          <span className="truncate">{displayName}</span>
-                          {showIndex && (
-                            <span className="ml-2 flex-shrink-0 rounded-md bg-black/5 px-2 py-0.5 text-sm font-bold opacity-80 font-serif">
-                              {toRoman(myIndex + 1)}
-                            </span>
-                          )}
-                        </h3>
+                        <h3 className="text-lg font-bold leading-tight truncate">{displayName}</h3>
                         {item.modifierIds.length > 0 && (
                           <p className="text-sm opacity-80 mt-1 truncate">
                             {item.modifierIds.map(mid => {
@@ -776,12 +618,8 @@ export default function PosPage() {
                         )}
                         <p className="text-md font-medium mt-1">${item.totalPrice}</p>
                       </div>
-                      {/* Actions */}
                       <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          removeFromCart(item.internalId);
-                        }}
+                        onClick={(e) => { e.stopPropagation(); removeFromCart(item.internalId); }}
                         className={clsx(
                           "flex-shrink-0 rounded-full p-4 transition-colors",
                           "text-gray-400 hover:text-red-600 hover:bg-black/5 active:bg-red-100"
@@ -791,27 +629,153 @@ export default function PosPage() {
                       </button>
                     </div>
                   );
-                })
-              )
-            )}
+                }
+
+                // Multiple items render (Group)
+                return (
+                  <div key={productId} className="rounded-lg shadow-sm overflow-hidden border border-gray-200 bg-white">
+                    {/* Group Header */}
+                    <div
+                      onClick={() => toggleGroup(productId)}
+                      className={clsx(
+                        "flex cursor-pointer items-center justify-between p-4 transition-colors",
+                        bgColor
+                      )}
+                    >
+                      <div className="flex items-center gap-2 min-w-0">
+                        {isExpanded ? <ChevronDown size={20} className="flex-shrink-0" /> : <ChevronRight size={20} className="flex-shrink-0" />}
+                        <h3 className={clsx("text-lg font-bold leading-tight truncate", groupColor.replace('border-', 'text-').split(' ')[0])}>
+                          {displayName}
+                          <span className="ml-2 rounded-full bg-black/80 px-2 py-0.5 text-sm text-white">x{count}</span>
+                        </h3>
+                      </div>
+                      <div className="text-right pl-2 flex-shrink-0">
+                        <p className="font-bold text-gray-700">${items.reduce((sum, i) => sum + i.totalPrice, 0)}</p>
+                      </div>
+                    </div>
+
+                    {/* Expanded Items */}
+                    {isExpanded && (
+                      <div className="border-t border-gray-100 bg-gray-50/50 p-2 space-y-2">
+                        {items.map((item, idx) => (
+                          <div
+                            key={item.internalId}
+                            onClick={() => openModifierModal(item)}
+                            className="flex cursor-pointer items-center justify-between rounded-md bg-white p-3 shadow-sm border border-gray-100 hover:border-blue-300 ml-4"
+                          >
+                            <div className="flex-1 min-w-0 pr-2">
+                              <div className="flex items-center gap-2">
+                                <span className={clsx("font-serif font-bold opacity-50 w-8 text-center flex-shrink-0", groupColor.replace('border-', 'text-').split(' ')[0])}>{toRoman(idx + 1)}.</span>
+                                <span className="text-gray-700 font-medium">{t.customization} ({item.modifierIds.length})</span>
+                              </div>
+                              {item.modifierIds.length > 0 ? (
+                                <p className="text-sm text-blue-600 mt-1 truncate">
+                                  {item.modifierIds.map(mid => {
+                                    const m = MODIFIERS.find(mod => mod.id === mid);
+                                    return m ? (lang === 'en' ? (m.nameEn || m.name) : m.name) : '';
+                                  }).join(', ')}
+                                </p>
+                              ) : (
+                                <p className="text-sm text-gray-400 mt-1">{t.noNotes}</p>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-3 flex-shrink-0">
+                              <span className="text-sm font-medium">${item.totalPrice}</span>
+                              <button
+                                onClick={(e) => { e.stopPropagation(); removeFromCart(item.internalId); }}
+                                className="rounded-full p-2 text-gray-300 hover:text-red-500 hover:bg-red-50 transition-colors"
+                              >
+                                <Trash2 size={24} />
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })
+            ) : (
+              // --- NOT GROUPED MODE (FLAT LIST) ---
+              cart.map((item) => {
+                // Color map
+                let cartItemColor = 'bg-white border-gray-100 hover:border-blue-300';
+                if (item.type === 'meat') cartItemColor = 'bg-red-50 border-red-100 hover:border-red-300 text-red-900';
+                if (item.type === 'seafood') cartItemColor = 'bg-blue-50 border-blue-100 hover:border-blue-300 text-blue-900';
+                if (item.type === 'cheese') cartItemColor = 'bg-yellow-50 border-yellow-100 hover:border-yellow-300 text-yellow-900';
+                if (item.type === 'special') cartItemColor = 'bg-purple-50 border-purple-100 hover:border-purple-300 text-purple-900';
+
+                // Logic for numbering (#I, #II) same as flat approach
+                const sameProductItems = cart.filter(c => c.productId === item.productId);
+                const myIndex = sameProductItems.findIndex(c => c.internalId === item.internalId);
+                const showIndex = sameProductItems.length > 1;
+
+                const displayName = lang === 'en' ? (item.nameEn || item.name) : item.name;
+
+                return (
+                  <div
+                    key={item.internalId}
+                    onClick={() => openModifierModal(item)}
+                    className={clsx(
+                      "group relative flex cursor-pointer items-center justify-between rounded-lg p-4 shadow-sm border-2 transition-all",
+                      cartItemColor
+                    )}
+                  >
+                    <div className="flex-1 min-w-0 pr-2">
+                      <h3 className="text-lg font-bold flex items-center leading-tight">
+                        <span className="truncate">{displayName}</span>
+                        {showIndex && (
+                          <span className="ml-2 flex-shrink-0 rounded-md bg-black/5 px-2 py-0.5 text-sm font-bold opacity-80 font-serif">
+                            {toRoman(myIndex + 1)}
+                          </span>
+                        )}
+                      </h3>
+                      {item.modifierIds.length > 0 && (
+                        <p className="text-sm opacity-80 mt-1 truncate">
+                          {item.modifierIds.map(mid => {
+                            const m = MODIFIERS.find(mod => mod.id === mid);
+                            return m ? (lang === 'en' ? (m.nameEn || m.name) : m.name) : null;
+                          }).filter(Boolean).join(', ')}
+                        </p>
+                      )}
+                      <p className="text-md font-medium mt-1">${item.totalPrice}</p>
+                    </div>
+                    {/* Actions */}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        removeFromCart(item.internalId);
+                      }}
+                      className={clsx(
+                        "flex-shrink-0 rounded-full p-4 transition-colors",
+                        "text-gray-400 hover:text-red-600 hover:bg-black/5 active:bg-red-100"
+                      )}
+                    >
+                      <Trash2 size={28} />
+                    </button>
+                  </div>
+                );
+              })
+            )
+          )}
+        </div>
+
+        {/* Cart Footer / Checkout */}
+        <div className="border-t border-gray-200 bg-white p-4 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] flex-shrink-0 flex items-center gap-3">
+          <div className="flex flex-col items-start w-24 flex-shrink-0">
+            <span className="text-sm text-gray-500 font-medium">{t.total}</span>
+            <span className="text-2xl font-bold text-blue-600 truncate w-full">${cartTotal}</span>
           </div>
 
-          {/* Cart Footer / Checkout */}
-          <div className="border-t border-gray-200 bg-white p-4 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] flex-shrink-0 flex items-center gap-3">
-            <div className="flex flex-col items-start w-24 flex-shrink-0">
-              <span className="text-sm text-gray-500 font-medium">{t.total}</span>
-              <span className="text-2xl font-bold text-blue-600 truncate w-full">${cartTotal}</span>
-            </div>
-
-            <button
-              onClick={handleCheckout}
-              className="flex-1 rounded-xl bg-blue-600 py-3 text-xl font-bold text-white shadow-lg transition-all hover:bg-blue-700 active:scale-95 disabled:bg-gray-300 disabled:cursor-not-allowed"
-              disabled={cart.length === 0}
-            >
-              {t.checkout}
-            </button>
-          </div>
+          <button
+            onClick={handleCheckout}
+            className="flex-1 rounded-xl bg-blue-600 py-3 text-xl font-bold text-white shadow-lg transition-all hover:bg-blue-700 active:scale-95 disabled:bg-gray-300 disabled:cursor-not-allowed"
+            disabled={cart.length === 0}
+          >
+            {t.checkout}
+          </button>
         </div>
       </div>
-      );
+    </div>
+  );
 }

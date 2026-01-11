@@ -60,9 +60,10 @@ export default function ModifierModal({
                 </div>
 
                 {/* Modifiers Grid */}
-                <div className="flex-1 overflow-y-auto p-6">
+                <div className="flex-1 overflow-y-auto p-6 space-y-8">
+                    {/* Standard Options */}
                     <div className="grid grid-cols-2 gap-4">
-                        {MODIFIERS.map((mod: any) => {
+                        {MODIFIERS.filter((mod: any) => mod.category !== 'addon').map((mod: any) => {
                             const isSelected = selectedModifiers.includes(mod.id);
                             const displayName = lang === 'en' ? (mod.nameEn || mod.name) : mod.name;
 
@@ -84,6 +85,37 @@ export default function ModifierModal({
                                 </button>
                             );
                         })}
+                    </div>
+
+                    {/* Add-ons Section */}
+                    <div>
+                        <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                            🔥 {lang === 'en' ? 'Special Add-ons (-$10)' : '超值加購 (現折$10)'}
+                        </h3>
+                        <div className="grid grid-cols-2 gap-4">
+                            {MODIFIERS.filter((mod: any) => mod.category === 'addon').map((mod: any) => {
+                                const isSelected = selectedModifiers.includes(mod.id);
+                                const displayName = lang === 'en' ? (mod.nameEn || mod.name) : mod.name;
+
+                                return (
+                                    <button
+                                        key={mod.id}
+                                        onClick={() => onToggleModifier(mod.id)}
+                                        className={clsx(
+                                            'flex items-center justify-between rounded-xl border-2 p-6 transition-all',
+                                            isSelected
+                                                ? 'border-green-600 bg-green-50 text-green-800 ring-2 ring-green-600/20'
+                                                : 'border-green-200 bg-white text-gray-700 hover:border-green-400'
+                                        )}
+                                    >
+                                        <span className="text-2xl font-bold">{displayName}</span>
+                                        <span className={clsx("text-xl font-bold", isSelected ? "text-green-700" : "text-red-500")}>
+                                            {mod.price > 0 ? `+$${mod.price}` : t.free}
+                                        </span>
+                                    </button>
+                                );
+                            })}
+                        </div>
                     </div>
                 </div>
 
