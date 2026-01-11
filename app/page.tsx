@@ -622,8 +622,8 @@ export default function PosPage() {
                   <p className="text-gray-600 font-bold mb-1 flex items-center gap-1">
                     🎉 {lang === 'en' ? 'Net Profit' : '淨利 (Net Profit)'}
                   </p>
-                  <p className={clsx("text-4xl font-extrabold", netProfit >= 0 ? "text-green-700" : "text-red-700")}>
-                    ${netProfit}
+                  <p className={clsx("text-3xl font-extrabold break-all", netProfit >= 0 ? "text-green-700" : "text-red-700")}>
+                    ${netProfit.toLocaleString()}
                   </p>
                   <p className="text-sm opacity-60 mt-1 font-medium">
                     {lang === 'en' ? 'Margin' : '淨利率'}: {totalRevenue > 0 ? Math.round((netProfit / totalRevenue) * 100) : 0}%
