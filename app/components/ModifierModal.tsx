@@ -52,7 +52,7 @@ export default function ModifierModal({
     // Dynamic Discount Logic: 2nd item onwards gets -$5
     // Filter selected modifiers to only add-ons to establish "order"
     const selectedAddons = selectedModifiers.filter(id => {
-        const m = MODIFIERS.find((mod: any) => m.id === id);
+        const m = MODIFIERS.find((mod: any) => mod.id === id);
         return m?.category === 'addon';
     });
 
