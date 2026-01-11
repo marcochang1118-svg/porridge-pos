@@ -5,6 +5,8 @@ import { CATEGORIES, PRODUCTS, MODIFIERS } from '@/lib/mockData';
 import { Trash2, ChevronDown, ChevronRight, Layers, List, Globe } from 'lucide-react';
 import { clsx } from 'clsx';
 import ModifierModal from './components/ModifierModal';
+import AddExpenseModal from './components/AddExpenseModal';
+import { Trash2, ChevronDown, ChevronRight, Layers, List, Globe, TrendingUp, TrendingDown, DollarSign } from 'lucide-react';
 
 // Helper for Roman Numerals
 function toRoman(num: number): string {
@@ -57,6 +59,15 @@ type CartItem = {
   type?: string; // product type for color coding
 };
 
+type Expense = {
+  id: string;
+  type: 'cogs' | 'opex';
+  name: string;
+  amount: number;
+  date: string;
+  timestamp: number;
+};
+
 const ProductCard = ({ product, addToCart, lang }: { product: any, addToCart: (p: any) => void, lang: 'zh' | 'en' }) => {
   let colorClass = 'bg-white border-gray-200 hover:border-blue-400';
   if (product.type === 'meat') colorClass = 'bg-red-50 border-red-100 hover:bg-red-100 hover:border-red-300 text-red-900';
@@ -105,6 +116,7 @@ export default function PosPage() {
   // Dashboard State
   const [viewMode, setViewMode] = useState<'pos' | 'dashboard'>('pos');
   const [dailyOrders, setDailyOrders] = useState<{ id: string, items: CartItem[], total: number, date: string, timestamp: number }[]>([]);
+  const [expenses, setExpenses] = useState<Expense[]>([]);
   const [reportPeriod, setReportPeriod] = useState<'day' | 'month' | 'quarter' | 'year' | 'custom'>('day');
   const [customStart, setCustomStart] = useState('');
   const [customEnd, setCustomEnd] = useState('');
@@ -114,14 +126,23 @@ export default function PosPage() {
   const t = UI_TEXT[lang];
 
   // Load orders from local storage on mount
+  // Load orders from local storage on mount
   useState(() => {
     if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('dailyOrders');
-      if (saved) {
+      const savedOrders = localStorage.getItem('dailyOrders');
+      if (savedOrders) {
         try {
-          setDailyOrders(JSON.parse(saved));
+          setDailyOrders(JSON.parse(savedOrders));
         } catch (e) {
           console.error("Failed to parse orders", e);
+        }
+      }
+      const savedExpenses = localStorage.getItem('expenses');
+      if (savedExpenses) {
+        try {
+          setExpenses(JSON.parse(savedExpenses));
+        } catch (e) {
+          console.error("Failed to parse expenses", e);
         }
       }
     }
@@ -202,6 +223,8 @@ export default function PosPage() {
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(false);
+  const [expenseModalType, setExpenseModalType] = useState<'cogs' | 'opex'>('cogs');
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
   const [tempModifierIds, setTempModifierIds] = useState<string[]>([]);
 
@@ -322,6 +345,22 @@ export default function PosPage() {
     setCart([]);
   };
 
+  const handleConfirmExpense = (data: { type: 'cogs' | 'opex', name: string, amount: number }) => {
+    const newExpense: Expense = {
+      id: Date.now().toString(),
+      type: data.type,
+      name: data.name,
+      amount: data.amount,
+      date: new Date().toLocaleDateString(),
+      timestamp: Date.now(),
+    };
+    const newExpenses = [newExpense, ...expenses];
+    setExpenses(newExpenses);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('expenses', JSON.stringify(newExpenses));
+    }
+  };
+
   const cartTotal = cart.reduce((acc, item) => acc + item.totalPrice, 0);
 
   // Helper to get product name for modal
@@ -344,13 +383,21 @@ export default function PosPage() {
         lang={lang}
       />
 
+      <AddExpenseModal
+        isOpen={isExpenseModalOpen}
+        onClose={() => setIsExpenseModalOpen(false)}
+        onConfirm={handleConfirmExpense}
+        defaultType={expenseModalType}
+        lang={lang}
+      />
+
       {/* LEFT: Product Menu (or Dashboard) */}
       <div className={clsx(
         "flex w-full h-[60%] lg:h-full flex-col border-b lg:border-b-0 lg:border-r border-gray-300 bg-white transition-all duration-300",
         viewMode === 'dashboard' ? "lg:w-full" : "lg:w-[70%]"
       )}>
 
-        {/* Category Tabs */}
+        {/* Category Tabs / Dashboard Actions */}
         <div className="flex h-16 w-full items-center justify-between border-b border-gray-200 bg-gray-50 px-4 flex-shrink-0">
           <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
             {/* Mode Toggle Button (Dashboard vs POS) */}
@@ -363,25 +410,46 @@ export default function PosPage() {
                   : 'bg-white text-purple-600 border-purple-200 hover:bg-purple-50'
               )}
             >
-              {lang === 'en' ? '📊 Report' : '📊 營收報表'}
+              {lang === 'en' ? 'back to POS' : (viewMode === 'dashboard' ? '⬅ 回點餐' : '📊 營收報表')}
             </button>
 
             <div className="w-px h-8 bg-gray-300 mx-1 flex-shrink-0"></div>
 
-            {CATEGORIES.map((cat) => (
-              <button
-                key={cat.id}
-                onClick={() => { setActiveCategory(cat.id); setViewMode('pos'); }}
-                className={clsx(
-                  'flex-shrink-0 rounded-full px-6 py-2 text-lg font-bold transition-all',
-                  viewMode === 'pos' && activeCategory === cat.id
-                    ? 'bg-blue-600 text-white shadow-md'
-                    : 'bg-white text-gray-600 hover:bg-gray-100'
-                )}
-              >
-                {lang === 'en' ? cat.nameEn : cat.name}
-              </button>
-            ))}
+            {viewMode === 'pos' ? (
+              // POS Categories
+              CATEGORIES.map((cat) => (
+                <button
+                  key={cat.id}
+                  onClick={() => { setActiveCategory(cat.id); setViewMode('pos'); }}
+                  className={clsx(
+                    'flex-shrink-0 rounded-full px-6 py-2 text-lg font-bold transition-all',
+                    viewMode === 'pos' && activeCategory === cat.id
+                      ? 'bg-blue-600 text-white shadow-md'
+                      : 'bg-white text-gray-600 hover:bg-gray-100'
+                  )}
+                >
+                  {lang === 'en' ? cat.nameEn : cat.name}
+                </button>
+              ))
+            ) : (
+              // Dashboard Quick Expense Actions (New Feature)
+              <>
+                <button
+                  onClick={() => { setExpenseModalType('cogs'); setIsExpenseModalOpen(true); }}
+                  className="flex-shrink-0 rounded-full px-6 py-2 text-lg font-bold transition-all border-2 border-red-200 bg-white text-red-600 hover:bg-red-50 hover:border-red-300 flex items-center gap-2"
+                >
+                  <TrendingDown size={20} />
+                  {lang === 'en' ? 'Add Purchase' : '新增進貨成本'}
+                </button>
+                <button
+                  onClick={() => { setExpenseModalType('opex'); setIsExpenseModalOpen(true); }}
+                  className="flex-shrink-0 rounded-full px-6 py-2 text-lg font-bold transition-all border-2 border-yellow-200 bg-white text-yellow-600 hover:bg-yellow-50 hover:border-yellow-300 flex items-center gap-2"
+                >
+                  <DollarSign size={20} />
+                  {lang === 'en' ? 'Add Expense' : '新增營業費用'}
+                </button>
+              </>
+            )}
           </div>
 
           {/* Language Toggle */}
