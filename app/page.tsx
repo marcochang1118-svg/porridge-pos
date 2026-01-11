@@ -554,7 +554,7 @@ export default function PosPage() {
                 {PRODUCTS
                   .filter((p) => p.category_id === activeCategory)
                   .sort((a, b) => {
-                    const typeOrder: Record<string, number> = { meat: 1, seafood: 2, cheese: 3, special: 4, side: 5, addon: 6 };
+                    const typeOrder: Record<string, number> = { meat: 1, seafood: 2, cheese: 3, special: 4, side: 5, addon: 6, drink: 7 };
                     return (typeOrder[a.type] || 99) - (typeOrder[b.type] || 99);
                   })
                   .map((product: any) => (
@@ -564,7 +564,7 @@ export default function PosPage() {
 
               {/* Desktop View: Separated Rows by Type */}
               <div className="hidden lg:block space-y-8">
-                {['meat', 'seafood', 'cheese', 'special', 'side', 'addon'].map((type) => {
+                {['meat', 'seafood', 'cheese', 'special', 'side', 'addon', 'drink'].map((type) => {
                   const items = PRODUCTS.filter(p => p.category_id === activeCategory && p.type === type);
                   if (items.length === 0) return null;
 
