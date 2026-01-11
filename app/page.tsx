@@ -624,7 +624,9 @@ export default function PosPage() {
                             </span>
                             <div>
                               <p className="font-bold text-gray-800">{expense.name}</p>
-                              <p className="text-xs text-gray-500">{new Date(expense.timestamp).toLocaleTimeString()}</p>
+                              <p className="text-xs text-gray-500">
+                                {new Date(expense.timestamp).toLocaleString(lang === 'zh' ? 'zh-TW' : 'en-US', { hour12: false })}
+                              </p>
                             </div>
                           </div>
                           <span className="font-bold text-gray-700">-${expense.amount}</span>
