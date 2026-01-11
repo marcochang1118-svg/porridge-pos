@@ -6,6 +6,7 @@ import { Trash2, ChevronDown, ChevronRight, Layers, List, Globe, TrendingUp, Tre
 import { clsx } from 'clsx';
 import ModifierModal from './components/ModifierModal';
 import AddExpenseModal from './components/AddExpenseModal';
+import CheckoutModal from './components/CheckoutModal';
 import ProfitChart from './components/ProfitChart';
 
 // Helper for Roman Numerals
@@ -56,7 +57,16 @@ type CartItem = {
   basePrice: number;
   modifierIds: string[];
   totalPrice: number;
-  type?: string; // product type for color coding
+  type?: string;
+};
+
+type Order = {
+  id: string; // unique id for order
+  items: CartItem[];
+  total: number;
+  date: string;
+  timestamp: number;
+  paymentMethod: 'cash' | 'linepay';
 };
 
 type Expense = {
@@ -77,15 +87,31 @@ const ProductCard = ({ product, addToCart, lang }: { product: any, addToCart: (p
   if (product.type === 'side') colorClass = 'bg-gray-50 border-gray-200 hover:bg-gray-100 hover:border-gray-300 text-gray-800';
   if (product.type === 'addon') colorClass = 'bg-green-50 border-green-100 hover:bg-green-100 hover:border-green-300 text-green-900';
 
+  const hasImage = !!product.image;
+
   return (
     <button
       onClick={() => addToCart(product)}
       className={clsx(
-        "flex flex-col items-center justify-center gap-1 rounded-xl border p-4 shadow-sm transition-all active:scale-95 active:shadow-inner hover:shadow-md h-32",
-        colorClass
+        "relative flex flex-col items-center justify-center gap-1 rounded-xl border p-4 shadow-sm transition-all active:scale-95 active:shadow-inner hover:shadow-md h-32 overflow-hidden",
+        !hasImage && colorClass,
+        hasImage && "border-0"
       )}
     >
-      <span className="text-xl font-bold text-center leading-tight">
+      {hasImage && (
+        <>
+          <div
+            className="absolute inset-0 bg-cover bg-center z-0"
+            style={{ backgroundImage: `url(${product.image})` }}
+          />
+          <div className="absolute inset-0 bg-black/50 z-10" />
+        </>
+      )}
+
+      <span className={clsx(
+        "text-xl font-bold text-center leading-tight z-20",
+        hasImage && "text-white shadow-black drop-shadow-md"
+      )}>
         {(() => {
           const rawName = lang === 'en' ? (product.nameEn || product.name) : product.name;
           // Check for (500cc) or similar size pattern if needed, currently hardcoding for the requested 500cc
@@ -96,14 +122,17 @@ const ProductCard = ({ product, addToCart, lang }: { product: any, addToCart: (p
               <>
                 {sizeMatch[1].trim()}
                 <br />
-                <span className="text-sm font-normal opacity-90">{sizeMatch[2]}</span>
+                <span className={clsx("text-sm font-normal opacity-90", hasImage ? "text-gray-200" : "")}>{sizeMatch[2]}</span>
               </>
             );
           }
           return rawName;
         })()}
       </span>
-      <span className="text-lg font-medium opacity-80">${product.price}</span>
+      <span className={clsx(
+        "text-lg font-medium opacity-80 z-20",
+        hasImage && "text-white"
+      )}>${product.price}</span>
     </button>
   );
 };
@@ -115,8 +144,11 @@ export default function PosPage() {
 
   // Dashboard State
   const [viewMode, setViewMode] = useState<'pos' | 'dashboard'>('pos');
-  const [dailyOrders, setDailyOrders] = useState<{ id: string, items: CartItem[], total: number, date: string, timestamp: number }[]>([]);
+  const [dailyOrders, setDailyOrders] = useState<Order[]>([]);
   const [expenses, setExpenses] = useState<Expense[]>([]);
+
+  // Checkout Modal
+  const [isCheckoutModalOpen, setIsCheckoutModalOpen] = useState(false);
   const [reportPeriod, setReportPeriod] = useState<'day' | 'month' | 'quarter' | 'year' | 'custom'>('day');
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
   const [customStart, setCustomStart] = useState('');
@@ -328,16 +360,20 @@ export default function PosPage() {
     setEditingItemId(null);
   };
 
-  const handleCheckout = () => {
+  const openCheckoutModal = () => {
     if (cart.length === 0) return;
+    setIsCheckoutModalOpen(true);
+  };
 
+  const confirmCheckout = (method: 'cash' | 'linepay') => {
     const total = cart.reduce((acc, item) => acc + item.totalPrice, 0);
-    const newOrder = {
+    const newOrder: Order = {
       id: Date.now().toString(),
       items: [...cart],
       total,
       date: new Date().toLocaleDateString(),
-      timestamp: Date.now()
+      timestamp: Date.now(),
+      paymentMethod: method
     };
 
     const newDailyOrders = [...dailyOrders, newOrder];
@@ -347,9 +383,11 @@ export default function PosPage() {
       localStorage.setItem('dailyOrders', JSON.stringify(newDailyOrders));
     }
 
+    setIsCheckoutModalOpen(false);
+
     const message = lang === 'en'
-      ? `Total: $${total}\nOrder Submitted!`
-      : `總金額: $${total}\n\n訂單已送出！`;
+      ? `Total: $${total}\nPayment: ${method === 'cash' ? 'Cash' : 'LINE Pay'}\nOrder Submitted!`
+      : `總金額: $${total}\n付款方式: ${method === 'cash' ? '現金' : 'LINE Pay'}\n\n訂單已送出！`;
 
     alert(message);
     setCart([]);
@@ -432,6 +470,14 @@ export default function PosPage() {
         defaultType={expenseModalType}
         initialData={editingExpense ? { name: editingExpense.name, amount: editingExpense.amount } : undefined}
         lockType={true}
+        lang={lang}
+      />
+
+      <CheckoutModal
+        isOpen={isCheckoutModalOpen}
+        onClose={() => setIsCheckoutModalOpen(false)}
+        total={cartTotal}
+        onConfirm={confirmCheckout}
         lang={lang}
       />
 
@@ -1073,7 +1119,7 @@ export default function PosPage() {
           </div>
 
           <button
-            onClick={handleCheckout}
+            onClick={openCheckoutModal}
             className="flex-1 rounded-xl bg-blue-600 py-3 text-xl font-bold text-white shadow-lg transition-all hover:bg-blue-700 active:scale-95 disabled:bg-gray-300 disabled:cursor-not-allowed"
             disabled={cart.length === 0}
           >

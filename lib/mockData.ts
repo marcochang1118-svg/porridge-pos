@@ -5,8 +5,15 @@ export const CATEGORIES = [
 ];
 
 export const PRODUCTS = [
-    { id: 'p1', category_id: 'cat_porridge', name: '皮蛋瘦肉粥', nameEn: 'Century Egg & Pork Porridge', price: 90, type: 'meat' },
-    { id: 'p2', category_id: 'cat_porridge', name: '鮮瘦玉米粥', nameEn: 'Corn & Lean Pork Porridge', price: 90, type: 'meat' },
+    {
+        id: 'p1', category_id: 'cat_porridge', name: '皮蛋瘦肉粥', nameEn: 'Century Egg & Pork Porridge',
+        price: 90,
+        type: 'meat',
+        image: '/images/century-egg-porridge.png'
+    },
+    {
+        id: 'p2', category_id: 'cat_porridge', name: '鮮瘦玉米粥', nameEn: 'Corn & Lean Pork Porridge', price: 90, type: 'meat'
+    },
     { id: 'p3', category_id: 'cat_porridge', name: '雞茸玉米粥', nameEn: 'Corn & Chicken Porridge', price: 90, type: 'meat' },
     { id: 'p4', category_id: 'cat_porridge', name: '香菇雞肉粥', nameEn: 'Mushroom & Chicken Porridge', price: 100, type: 'meat' },
     { id: 'p5', category_id: 'cat_porridge', name: '滑蛋牛肉粥', nameEn: 'Beef & Egg Porridge', price: 100, type: 'meat' },
