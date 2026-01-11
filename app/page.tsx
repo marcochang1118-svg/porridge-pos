@@ -741,7 +741,8 @@ export default function PosPage() {
                                 </button>
                               </div>
                             </div>
-                          ))}
+                          );
+                        })}
                       </div>
                     )}
                   </div>
