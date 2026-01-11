@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { CATEGORIES, PRODUCTS, MODIFIERS } from '@/lib/mockData';
-import { Trash2, ChevronDown, ChevronRight, Layers, List, Globe, TrendingUp, TrendingDown, DollarSign } from 'lucide-react';
+import { Trash2, ChevronDown, ChevronRight, Layers, List, Globe, TrendingUp, TrendingDown, DollarSign, Pencil } from 'lucide-react';
 import { clsx } from 'clsx';
 import ModifierModal from './components/ModifierModal';
 import AddExpenseModal from './components/AddExpenseModal';
@@ -257,6 +257,7 @@ export default function PosPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(false);
   const [expenseModalType, setExpenseModalType] = useState<'cogs' | 'opex'>('cogs');
+  const [editingExpenseId, setEditingExpenseId] = useState<string | null>(null);
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
   const [tempModifierIds, setTempModifierIds] = useState<string[]>([]);
 
@@ -372,19 +373,45 @@ export default function PosPage() {
   };
 
   const handleConfirmExpense = (data: { type: 'cogs' | 'opex', name: string, amount: number }) => {
-    const newExpense: Expense = {
-      id: Date.now().toString(),
-      type: data.type,
-      name: data.name,
-      amount: data.amount,
-      date: new Date().toLocaleDateString(),
-      timestamp: Date.now(),
-    };
-    const newExpenses = [newExpense, ...expenses];
+    let newExpenses;
+    if (editingExpenseId) {
+      // Update existing
+      newExpenses = expenses.map(e => e.id === editingExpenseId ? { ...e, ...data } : e);
+    } else {
+      // Create new
+      const newExpense: Expense = {
+        id: Date.now().toString(),
+        type: data.type,
+        name: data.name,
+        amount: data.amount,
+        date: new Date().toLocaleDateString(),
+        timestamp: Date.now(),
+      };
+      newExpenses = [newExpense, ...expenses];
+    }
+
     setExpenses(newExpenses);
     if (typeof window !== 'undefined') {
       localStorage.setItem('expenses', JSON.stringify(newExpenses));
     }
+    // Reset editing state handled by modal close or explicit reset?
+    // Modal close happens in page render 'onClose'.
+    // We should reset editingExpenseId when modal closes.
+  };
+
+  const deleteExpense = (id: string) => {
+    if (!confirm(lang === 'en' ? 'Delete this expense?' : '確定要刪除這筆支出嗎？')) return;
+    const newExpenses = expenses.filter(e => e.id !== id);
+    setExpenses(newExpenses);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('expenses', JSON.stringify(newExpenses));
+    }
+  };
+
+  const openEditExpense = (expense: Expense) => {
+    setEditingExpenseId(expense.id);
+    setExpenseModalType(expense.type);
+    setIsExpenseModalOpen(true);
   };
 
   const cartTotal = cart.reduce((acc, item) => acc + item.totalPrice, 0);
@@ -394,6 +421,9 @@ export default function PosPage() {
   const editingItemName = editingCartItem
     ? (lang === 'en' ? editingCartItem.nameEn || editingCartItem.name : editingCartItem.name)
     : '';
+
+  // Calculate current editing expense data for modal
+  const editingExpense = expenses.find(e => e.id === editingExpenseId);
 
   return (
     <div className="flex h-screen w-full overflow-hidden bg-gray-100 text-gray-900 font-sans flex-col lg:flex-row">
@@ -411,9 +441,13 @@ export default function PosPage() {
 
       <AddExpenseModal
         isOpen={isExpenseModalOpen}
-        onClose={() => setIsExpenseModalOpen(false)}
+        onClose={() => {
+          setIsExpenseModalOpen(false);
+          setEditingExpenseId(null);
+        }}
         onConfirm={handleConfirmExpense}
         defaultType={expenseModalType}
+        initialData={editingExpense ? { name: editingExpense.name, amount: editingExpense.amount } : undefined}
         lockType={true}
         lang={lang}
       />
@@ -462,14 +496,22 @@ export default function PosPage() {
               // Dashboard Quick Expense Actions (New Feature)
               <>
                 <button
-                  onClick={() => { setExpenseModalType('cogs'); setIsExpenseModalOpen(true); }}
+                  onClick={() => {
+                    setEditingExpenseId(null);
+                    setExpenseModalType('cogs');
+                    setIsExpenseModalOpen(true);
+                  }}
                   className="flex-shrink-0 rounded-full px-6 py-2 text-lg font-bold transition-all border-2 border-red-200 bg-white text-red-600 hover:bg-red-50 hover:border-red-300 flex items-center gap-2"
                 >
                   <TrendingDown size={20} />
                   {lang === 'en' ? 'Add Purchase' : '新增進貨成本'}
                 </button>
                 <button
-                  onClick={() => { setExpenseModalType('opex'); setIsExpenseModalOpen(true); }}
+                  onClick={() => {
+                    setEditingExpenseId(null);
+                    setExpenseModalType('opex');
+                    setIsExpenseModalOpen(true);
+                  }}
                   className="flex-shrink-0 rounded-full px-6 py-2 text-lg font-bold transition-all border-2 border-yellow-200 bg-white text-yellow-600 hover:bg-yellow-50 hover:border-yellow-300 flex items-center gap-2"
                 >
                   <DollarSign size={20} />
@@ -505,8 +547,8 @@ export default function PosPage() {
                   </span>
                 </h2>
 
-                {/* Period Toggles */}
-                <div className="flex flex-col gap-2 items-end">
+                {/* Period Toggles & Date Picker */}
+                <div className="relative flex flex-col gap-2 items-end">
                   <div className="flex bg-white rounded-lg p-1 shadow-sm border border-gray-200">
                     {(['day', 'month', 'quarter', 'year', 'custom'] as const).map(p => (
                       <button
@@ -524,21 +566,21 @@ export default function PosPage() {
                     ))}
                   </div>
 
-                  {/* Custom Date Inputs */}
+                  {/* Custom Date Inputs (Absolute to prevent layout shift) */}
                   {reportPeriod === 'custom' && (
-                    <div className="flex items-center gap-2 bg-white p-2 rounded-lg shadow-sm border border-gray-200 animate-in fade-in slide-in-from-top-2">
+                    <div className="absolute top-12 right-0 z-20 flex items-center gap-2 bg-white p-3 rounded-xl shadow-xl border border-gray-200 animate-in fade-in zoom-in-95 origin-top-right">
                       <input
                         type="date"
                         value={customStart}
                         onChange={(e) => setCustomStart(e.target.value)}
-                        className="border border-gray-300 rounded px-2 py-1 text-sm outline-none focus:border-purple-500"
+                        className="border border-gray-300 rounded px-2 py-1 text-sm outline-none focus:border-purple-500 bg-gray-50"
                       />
                       <span className="text-gray-400">~</span>
                       <input
                         type="date"
                         value={customEnd}
                         onChange={(e) => setCustomEnd(e.target.value)}
-                        className="border border-gray-300 rounded px-2 py-1 text-sm outline-none focus:border-purple-500"
+                        className="border border-gray-300 rounded px-2 py-1 text-sm outline-none focus:border-purple-500 bg-gray-50"
                       />
                     </div>
                   )}
@@ -624,7 +666,23 @@ export default function PosPage() {
                               </p>
                             </div>
                           </div>
-                          <span className="font-bold text-gray-700">-${expense.amount}</span>
+                          <div className="flex items-center gap-4">
+                            <span className="font-bold text-gray-700">-${expense.amount}</span>
+                            <div className="flex items-center gap-2">
+                              <button
+                                onClick={() => openEditExpense(expense)}
+                                className="p-1.5 rounded-full hover:bg-gray-200 text-gray-500 transition-colors"
+                              >
+                                <Pencil size={18} />
+                              </button>
+                              <button
+                                onClick={() => deleteExpense(expense.id)}
+                                className="p-1.5 rounded-full hover:bg-red-100 text-red-500 transition-colors"
+                              >
+                                <Trash2 size={18} />
+                              </button>
+                            </div>
+                          </div>
                         </div>
                       ))
                   )}

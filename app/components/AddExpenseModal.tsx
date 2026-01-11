@@ -1,6 +1,5 @@
 'use client';
 
-import { X } from 'lucide-react';
 import { X, Search } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { currentInventoryList } from '@/lib/mockData';
@@ -9,8 +8,9 @@ type AddExpenseModalProps = {
     isOpen: boolean;
     onClose: () => void;
     onConfirm: (data: { type: 'cogs' | 'opex', name: string, amount: number }) => void;
-    defaultType?: 'cogs' | 'opex'; // 'cogs' = 進貨(Cost of Goods), 'opex' = 費用(Operating Expense)
-    lockType?: boolean; // If true, user cannot change type
+    defaultType?: 'cogs' | 'opex';
+    initialData?: { name: string, amount: number };
+    lockType?: boolean;
     lang?: 'zh' | 'en';
 };
 
@@ -19,6 +19,7 @@ export default function AddExpenseModal({
     onClose,
     onConfirm,
     defaultType = 'cogs',
+    initialData,
     lockType = false,
     lang = 'zh',
 }: AddExpenseModalProps) {
@@ -31,16 +32,21 @@ export default function AddExpenseModal({
     const [showSuggestions, setShowSuggestions] = useState(false);
     const wrapperRef = useRef<HTMLDivElement>(null);
 
-    // Update internal type if defaultType changes when opening
+    // Update internal state when opening
     useEffect(() => {
         if (isOpen) {
             setType(defaultType);
-            setName('');
-            setAmount('');
+            if (initialData) {
+                setName(initialData.name);
+                setAmount(initialData.amount.toString());
+            } else {
+                setName('');
+                setAmount('');
+            }
             setSuggestions([]);
             setShowSuggestions(false);
         }
-    }, [isOpen, defaultType]);
+    }, [isOpen, defaultType, initialData]);
 
     // Handle Search Logic
     useEffect(() => {
