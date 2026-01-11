@@ -75,7 +75,22 @@ const ProductCard = ({ product, addToCart, lang }: { product: any, addToCart: (p
       )}
     >
       <span className="text-xl font-bold text-center leading-tight">
-        {lang === 'en' ? (product.nameEn || product.name) : product.name}
+        {(() => {
+          const rawName = lang === 'en' ? (product.nameEn || product.name) : product.name;
+          // Check for (500cc) or similar size pattern if needed, currently hardcoding for the requested 500cc
+          const sizeMatch = rawName.match(/(.*)(\(500cc\))/);
+
+          if (sizeMatch) {
+            return (
+              <>
+                {sizeMatch[1].trim()}
+                <br />
+                <span className="text-sm font-normal opacity-90">{sizeMatch[2]}</span>
+              </>
+            );
+          }
+          return rawName;
+        })()}
       </span>
       <span className="text-lg font-medium opacity-80">${product.price}</span>
     </button>
