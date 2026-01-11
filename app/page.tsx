@@ -113,7 +113,7 @@ export default function PosPage() {
   const totalOrdersCount = filteredOrders.length;
 
   // Product Breakdown
-  const productStats = filteredOrders.flatMap(o => o.items).reduce((acc, item) => {
+  const productStats = filteredOrders.flatMap(o => o.items).reduce((acc, item: CartItem) => {
     const displayName = lang === 'en' ? (item.nameEn || item.name) : item.name;
     acc[displayName] = (acc[displayName] || 0) + 1;
     return acc;
@@ -132,7 +132,7 @@ export default function PosPage() {
     acc[hour].revenue += order.total;
     acc[hour].count += 1;
 
-    order.items.forEach(item => {
+    order.items.forEach((item: CartItem) => {
       const displayName = lang === 'en' ? (item.nameEn || item.name) : item.name;
       acc[hour].products[displayName] = (acc[hour].products[displayName] || 0) + 1;
     });
