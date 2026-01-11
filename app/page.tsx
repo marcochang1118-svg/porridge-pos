@@ -83,6 +83,7 @@ const ProductCard = ({ product, addToCart, lang }: { product: any, addToCart: (p
 };
 
 export default function PosPage() {
+  console.log('PosPage Rendered - Fullscreen Fix v2');
   const [activeCategory, setActiveCategory] = useState(CATEGORIES[0].id);
   const [cart, setCart] = useState<CartItem[]>([]);
 
