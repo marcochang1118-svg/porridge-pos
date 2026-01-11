@@ -327,8 +327,11 @@ export default function PosPage() {
         lang={lang}
       />
 
-      {/* LEFT: Product Menu */}
-      <div className="flex w-full lg:w-[70%] h-[60%] lg:h-full flex-col border-b lg:border-b-0 lg:border-r border-gray-300 bg-white">
+      {/* LEFT: Product Menu (or Dashboard) */}
+      <div className={clsx(
+        "flex w-full h-[60%] lg:h-full flex-col border-b lg:border-b-0 lg:border-r border-gray-300 bg-white transition-all duration-300",
+        viewMode === 'dashboard' ? "lg:w-full" : "lg:w-[70%]"
+      )}>
 
         {/* Category Tabs */}
         <div className="flex h-16 w-full items-center justify-between border-b border-gray-200 bg-gray-50 px-4 flex-shrink-0">
@@ -581,8 +584,10 @@ export default function PosPage() {
       </div>
 
       {/* RIGHT: Cart */}
-      <div className="flex w-full lg:w-[30%] h-[40%] lg:h-full flex-col bg-gray-50">
-
+      <div className={clsx(
+        "flex-col bg-gray-50 h-[40%] lg:h-full transition-all duration-300",
+        viewMode === 'dashboard' ? "hidden" : "flex w-full lg:w-[30%]"
+      )}>
         {/* Cart Header */}
         <div className="flex h-16 items-center justify-between border-b border-gray-200 px-4 shadow-sm bg-white flex-shrink-0">
           <div className="flex items-center gap-2">
