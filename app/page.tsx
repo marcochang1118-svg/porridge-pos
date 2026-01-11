@@ -2,11 +2,10 @@
 
 import { useState } from 'react';
 import { CATEGORIES, PRODUCTS, MODIFIERS } from '@/lib/mockData';
-import { Trash2, ChevronDown, ChevronRight, Layers, List, Globe } from 'lucide-react';
+import { Trash2, ChevronDown, ChevronRight, Layers, List, Globe, TrendingUp, TrendingDown, DollarSign } from 'lucide-react';
 import { clsx } from 'clsx';
 import ModifierModal from './components/ModifierModal';
 import AddExpenseModal from './components/AddExpenseModal';
-import { Trash2, ChevronDown, ChevronRight, Layers, List, Globe, TrendingUp, TrendingDown, DollarSign } from 'lucide-react';
 
 // Helper for Roman Numerals
 function toRoman(num: number): string {
