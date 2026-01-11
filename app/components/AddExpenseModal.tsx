@@ -2,7 +2,7 @@
 
 import { X, Search } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
-import { currentInventoryList, EXPENSE_ITEMS } from '@/lib/mockData';
+import { currentInventoryList, currentInventoryListEn, EXPENSE_ITEMS, EXPENSE_ITEMS_EN } from '@/lib/mockData';
 
 type AddExpenseModalProps = {
     isOpen: boolean;
@@ -33,7 +33,9 @@ export default function AddExpenseModal({
     const wrapperRef = useRef<HTMLDivElement>(null);
     const amountInputRef = useRef<HTMLInputElement>(null);
 
-    const activeList = type === 'cogs' ? currentInventoryList : EXPENSE_ITEMS;
+    const activeList = type === 'cogs'
+        ? (lang === 'en' ? currentInventoryListEn : currentInventoryList)
+        : (lang === 'en' ? EXPENSE_ITEMS_EN : EXPENSE_ITEMS);
 
     // Update internal state when opening
     useEffect(() => {

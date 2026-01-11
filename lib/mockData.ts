@@ -49,6 +49,19 @@ export const currentInventoryList = [
     "米 一包", "雞骨 一袋", "高湯A粉 一包", "白粥B粉 一包", "洋蔥 一袋", "薑 一份"
 ].sort((a, b) => a.localeCompare(b, 'zh-TW'));
 
+export const currentInventoryListEn = [
+    // Meat & Seafood
+    "Pork (Pack)", "Beef (Pack)", "Chicken (Pack)", "Silverfish (Pack)", "Abalone (Pack)", "Shiitake Mushroom (Pack)", "Snapper (Portion)",
+    // Eggs & Toppings
+    "Preserved Egg (Basket)", "Egg (Basket)", "Fried Dough Stick (Box)", "Cheese (Strip)", "Corn (Box)", "Pork Floss (Pack)", "Seaweed (Pack)",
+    // Base & Sides
+    "Rice (Pack)", "Chicken Bone (Bag)", "Broth Powder A (Pack)", "White Porridge Powder B (Pack)", "Onion (Bag)", "Ginger (Portion)"
+].sort();
+
 export const EXPENSE_ITEMS = [
     "店面租金(含水費200)", "電費", "瓦斯費", "員工薪資"
+];
+
+export const EXPENSE_ITEMS_EN = [
+    "Store Rent (incl. Water)", "Electricity Bill", "Gas Bill", "Staff Salary"
 ];
