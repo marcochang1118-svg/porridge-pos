@@ -153,59 +153,40 @@ export default function PosPage() {
   const todayStr = today.toLocaleDateString();
   const currentQuarter = Math.floor(today.getMonth() / 3);
 
+  // Determine Date Range
+  let rangeStart = new Date(today);
+  let rangeEnd = new Date(today);
+  rangeStart.setHours(0, 0, 0, 0);
+  rangeEnd.setHours(23, 59, 59, 999);
+
+  if (reportPeriod === 'month') {
+    rangeStart.setDate(1); // 1st day of month
+  } else if (reportPeriod === 'quarter') {
+    rangeStart.setMonth(currentQuarter * 3, 1); // 1st day of quarter
+  } else if (reportPeriod === 'year') {
+    rangeStart.setMonth(0, 1); // Jan 1st
+  } else if (reportPeriod === 'custom') {
+    if (customStart && customEnd) {
+      rangeStart = new Date(customStart);
+      rangeStart.setHours(0, 0, 0, 0);
+      rangeEnd = new Date(customEnd);
+      rangeEnd.setHours(23, 59, 59, 999);
+    }
+  }
+
+  // Helper to check if date is in range
+  const isDateInRange = (date: Date) => date >= rangeStart && date <= rangeEnd;
+
+  // Filter orders based on selected period
   // Filter orders based on selected period
   const filteredOrders = dailyOrders.filter(o => {
-    const orderDate = o.timestamp ? new Date(o.timestamp) : new Date(o.date); // Handle legacy string date
-
-    if (reportPeriod === 'day') {
-      return orderDate.toLocaleDateString() === todayStr;
-    }
-    if (reportPeriod === 'month') {
-      return orderDate.getMonth() === today.getMonth() && orderDate.getFullYear() === today.getFullYear();
-    }
-    if (reportPeriod === 'quarter') {
-      const q = Math.floor(orderDate.getMonth() / 3);
-      return q === currentQuarter && orderDate.getFullYear() === today.getFullYear();
-    }
-    if (reportPeriod === 'year') {
-      return orderDate.getFullYear() === today.getFullYear();
-    }
-    if (reportPeriod === 'custom') {
-      if (!customStart || !customEnd) return false;
-      const start = new Date(customStart);
-      start.setHours(0, 0, 0, 0);
-      const end = new Date(customEnd);
-      end.setHours(23, 59, 59, 999);
-      return orderDate >= start && orderDate <= end;
-    }
-    return false;
+    const orderDate = o.timestamp ? new Date(o.timestamp) : new Date(o.date);
+    return isDateInRange(orderDate);
   });
 
   const filteredExpenses = expenses.filter(e => {
     const expenseDate = e.timestamp ? new Date(e.timestamp) : new Date(e.date);
-
-    if (reportPeriod === 'day') {
-      return expenseDate.toLocaleDateString() === todayStr;
-    }
-    if (reportPeriod === 'month') {
-      return expenseDate.getMonth() === today.getMonth() && expenseDate.getFullYear() === today.getFullYear();
-    }
-    if (reportPeriod === 'quarter') {
-      const q = Math.floor(expenseDate.getMonth() / 3);
-      return q === currentQuarter && expenseDate.getFullYear() === today.getFullYear();
-    }
-    if (reportPeriod === 'year') {
-      return expenseDate.getFullYear() === today.getFullYear();
-    }
-    if (reportPeriod === 'custom') {
-      if (!customStart || !customEnd) return false;
-      const start = new Date(customStart);
-      start.setHours(0, 0, 0, 0);
-      const end = new Date(customEnd);
-      end.setHours(23, 59, 59, 999);
-      return expenseDate >= start && expenseDate <= end;
-    }
-    return false;
+    return isDateInRange(expenseDate);
   });
 
   const totalRevenue = filteredOrders.reduce((sum, o) => sum + o.total, 0);
@@ -540,11 +521,10 @@ export default function PosPage() {
                 <h2 className="text-2xl font-bold text-gray-800">
                   {lang === 'en' ? 'Sales Report' : '營收報表'}
                   <span className="text-base font-normal text-gray-500 ml-3 bg-gray-100 px-3 py-1 rounded-full">
-                    {reportPeriod === 'day' ? (lang === 'en' ? todayStr : `${today.getFullYear()}年${today.getMonth() + 1}月${today.getDate()}日`) :
-                      reportPeriod === 'month' ? (lang === 'en' ? `${today.getFullYear()}/${today.getMonth() + 1}` : `${today.getFullYear()}年 ${today.getMonth() + 1}月`) :
-                        reportPeriod === 'quarter' ? (lang === 'en' ? `${today.getFullYear()} Q${currentQuarter + 1}` : `${today.getFullYear()}年 第${currentQuarter + 1}季`) :
-                          reportPeriod === 'year' ? (lang === 'en' ? today.getFullYear() : `${today.getFullYear()}年`) :
-                            `${customStart || '?'} ~ ${customEnd || '?'}`}
+                    {lang === 'en'
+                      ? `${rangeStart.toLocaleDateString()} ~ ${rangeEnd.toLocaleDateString()}`
+                      : `${rangeStart.getFullYear()}/${rangeStart.getMonth() + 1}/${rangeStart.getDate()} ~ ${rangeEnd.getFullYear()}/${rangeEnd.getMonth() + 1}/${rangeEnd.getDate()}`
+                    }
                   </span>
                 </h2>
 
