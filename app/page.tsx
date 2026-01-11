@@ -590,16 +590,13 @@ export default function PosPage() {
                         <input
                           type="date"
                           value={customEnd}
-                          onChange={(e) => setCustomEnd(e.target.value)}
+                          onChange={(e) => {
+                            setCustomEnd(e.target.value);
+                            if (e.target.value) setIsDatePickerOpen(false);
+                          }}
                           className="flex-1 border border-gray-300 rounded px-2 py-1.5 text-sm outline-none focus:border-purple-500 bg-gray-50 to-input"
                         />
                       </div>
-                      <button
-                        onClick={() => setIsDatePickerOpen(false)}
-                        className="w-full bg-purple-600 text-white py-2 rounded-lg text-sm font-bold shadow-sm hover:bg-purple-700 active:scale-95 transition-all"
-                      >
-                        {lang === 'en' ? 'Done' : '完成'}
-                      </button>
                     </div>
                   )}
                 </div>
