@@ -855,7 +855,7 @@ export default function PosPage() {
         </div>
       </div>
       <div className="fixed bottom-1 left-1 z-50 pointer-events-none opacity-30 text-[10px] text-gray-400 font-mono">
-        v1.3
+        v1.4
       </div>
     </div >
   );
