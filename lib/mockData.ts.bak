@@ -1,7 +1,6 @@
 export const CATEGORIES = [
     { id: 'cat_porridge', name: '粥品', nameEn: 'Porridge', sort_order: 1 },
     { id: 'cat_sides', name: '小菜/加購', nameEn: 'Sides/Add-ons', sort_order: 2 },
-    { id: 'cat_drinks', name: '飲品', nameEn: 'Drinks', sort_order: 3 },
 ];
 
 export const PRODUCTS = [
@@ -22,8 +21,6 @@ export const PRODUCTS = [
     { id: 's2', category_id: 'cat_sides', name: '牛蒡絲', nameEn: 'Burdock Root', price: 30, type: 'addon' },
     { id: 's3', category_id: 'cat_sides', name: '油條肉鬆', nameEn: 'Fried Dough & Meat Floss', price: 15, type: 'side' },
     { id: 's4', category_id: 'cat_sides', name: '皮蛋豆腐', nameEn: 'Century Egg Tofu', price: 45, type: 'addon' },
-    { id: 'd1', category_id: 'cat_drinks', name: '冬瓜茶', nameEn: 'Winter Melon Tea', price: 25, type: 'drink' },
-    { id: 'd2', category_id: 'cat_drinks', name: '冷泡綠茶', nameEn: 'Cold Brew Green Tea', price: 25, type: 'drink' },
 ];
 
 export const MODIFIERS = [
