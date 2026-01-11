@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { CATEGORIES, PRODUCTS, MODIFIERS } from '@/lib/mockData';
-import { Trash2, ChevronDown, ChevronRight, Layers, List, Globe, TrendingUp, TrendingDown, DollarSign, Pencil } from 'lucide-react';
+import { Trash2, ChevronDown, ChevronRight, Layers, List, Globe, TrendingUp, TrendingDown, DollarSign, Pencil, X } from 'lucide-react';
 import { clsx } from 'clsx';
 import ModifierModal from './components/ModifierModal';
 import AddExpenseModal from './components/AddExpenseModal';
@@ -117,6 +117,7 @@ export default function PosPage() {
   const [dailyOrders, setDailyOrders] = useState<{ id: string, items: CartItem[], total: number, date: string, timestamp: number }[]>([]);
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [reportPeriod, setReportPeriod] = useState<'day' | 'month' | 'quarter' | 'year' | 'custom'>('day');
+  const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
   const [customStart, setCustomStart] = useState('');
   const [customEnd, setCustomEnd] = useState('');
 
@@ -553,7 +554,10 @@ export default function PosPage() {
                     {(['day', 'month', 'quarter', 'year', 'custom'] as const).map(p => (
                       <button
                         key={p}
-                        onClick={() => setReportPeriod(p)}
+                        onClick={() => {
+                          setReportPeriod(p);
+                          if (p === 'custom') setIsDatePickerOpen(true);
+                        }}
                         className={clsx(
                           "px-4 py-1.5 rounded-md text-sm font-medium transition-all",
                           reportPeriod === p ? "bg-purple-100 text-purple-700 shadow-sm" : "text-gray-500 hover:bg-gray-50"
@@ -567,21 +571,35 @@ export default function PosPage() {
                   </div>
 
                   {/* Custom Date Inputs (Absolute to prevent layout shift) */}
-                  {reportPeriod === 'custom' && (
-                    <div className="absolute top-12 right-0 z-20 flex items-center gap-2 bg-white p-3 rounded-xl shadow-xl border border-gray-200 animate-in fade-in zoom-in-95 origin-top-right">
-                      <input
-                        type="date"
-                        value={customStart}
-                        onChange={(e) => setCustomStart(e.target.value)}
-                        className="border border-gray-300 rounded px-2 py-1 text-sm outline-none focus:border-purple-500 bg-gray-50"
-                      />
-                      <span className="text-gray-400">~</span>
-                      <input
-                        type="date"
-                        value={customEnd}
-                        onChange={(e) => setCustomEnd(e.target.value)}
-                        className="border border-gray-300 rounded px-2 py-1 text-sm outline-none focus:border-purple-500 bg-gray-50"
-                      />
+                  {reportPeriod === 'custom' && isDatePickerOpen && (
+                    <div className="absolute top-12 right-0 z-20 flex flex-col gap-3 bg-white p-4 rounded-xl shadow-xl border border-gray-200 animate-in fade-in zoom-in-95 origin-top-right w-72">
+                      <div className="flex justify-between items-center border-b pb-2 mb-1">
+                        <span className="font-bold text-gray-700">{lang === 'en' ? 'Select Range' : '選擇日期範圍'}</span>
+                        <button onClick={() => setIsDatePickerOpen(false)} className="p-1 hover:bg-gray-100 rounded-full">
+                          <X size={18} className="text-gray-400" />
+                        </button>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="date"
+                          value={customStart}
+                          onChange={(e) => setCustomStart(e.target.value)}
+                          className="flex-1 border border-gray-300 rounded px-2 py-1.5 text-sm outline-none focus:border-purple-500 bg-gray-50 from-input"
+                        />
+                        <span className="text-gray-400">~</span>
+                        <input
+                          type="date"
+                          value={customEnd}
+                          onChange={(e) => setCustomEnd(e.target.value)}
+                          className="flex-1 border border-gray-300 rounded px-2 py-1.5 text-sm outline-none focus:border-purple-500 bg-gray-50 to-input"
+                        />
+                      </div>
+                      <button
+                        onClick={() => setIsDatePickerOpen(false)}
+                        className="w-full bg-purple-600 text-white py-2 rounded-lg text-sm font-bold shadow-sm hover:bg-purple-700 active:scale-95 transition-all"
+                      >
+                        {lang === 'en' ? 'Done' : '完成'}
+                      </button>
                     </div>
                   )}
                 </div>
