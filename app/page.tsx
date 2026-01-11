@@ -181,8 +181,41 @@ export default function PosPage() {
     return false;
   });
 
+  const filteredExpenses = expenses.filter(e => {
+    const expenseDate = e.timestamp ? new Date(e.timestamp) : new Date(e.date);
+
+    if (reportPeriod === 'day') {
+      return expenseDate.toLocaleDateString() === todayStr;
+    }
+    if (reportPeriod === 'month') {
+      return expenseDate.getMonth() === today.getMonth() && expenseDate.getFullYear() === today.getFullYear();
+    }
+    if (reportPeriod === 'quarter') {
+      const q = Math.floor(expenseDate.getMonth() / 3);
+      return q === currentQuarter && expenseDate.getFullYear() === today.getFullYear();
+    }
+    if (reportPeriod === 'year') {
+      return expenseDate.getFullYear() === today.getFullYear();
+    }
+    if (reportPeriod === 'custom') {
+      if (!customStart || !customEnd) return false;
+      const start = new Date(customStart);
+      start.setHours(0, 0, 0, 0);
+      const end = new Date(customEnd);
+      end.setHours(23, 59, 59, 999);
+      return expenseDate >= start && expenseDate <= end;
+    }
+    return false;
+  });
+
   const totalRevenue = filteredOrders.reduce((sum, o) => sum + o.total, 0);
   const totalOrdersCount = filteredOrders.length;
+
+  // Calculate Costs
+  const totalCOGS = filteredExpenses.filter(e => e.type === 'cogs').reduce((sum, e) => sum + e.amount, 0);
+  const totalOpEx = filteredExpenses.filter(e => e.type === 'opex').reduce((sum, e) => sum + e.amount, 0);
+  const totalExpenses = totalCOGS + totalOpEx;
+  const netProfit = totalRevenue - totalExpenses;
 
   // Product Breakdown
   const productStats = filteredOrders.flatMap(o => o.items).reduce((acc, item: CartItem) => {
@@ -518,23 +551,87 @@ export default function PosPage() {
                 </div>
               </div>
 
-              {/* Key Metrics */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
-                  <p className="text-gray-500 font-medium mb-1">
-                    {lang === 'en'
-                      ? (reportPeriod === 'day' ? "Today's Revenue" : reportPeriod === 'month' ? "Monthly Revenue" : reportPeriod === 'quarter' ? "Quarterly Revenue" : reportPeriod === 'year' ? "Yearly Revenue" : "Revenue (Custom)")
-                      : (reportPeriod === 'day' ? "本日總營業額" : reportPeriod === 'month' ? "本月總營業額" : reportPeriod === 'quarter' ? "本季總營業額" : reportPeriod === 'year' ? "本年總營業額" : "指定期間總營業額")}
+              {/* P&L Key Metrics (Updated) */}
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                {/* Revenue */}
+                <div className="bg-white p-6 rounded-2xl shadow-sm border-l-4 border-l-blue-500 border-gray-100">
+                  <p className="text-gray-500 font-medium mb-1 flex items-center gap-1">
+                    <TrendingUp size={16} className="text-blue-500" />
+                    {lang === 'en' ? 'Revenue' : '總營收 (Sales)'}
                   </p>
-                  <p className="text-4xl font-bold text-blue-600">${totalRevenue}</p>
+                  <p className="text-3xl font-bold text-blue-600">${totalRevenue}</p>
+                  <p className="text-sm text-gray-400 mt-1">{totalOrdersCount} {lang === 'en' ? 'orders' : '筆訂單'}</p>
                 </div>
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
-                  <p className="text-gray-500 font-medium mb-1">
-                    {lang === 'en'
-                      ? (reportPeriod === 'day' ? "Today's Orders" : reportPeriod === 'month' ? "Monthly Orders" : reportPeriod === 'quarter' ? "Quarterly Orders" : reportPeriod === 'year' ? "Yearly Orders" : "Orders (Custom)")
-                      : (reportPeriod === 'day' ? "本日訂單數" : reportPeriod === 'month' ? "本月訂單數" : reportPeriod === 'quarter' ? "本季訂單數" : reportPeriod === 'year' ? "本年訂單數" : "指定期間訂單數")}
+
+                {/* COGS */}
+                <div className="bg-white p-6 rounded-2xl shadow-sm border-l-4 border-l-red-500 border-gray-100">
+                  <p className="text-gray-500 font-medium mb-1 flex items-center gap-1">
+                    <TrendingDown size={16} className="text-red-500" />
+                    {lang === 'en' ? 'COGS' : '進貨成本 (COGS)'}
                   </p>
-                  <p className="text-4xl font-bold text-gray-800">{totalOrdersCount}</p>
+                  <p className="text-3xl font-bold text-red-600">-${totalCOGS}</p>
+                  <p className="text-sm text-gray-400 mt-1">{filteredExpenses.filter(e => e.type === 'cogs').length} {lang === 'en' ? 'entries' : '筆紀錄'}</p>
+                </div>
+
+                {/* OpEx */}
+                <div className="bg-white p-6 rounded-2xl shadow-sm border-l-4 border-l-yellow-500 border-gray-100">
+                  <p className="text-gray-500 font-medium mb-1 flex items-center gap-1">
+                    <DollarSign size={16} className="text-yellow-500" />
+                    {lang === 'en' ? 'Expenses' : '營業費用 (OpEx)'}
+                  </p>
+                  <p className="text-3xl font-bold text-yellow-600">-${totalOpEx}</p>
+                  <p className="text-sm text-gray-400 mt-1">{filteredExpenses.filter(e => e.type === 'opex').length} {lang === 'en' ? 'items' : '筆紀錄'}</p>
+                </div>
+
+                {/* Net Profit */}
+                <div className={clsx(
+                  "p-6 rounded-2xl shadow-md border-l-4 border-gray-100",
+                  netProfit >= 0 ? "bg-green-50 border-l-green-500" : "bg-red-50 border-l-red-500"
+                )}>
+                  <p className="text-gray-600 font-bold mb-1 flex items-center gap-1">
+                    🎉 {lang === 'en' ? 'Net Profit' : '淨利 (Net Profit)'}
+                  </p>
+                  <p className={clsx("text-4xl font-extrabold", netProfit >= 0 ? "text-green-700" : "text-red-700")}>
+                    ${netProfit}
+                  </p>
+                  <p className="text-sm opacity-60 mt-1 font-medium">
+                    {lang === 'en' ? 'Margin' : '淨利率'}: {totalRevenue > 0 ? Math.round((netProfit / totalRevenue) * 100) : 0}%
+                  </p>
+                </div>
+              </div>
+
+              {/* Expense List (New) */}
+              <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
+                <h3 className="text-lg font-bold text-gray-800 mb-4 border-b pb-2 flex justify-between items-center">
+                  {lang === 'en' ? 'Expense History' : '支出紀錄明細'}
+                  <span className="text-sm font-normal text-gray-500">
+                    Total: -${totalExpenses}
+                  </span>
+                </h3>
+                <div className="space-y-3 max-h-60 overflow-y-auto pr-2">
+                  {filteredExpenses.length === 0 ? (
+                    <p className="text-gray-400 text-center py-4">{lang === 'en' ? 'No expenses recorded.' : '尚無支出紀錄'}</p>
+                  ) : (
+                    filteredExpenses
+                      .sort((a, b) => b.timestamp - a.timestamp)
+                      .map((expense) => (
+                        <div key={expense.id} className="flex items-center justify-between p-3 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors">
+                          <div className="flex items-center gap-3">
+                            <span className={clsx(
+                              "px-2 py-1 rounded text-xs font-bold uppercase w-16 text-center",
+                              expense.type === 'cogs' ? "bg-red-100 text-red-700" : "bg-yellow-100 text-yellow-700"
+                            )}>
+                              {expense.type === 'cogs' ? 'COGS' : 'OpEx'}
+                            </span>
+                            <div>
+                              <p className="font-bold text-gray-800">{expense.name}</p>
+                              <p className="text-xs text-gray-500">{new Date(expense.timestamp).toLocaleTimeString()}</p>
+                            </div>
+                          </div>
+                          <span className="font-bold text-gray-700">-${expense.amount}</span>
+                        </div>
+                      ))
+                  )}
                 </div>
               </div>
 
