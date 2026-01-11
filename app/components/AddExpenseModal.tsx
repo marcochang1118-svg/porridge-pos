@@ -1,13 +1,16 @@
 'use client';
 
 import { X } from 'lucide-react';
-import { useState } from 'react';
+import { X, Search } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { currentInventoryList } from '@/lib/mockData';
 
 type AddExpenseModalProps = {
     isOpen: boolean;
     onClose: () => void;
     onConfirm: (data: { type: 'cogs' | 'opex', name: string, amount: number }) => void;
     defaultType?: 'cogs' | 'opex'; // 'cogs' = 進貨(Cost of Goods), 'opex' = 費用(Operating Expense)
+    lockType?: boolean; // If true, user cannot change type
     lang?: 'zh' | 'en';
 };
 
@@ -16,6 +19,7 @@ export default function AddExpenseModal({
     onClose,
     onConfirm,
     defaultType = 'cogs',
+    lockType = false,
     lang = 'zh',
 }: AddExpenseModalProps) {
     if (!isOpen) return null;
@@ -23,6 +27,56 @@ export default function AddExpenseModal({
     const [type, setType] = useState<'cogs' | 'opex'>(defaultType);
     const [name, setName] = useState('');
     const [amount, setAmount] = useState('');
+    const [suggestions, setSuggestions] = useState<string[]>([]);
+    const [showSuggestions, setShowSuggestions] = useState(false);
+    const wrapperRef = useRef<HTMLDivElement>(null);
+
+    // Update internal type if defaultType changes when opening
+    useEffect(() => {
+        if (isOpen) {
+            setType(defaultType);
+            setName('');
+            setAmount('');
+            setSuggestions([]);
+            setShowSuggestions(false);
+        }
+    }, [isOpen, defaultType]);
+
+    // Handle Search Logic
+    useEffect(() => {
+        if (type === 'cogs' && name) {
+            const filtered = currentInventoryList.filter(item =>
+                item.toLowerCase().includes(name.toLowerCase())
+            );
+            setSuggestions(filtered);
+            setShowSuggestions(true);
+        } else if (type === 'cogs' && !name) {
+            // Show all if empty on focus (optional, usually users prefer empty start, but user asked for "Dropdown")
+            // Let's keep it empty until typing or maybe show all on filtered?
+            // User said "Jump to keyword", implying typing.
+            // But also "Dropdown", implying list.
+            // Let's show full list if filtered is empty but showSuggestions is true?
+            // Actually better: show all initially if just focused?
+            // Let's stick to filtering.
+            setSuggestions(currentInventoryList);
+        } else {
+            setSuggestions([]);
+            setShowSuggestions(false);
+        }
+    }, [name, type]);
+
+    // Click outside to close suggestions
+    useEffect(() => {
+        function handleClickOutside(event: MouseEvent) {
+            if (wrapperRef.current && !wrapperRef.current.contains(event.target as Node)) {
+                setShowSuggestions(false);
+            }
+        }
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, []);
 
     const handleSubmit = () => {
         const value = parseInt(amount);
@@ -66,35 +120,68 @@ export default function AddExpenseModal({
 
                 {/* Form */}
                 <div className="p-6 space-y-4">
-                    {/* Type Toggle */}
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">{t.typeLabel}</label>
-                        <div className="grid grid-cols-2 gap-2 bg-gray-100 p-1 rounded-lg">
-                            <button
-                                onClick={() => setType('cogs')}
-                                className={`py-2 rounded-md text-sm font-bold transition-all ${type === 'cogs' ? 'bg-white text-red-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
-                            >
-                                {t.cogs}
-                            </button>
-                            <button
-                                onClick={() => setType('opex')}
-                                className={`py-2 rounded-md text-sm font-bold transition-all ${type === 'opex' ? 'bg-white text-yellow-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
-                            >
-                                {t.opex}
-                            </button>
+                    {/* Type Toggle - Hidden if Locked */}
+                    {!lockType && (
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">{t.typeLabel}</label>
+                            <div className="grid grid-cols-2 gap-2 bg-gray-100 p-1 rounded-lg">
+                                <button
+                                    onClick={() => setType('cogs')}
+                                    className={`py-2 rounded-md text-sm font-bold transition-all ${type === 'cogs' ? 'bg-white text-red-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                                >
+                                    {t.cogs}
+                                </button>
+                                <button
+                                    onClick={() => setType('opex')}
+                                    className={`py-2 rounded-md text-sm font-bold transition-all ${type === 'opex' ? 'bg-white text-yellow-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                                >
+                                    {t.opex}
+                                </button>
+                            </div>
                         </div>
-                    </div>
+                    )}
 
-                    {/* Name Input */}
-                    <div>
+                    {/* Name Input with Suggestions */}
+                    <div ref={wrapperRef} className="relative">
                         <label className="block text-sm font-medium text-gray-700 mb-1">{t.nameLabel}</label>
-                        <input
-                            type="text"
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                            placeholder={t.namePlaceholder}
-                            className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-lg focus:border-blue-500 focus:ring-blue-500 outline-none transition-colors"
-                        />
+                        <div className="relative">
+                            <input
+                                type="text"
+                                value={name}
+                                onChange={(e) => {
+                                    setName(e.target.value);
+                                    if (type === 'cogs') setShowSuggestions(true);
+                                }}
+                                onFocus={() => {
+                                    if (type === 'cogs') {
+                                        setSuggestions(currentInventoryList);
+                                        setShowSuggestions(true);
+                                    }
+                                }}
+                                placeholder={t.namePlaceholder}
+                                className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-lg focus:border-blue-500 focus:ring-blue-500 outline-none transition-colors"
+                                autoComplete="off" // Disable browser history
+                            />
+                            {type === 'cogs' && <Search className="absolute right-3 top-3.5 text-gray-400" size={20} />}
+                        </div>
+
+                        {/* Suggestions Dropdown */}
+                        {showSuggestions && suggestions.length > 0 && (
+                            <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg max-h-48 overflow-y-auto animate-in fade-in slide-in-from-top-2">
+                                {suggestions.map((item, index) => (
+                                    <button
+                                        key={index}
+                                        onClick={() => {
+                                            setName(item);
+                                            setShowSuggestions(false);
+                                        }}
+                                        className="w-full text-left px-4 py-3 hover:bg-blue-50 transition-colors border-b border-gray-50 last:border-0 text-gray-700 font-medium"
+                                    >
+                                        {item}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
                     </div>
 
                     {/* Amount Input */}

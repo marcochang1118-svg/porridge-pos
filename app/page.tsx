@@ -414,6 +414,7 @@ export default function PosPage() {
         onClose={() => setIsExpenseModalOpen(false)}
         onConfirm={handleConfirmExpense}
         defaultType={expenseModalType}
+        lockType={true}
         lang={lang}
       />
 

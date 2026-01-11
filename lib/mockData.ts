@@ -39,3 +39,12 @@ export const MODIFIERS = [
     { id: 'm10', name: '冬瓜茶(加購)', nameEn: 'Winter Melon (500cc)', price: 20, category: 'addon' },
     { id: 'm11', name: '冷泡綠茶(加購)', nameEn: 'Green Tea (500cc)', price: 20, category: 'addon' },
 ];
+
+export const currentInventoryList = [
+    // 肉類與海鮮
+    "豬肉 一包", "牛肉 一包", "雞肉 一包", "銀魚 一包", "鮑魚 一包", "香菇 一包", "鯛魚 一份",
+    // 蛋類與配料
+    "皮蛋 一籃", "雞蛋 一籃", "油條 一箱", "起司 一條", "玉米 一箱", "肉鬆 一包", "海苔 一包",
+    // 基底與週邊
+    "米 一包", "雞骨 一袋", "高湯A粉 一包", "白粥B粉 一包", "洋蔥 一袋", "薑 一份"
+].sort((a, b) => a.localeCompare(b, 'zh-TW'));
