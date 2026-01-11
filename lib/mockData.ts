@@ -48,3 +48,7 @@ export const currentInventoryList = [
     // 基底與週邊
     "米 一包", "雞骨 一袋", "高湯A粉 一包", "白粥B粉 一包", "洋蔥 一袋", "薑 一份"
 ].sort((a, b) => a.localeCompare(b, 'zh-TW'));
+
+export const EXPENSE_ITEMS = [
+    "店面租金(含水費200)", "電費", "瓦斯費", "員工薪資"
+];

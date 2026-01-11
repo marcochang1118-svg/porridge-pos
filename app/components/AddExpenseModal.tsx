@@ -2,7 +2,7 @@
 
 import { X, Search } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
-import { currentInventoryList } from '@/lib/mockData';
+import { currentInventoryList, EXPENSE_ITEMS } from '@/lib/mockData';
 
 type AddExpenseModalProps = {
     isOpen: boolean;
@@ -31,6 +31,9 @@ export default function AddExpenseModal({
     const [suggestions, setSuggestions] = useState<string[]>([]);
     const [showSuggestions, setShowSuggestions] = useState(false);
     const wrapperRef = useRef<HTMLDivElement>(null);
+    const amountInputRef = useRef<HTMLInputElement>(null);
+
+    const activeList = type === 'cogs' ? currentInventoryList : EXPENSE_ITEMS;
 
     // Update internal state when opening
     useEffect(() => {
@@ -50,24 +53,15 @@ export default function AddExpenseModal({
 
     // Handle Search Logic
     useEffect(() => {
-        if (type === 'cogs' && name) {
-            const filtered = currentInventoryList.filter(item =>
+        if (name) {
+            const filtered = activeList.filter(item =>
                 item.toLowerCase().includes(name.toLowerCase())
             );
             setSuggestions(filtered);
             setShowSuggestions(true);
-        } else if (type === 'cogs' && !name) {
-            // Show all if empty on focus (optional, usually users prefer empty start, but user asked for "Dropdown")
-            // Let's keep it empty until typing or maybe show all on filtered?
-            // User said "Jump to keyword", implying typing.
-            // But also "Dropdown", implying list.
-            // Let's show full list if filtered is empty but showSuggestions is true?
-            // Actually better: show all initially if just focused?
-            // Let's stick to filtering.
-            setSuggestions(currentInventoryList);
         } else {
-            setSuggestions([]);
-            setShowSuggestions(false);
+            // Show full list on empty focus
+            setSuggestions(activeList);
         }
     }, [name, type]);
 
@@ -156,19 +150,17 @@ export default function AddExpenseModal({
                                 value={name}
                                 onChange={(e) => {
                                     setName(e.target.value);
-                                    if (type === 'cogs') setShowSuggestions(true);
+                                    setShowSuggestions(true);
                                 }}
                                 onFocus={() => {
-                                    if (type === 'cogs') {
-                                        setSuggestions(currentInventoryList);
-                                        setShowSuggestions(true);
-                                    }
+                                    setSuggestions(activeList);
+                                    setShowSuggestions(true);
                                 }}
                                 placeholder={t.namePlaceholder}
                                 className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-lg focus:border-blue-500 focus:ring-blue-500 outline-none transition-colors"
                                 autoComplete="off" // Disable browser history
                             />
-                            {type === 'cogs' && <Search className="absolute right-3 top-3.5 text-gray-400" size={20} />}
+                            <Search className="absolute right-3 top-3.5 text-gray-400" size={20} />
                         </div>
 
                         {/* Suggestions Dropdown */}
@@ -177,9 +169,13 @@ export default function AddExpenseModal({
                                 {suggestions.map((item, index) => (
                                     <button
                                         key={index}
-                                        onClick={() => {
+                                        onClick={(e) => {
+                                            e.stopPropagation(); // Prevent bubble up
+                                            e.preventDefault(); // Prevent default
                                             setName(item);
                                             setShowSuggestions(false);
+                                            // Focus amount input next tick
+                                            setTimeout(() => amountInputRef.current?.focus(), 0);
                                         }}
                                         className="w-full text-left px-4 py-3 hover:bg-blue-50 transition-colors border-b border-gray-50 last:border-0 text-gray-700 font-medium"
                                     >
@@ -193,13 +189,18 @@ export default function AddExpenseModal({
                     {/* Amount Input */}
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">{t.amountLabel}</label>
-                        <input
-                            type="number"
-                            value={amount}
-                            onChange={(e) => setAmount(e.target.value)}
-                            placeholder="0"
-                            className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-2xl font-bold text-gray-800 focus:border-blue-500 focus:ring-blue-500 outline-none transition-colors"
-                        />
+                        <div className="relative">
+                            <span className="absolute left-4 top-3.5 text-gray-500 font-bold">$</span>
+                            <input
+                                ref={amountInputRef}
+                                type="number"
+                                inputMode="numeric"
+                                value={amount}
+                                onChange={(e) => setAmount(e.target.value)}
+                                placeholder="0"
+                                className="w-full border-2 border-gray-200 rounded-xl pl-9 pr-4 py-3 text-2xl font-bold text-gray-800 focus:border-blue-500 focus:ring-blue-500 outline-none transition-colors"
+                            />
+                        </div>
                     </div>
                 </div>
 

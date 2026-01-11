@@ -552,11 +552,11 @@ export default function PosPage() {
 
                   {/* Custom Date Inputs (Absolute to prevent layout shift) */}
                   {reportPeriod === 'custom' && isDatePickerOpen && (
-                    <div className="absolute top-12 right-0 z-20 flex flex-col gap-3 bg-white p-4 rounded-xl shadow-xl border border-gray-200 animate-in fade-in zoom-in-95 origin-top-right w-72">
+                    <div className="absolute top-10 right-0 z-30 flex flex-col gap-3 bg-white p-4 rounded-xl shadow-xl border border-gray-200 animate-in fade-in zoom-in-95 origin-top-right w-64 md:w-72">
                       <div className="flex justify-between items-center border-b pb-2 mb-1">
-                        <span className="font-bold text-gray-700">{lang === 'en' ? 'Select Range' : '選擇日期範圍'}</span>
+                        <span className="font-bold text-gray-700 text-sm">{lang === 'en' ? 'Select Range' : '選擇日期範圍'}</span>
                         <button onClick={() => setIsDatePickerOpen(false)} className="p-1 hover:bg-gray-100 rounded-full">
-                          <X size={18} className="text-gray-400" />
+                          <X size={16} className="text-gray-400" />
                         </button>
                       </div>
                       <div className="flex items-center gap-2">
