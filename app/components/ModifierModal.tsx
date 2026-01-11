@@ -146,19 +146,20 @@ export default function ModifierModal({
                                         key={mod.id}
                                         onClick={() => onToggleModifier(mod.id)}
                                         className={clsx(
-                                            'flex items-center justify-between rounded-xl border-2 p-6 transition-all',
+                                            'flex items-center justify-between rounded-xl border-2 p-4 h-28 transition-all',
                                             isSelected
                                                 ? 'border-green-600 bg-green-50 text-green-800 ring-2 ring-green-600/20'
                                                 : 'border-green-200 bg-white text-gray-700 hover:border-green-400'
                                         )}
                                     >
                                         <span className="text-2xl font-bold">{displayName}</span>
-                                        <div className="flex flex-col items-end">
-                                            {isDiscounted && (
-                                                <span className="text-sm line-through text-gray-400 font-normal">
-                                                    +${mod.price}
-                                                </span>
-                                            )}
+                                        <div className="flex flex-col items-end justify-center">
+                                            {/* Top Line: Original Price (Reserved Space) */}
+                                            <span className={clsx("text-sm font-normal text-gray-400", isDiscounted ? "line-through" : "invisible")}>
+                                                +${mod.price}
+                                            </span>
+
+                                            {/* Bottom Line: Effective Price */}
                                             <span className={clsx("text-xl font-bold", isSelected ? "text-green-700" : "text-red-500")}>
                                                 {displayPrice > 0 ? `+$${displayPrice}` : t.free}
                                             </span>
