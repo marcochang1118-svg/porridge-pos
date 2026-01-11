@@ -57,6 +57,30 @@ type CartItem = {
   type?: string; // product type for color coding
 };
 
+const ProductCard = ({ product, addToCart, lang }: { product: any, addToCart: (p: any) => void, lang: 'zh' | 'en' }) => {
+  let colorClass = 'bg-white border-gray-200 hover:border-blue-400';
+  if (product.type === 'meat') colorClass = 'bg-red-50 border-red-100 hover:bg-red-100 hover:border-red-300 text-red-900';
+  if (product.type === 'seafood') colorClass = 'bg-blue-50 border-blue-100 hover:bg-blue-100 hover:border-blue-300 text-blue-900';
+  if (product.type === 'cheese') colorClass = 'bg-yellow-50 border-yellow-100 hover:bg-yellow-100 hover:border-yellow-300 text-yellow-900';
+  if (product.type === 'special') colorClass = 'bg-purple-50 border-purple-100 hover:bg-purple-100 hover:border-purple-300 text-purple-900';
+  if (product.type === 'side') colorClass = 'bg-gray-50 border-gray-200 hover:bg-gray-100 hover:border-gray-300 text-gray-800';
+
+  return (
+    <button
+      onClick={() => addToCart(product)}
+      className={clsx(
+        "flex flex-col items-center justify-center gap-1 rounded-xl border p-4 shadow-sm transition-all active:scale-95 active:shadow-inner hover:shadow-md h-32",
+        colorClass
+      )}
+    >
+      <span className="text-xl font-bold text-center leading-tight">
+        {lang === 'en' ? (product.nameEn || product.name) : product.name}
+      </span>
+      <span className="text-lg font-medium opacity-80">${product.price}</span>
+    </button>
+  );
+};
+
 export default function PosPage() {
   const [activeCategory, setActiveCategory] = useState(CATEGORIES[0].id);
   const [cart, setCart] = useState<CartItem[]>([]);
@@ -483,40 +507,39 @@ export default function PosPage() {
               </div>
             </div>
           ) : (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {PRODUCTS
-                .filter((p) => p.category_id === activeCategory)
-                .sort((a, b) => {
-                  const typeOrder: Record<string, number> = { meat: 1, seafood: 2, cheese: 3, special: 4, side: 5 };
-                  const orderA = typeOrder[a.type] || 99;
-                  const orderB = typeOrder[b.type] || 99;
-                  return orderA - orderB;
-                })
-                .map((product: any) => {
-                  // Color mapping based on type
-                  let colorClass = 'bg-white border-gray-200 hover:border-blue-400';
-                  if (product.type === 'meat') colorClass = 'bg-red-50 border-red-100 hover:bg-red-100 hover:border-red-300 text-red-900';
-                  if (product.type === 'seafood') colorClass = 'bg-blue-50 border-blue-100 hover:bg-blue-100 hover:border-blue-300 text-blue-900';
-                  if (product.type === 'cheese') colorClass = 'bg-yellow-50 border-yellow-100 hover:bg-yellow-100 hover:border-yellow-300 text-yellow-900';
-                  if (product.type === 'special') colorClass = 'bg-purple-50 border-purple-100 hover:bg-purple-100 hover:border-purple-300 text-purple-900';
+            <>
+              {/* Mobile View: Single Grid (Sorted) */}
+              <div className="grid grid-cols-2 gap-4 lg:hidden">
+                {PRODUCTS
+                  .filter((p) => p.category_id === activeCategory)
+                  .sort((a, b) => {
+                    const typeOrder: Record<string, number> = { meat: 1, seafood: 2, cheese: 3, special: 4, side: 5 };
+                    return (typeOrder[a.type] || 99) - (typeOrder[b.type] || 99);
+                  })
+                  .map((product: any) => (
+                    <ProductCard key={product.id} product={product} addToCart={addToCart} lang={lang} />
+                  ))}
+              </div>
+
+              {/* Desktop View: Separated Rows by Type */}
+              <div className="hidden lg:block space-y-8">
+                {['meat', 'seafood', 'cheese', 'special', 'side'].map((type) => {
+                  const items = PRODUCTS.filter(p => p.category_id === activeCategory && p.type === type);
+                  if (items.length === 0) return null;
 
                   return (
-                    <button
-                      key={product.id}
-                      onClick={() => addToCart(product)}
-                      className={clsx(
-                        "flex flex-col items-center justify-center gap-1 rounded-xl border p-4 shadow-sm transition-all active:scale-95 active:shadow-inner hover:shadow-md",
-                        colorClass
-                      )}
-                    >
-                      <span className="text-xl font-bold text-center leading-tight">
-                        {lang === 'en' ? (product.nameEn || product.name) : product.name}
-                      </span>
-                      <span className="text-lg font-medium opacity-80">${product.price}</span>
-                    </button>
+                    <div key={type} className="space-y-3">
+                      <div className="grid grid-cols-4 gap-4">
+                        {items.map((product: any) => (
+                          <ProductCard key={product.id} product={product} addToCart={addToCart} lang={lang} />
+                        ))}
+                      </div>
+                      <div className="h-px bg-gray-200 w-full"></div>
+                    </div>
                   );
                 })}
-            </div>
+              </div>
+            </>
           )}
         </div>
       </div>
