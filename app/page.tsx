@@ -1191,13 +1191,13 @@ export default function PosPage() {
                       )}
                     >
                       <div className="flex-1 min-w-0 pr-2">
-                        <h3 className="text-lg font-bold leading-tight flex items-center flex-wrap gap-2">
-                          <span className="truncate">{displayName}</span>
+                        <h3 className="text-lg font-bold leading-tight flex items-center gap-2">
                           {!isSide && (
-                            <span className="inline-flex items-center rounded-md bg-blue-50 px-1.5 py-0.5 text-[10px] font-bold text-blue-600 ring-1 ring-inset ring-blue-500/20 uppercase tracking-wider">
+                            <span className="flex-shrink-0 inline-flex items-center rounded-md bg-blue-50 px-1.5 py-0.5 text-[10px] font-bold text-blue-600 ring-1 ring-inset ring-blue-500/20 uppercase tracking-wider">
                               {t.canCustomize}
                             </span>
                           )}
+                          <span className="truncate">{displayName}</span>
                         </h3>
                         {item.modifierIds.length > 0 && (
                           <p className="text-sm opacity-80 mt-1 truncate">
@@ -1236,16 +1236,16 @@ export default function PosPage() {
                       <div className="flex items-center gap-2 min-w-0">
                         {isExpanded ? <ChevronDown size={20} className="flex-shrink-0" /> : <ChevronRight size={20} className="flex-shrink-0" />}
                         <h3 className={clsx(
-                          "text-lg font-bold leading-tight truncate flex items-center flex-wrap gap-2",
+                          "text-lg font-bold leading-tight flex items-center gap-2 min-w-0",
                           groupColor.split(' ').find(c => c.startsWith('text-')) || 'text-gray-800'
                         )}>
-                          {displayName}
-                          <span className="ml-1 rounded-full bg-black/80 px-2 py-0.5 text-xs text-white">x{count}</span>
+                          <span className="flex-shrink-0 min-w-[32px] text-center rounded-full bg-black/80 px-2 py-0.5 text-xs text-white">x{count}</span>
                           {!isSide && (
-                            <span className="inline-flex items-center rounded-md bg-blue-50 px-1.5 py-0.5 text-[10px] font-bold text-blue-600 ring-1 ring-inset ring-blue-500/20 uppercase tracking-wider">
+                            <span className="flex-shrink-0 inline-flex items-center rounded-md bg-blue-50 px-1.5 py-0.5 text-[10px] font-bold text-blue-600 ring-1 ring-inset ring-blue-500/20 uppercase tracking-wider">
                               {t.canCustomize}
                             </span>
                           )}
+                          <span className="truncate">{displayName}</span>
                         </h3>
                       </div>
                       <div className="text-right pl-2 flex-shrink-0">
@@ -1338,8 +1338,7 @@ export default function PosPage() {
                     )}
                   >
                     <div className="flex-1 min-w-0 pr-2">
-                      <h3 className="text-lg font-bold flex items-center flex-wrap gap-2 leading-tight">
-                        <span className="truncate">{displayName}</span>
+                      <h3 className="text-lg font-bold flex items-center gap-2 leading-tight">
                         {showIndex && (
                           <span className="flex-shrink-0 w-10 text-center rounded-md bg-black/5 py-0.5 text-sm font-bold opacity-80 font-serif">
                             {toRoman(myIndex + 1)}
@@ -1349,11 +1348,12 @@ export default function PosPage() {
                           const product = PRODUCTS.find(p => p.id === item.productId);
                           const isSide = product?.category_id === 'cat_sides' || product?.category_id === 'cat_drinks';
                           return !isSide && (
-                            <span className="inline-flex items-center rounded-md bg-blue-50 px-1.5 py-0.5 text-[10px] font-bold text-blue-600 ring-1 ring-inset ring-blue-500/20 uppercase tracking-wider">
+                            <span className="flex-shrink-0 inline-flex items-center rounded-md bg-blue-50 px-1.5 py-0.5 text-[10px] font-bold text-blue-600 ring-1 ring-inset ring-blue-500/20 uppercase tracking-wider">
                               {t.canCustomize}
                             </span>
                           );
                         })()}
+                        <span className="truncate">{displayName}</span>
                       </h3>
                       {item.modifierIds.length > 0 && (
                         <p className="text-sm opacity-80 mt-1 truncate">
