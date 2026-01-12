@@ -1238,18 +1238,27 @@ export default function PosPage() {
                 }
 
                 // Multiple items render (Group)
+                const isNoCustom = isSide;
+
                 return (
                   <div key={productId} className="rounded-lg shadow-sm overflow-hidden border border-gray-200 bg-white">
                     {/* Group Header */}
                     <div
-                      onClick={() => toggleGroup(productId)}
+                      onClick={() => !isNoCustom && toggleGroup(productId)}
                       className={clsx(
-                        "flex cursor-pointer items-center justify-between p-4 transition-colors",
+                        "flex items-center justify-between p-4 transition-colors",
+                        !isNoCustom && "cursor-pointer",
                         bgColor
                       )}
                     >
                       <div className="flex items-center justify-between gap-2 min-w-0">
-                        {isExpanded ? <ChevronDown size={20} className="flex-shrink-0" /> : <ChevronRight size={20} className="flex-shrink-0" />}
+                        {!isNoCustom ? (
+                          isExpanded ? <ChevronDown size={20} className="flex-shrink-0" /> : <ChevronRight size={20} className="flex-shrink-0" />
+                        ) : (
+                          // Spacer to align with items that have chevrons
+                          <div className="w-[20px] flex-shrink-0" />
+                        )}
+
                         <h3 className={clsx(
                           "text-lg font-bold leading-tight truncate flex-1",
                           groupColor.split(' ').find(c => c.startsWith('text-')) || 'text-gray-800'
@@ -1267,8 +1276,20 @@ export default function PosPage() {
                           )}
                         </div>
                       </div>
-                      <div className="text-right pl-2 flex-shrink-0">
+                      <div className="text-right pl-2 flex-shrink-0 flex items-center gap-3">
                         <p className="font-bold text-gray-700">${items.reduce((sum, i) => sum + i.totalPrice, 0)}</p>
+                        {isNoCustom && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              // Remove the last item in the group (effectively decreasing count by 1)
+                              removeFromCart(items[items.length - 1].internalId);
+                            }}
+                            className="rounded-full p-2 text-gray-300 hover:text-red-500 hover:bg-red-50 transition-colors"
+                          >
+                            <Trash2 size={24} />
+                          </button>
+                        )}
                       </div>
                     </div>
 

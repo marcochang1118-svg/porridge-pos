@@ -120,7 +120,7 @@ export default function ModifierModal({
                                         key={mod.id}
                                         onClick={() => onToggleModifier(mod.id)}
                                         className={clsx(
-                                            'relative flex items-center justify-between rounded-xl border-2 p-6 transition-all overflow-hidden',
+                                            'relative flex flex-col items-center justify-center rounded-xl border-2 p-4 transition-all overflow-hidden min-h-[120px] gap-2',
                                             isSelected
                                                 ? 'border-green-600 bg-green-50 text-green-800 ring-2 ring-green-600/20'
                                                 : 'border-green-200 bg-white text-gray-700 hover:border-green-400'
@@ -128,20 +128,20 @@ export default function ModifierModal({
                                     >
                                         {/* "Save $X" Badge */}
                                         <div className={clsx(
-                                            "absolute top-0 right-0 text-white text-[10px] font-bold px-2 py-0.5 rounded-bl-lg shadow-sm transition-all",
+                                            "absolute top-0 right-0 text-white text-[10px] font-bold px-2 py-0.5 rounded-bl-lg shadow-sm transition-all z-10",
                                             isDiscounted ? "bg-red-600 scale-110" : "bg-red-500"
                                         )}>
                                             {lang === 'en' ? `Save $${totalSaved}` : `省$${totalSaved}`}
                                         </div>
 
-                                        <span className="text-2xl font-bold">{displayName}</span>
-                                        <div className="flex items-center gap-2 mt-2">
+                                        <span className="text-xl font-bold text-center leading-tight">{displayName}</span>
+                                        <div className="flex flex-col items-center">
                                             {isDiscounted && (
-                                                <span className="text-sm line-through text-gray-400 font-normal">
+                                                <span className="text-xs line-through text-gray-400 font-normal mb-0.5">
                                                     ${mod.price}
                                                 </span>
                                             )}
-                                            <span className={clsx("text-xl font-bold", isSelected ? "text-green-700" : "text-red-500")}>
+                                            <span className={clsx("text-lg font-bold", isSelected ? "text-green-700" : "text-red-500")}>
                                                 {displayPrice > 0 ? `+$${displayPrice}` : t.free}
                                             </span>
                                         </div>
@@ -166,14 +166,14 @@ export default function ModifierModal({
                                         key={mod.id}
                                         onClick={() => onToggleModifier(mod.id)}
                                         className={clsx(
-                                            'flex items-center justify-between rounded-xl border-2 p-6 transition-all',
+                                            'flex flex-col items-center justify-center rounded-xl border-2 p-4 transition-all min-h-[100px] gap-1',
                                             isSelected
                                                 ? 'border-blue-600 bg-blue-50 text-blue-800 ring-2 ring-blue-600/20'
                                                 : 'border-gray-200 bg-white text-gray-700 hover:border-blue-300'
                                         )}
                                     >
-                                        <span className="text-2xl font-bold">{displayName}</span>
-                                        <span className={clsx("text-xl font-medium", isSelected ? "text-blue-600" : "text-gray-500")}>
+                                        <span className="text-xl font-bold text-center leading-tight">{displayName}</span>
+                                        <span className={clsx("text-lg font-medium", isSelected ? "text-blue-600" : "text-gray-500")}>
                                             {mod.price > 0 ? `+$${mod.price}` : t.free}
                                         </span>
                                     </button>
