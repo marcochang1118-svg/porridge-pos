@@ -164,7 +164,7 @@ export default function ProfitChart({ orders, expenses, startDate, endDate, peri
                     <Tooltip
                         contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
                     />
-                    <Legend iconType="circle" />
+                    <Legend iconType="circle" verticalAlign="top" align="right" />
 
                     <Bar dataKey="revenue" name={lang === 'en' ? 'Revenue' : '營收'} barSize={20} fill="#60A5FA" radius={[4, 4, 0, 0]} />
                     <Bar dataKey="cost" name={lang === 'en' ? 'Cost' : '成本'} barSize={20} fill="#F87171" radius={[4, 4, 0, 0]} />
