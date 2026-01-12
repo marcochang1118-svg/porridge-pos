@@ -1235,7 +1235,10 @@ export default function PosPage() {
                     >
                       <div className="flex items-center gap-2 min-w-0">
                         {isExpanded ? <ChevronDown size={20} className="flex-shrink-0" /> : <ChevronRight size={20} className="flex-shrink-0" />}
-                        <h3 className={clsx("text-lg font-bold leading-tight truncate flex items-center flex-wrap gap-2", groupColor.replace('border-', 'text-').split(' ')[0])}>
+                        <h3 className={clsx(
+                          "text-lg font-bold leading-tight truncate flex items-center flex-wrap gap-2",
+                          groupColor.split(' ').find(c => c.startsWith('text-')) || 'text-gray-800'
+                        )}>
                           {displayName}
                           <span className="ml-1 rounded-full bg-black/80 px-2 py-0.5 text-xs text-white">x{count}</span>
                           {!isSide && (
