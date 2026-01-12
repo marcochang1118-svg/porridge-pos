@@ -376,6 +376,9 @@ export default function PosPage() {
     // Create new cart (append only, no sorting for List View)
     const newCart = [...cart, newItem];
     setCart(newCart);
+
+    // Force collapse group when adding new item (User preference: default closed)
+    setExpandedGroups(expandedGroups.filter(id => id !== product.id));
   };
 
   const removeFromCart = (internalId: string) => {
@@ -400,11 +403,8 @@ export default function PosPage() {
   }, {} as Record<string, CartItem[]>);
 
   // Unique IDs for group iteration
-  const uniqueProductIds = Array.from(new Set(cart.map(item => item.productId))).sort((a, b) => {
-    const indexA = PRODUCTS.findIndex(p => p.id === a);
-    const indexB = PRODUCTS.findIndex(p => p.id === b);
-    return indexA - indexB;
-  });
+  // Unique IDs for group iteration (Preserve insertion order)
+  const uniqueProductIds = Array.from(new Set(cart.map(item => item.productId)));
 
   // Open modal for a specific cart item
   const openModifierModal = (item: CartItem) => {
@@ -1117,7 +1117,7 @@ export default function PosPage() {
 
       {/* RIGHT: Cart */}
       <div
-        className="flex flex-col bg-gray-50 transition-all duration-300 w-full md:w-[40%] lg:w-[30%] md:h-full border-t md:border-t-0 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] md:shadow-none"
+        className="flex flex-col bg-gray-50 transition-all duration-300 w-full md:w-[40%] lg:w-[35%] md:h-full border-t md:border-t-0 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] md:shadow-none"
         style={{
           height: viewMode === 'dashboard' ? '0px' : (isMobile ? `${mobileCartRatio}%` : '100%'),
           display: viewMode === 'dashboard' ? 'none' : 'flex'
@@ -1192,47 +1192,63 @@ export default function PosPage() {
                       key={item.internalId}
                       onClick={isSide ? undefined : () => openModifierModal(item)}
                       className={clsx(
-                        "group relative flex items-center justify-between rounded-lg p-4 shadow-sm border-2 transition-all",
+                        "group relative flex items-center p-2 shadow-sm border-2 transition-all",
                         !isSide && "cursor-pointer",
                         bgColor, groupColor
                       )}
                     >
+                      {/* Zone 1: Expansion Icon / Spacer (Fixed width w-6) */}
+                      <div className="w-6 flex-shrink-0 flex items-center justify-center">
+                        {/* Empty for single item List View */}
+                      </div>
+
+                      {/* Zone 2: Product Name (Flex Fill) */}
                       <div className="flex-1 min-w-0 pr-2">
-                        <div className="flex items-center gap-2">
-                          {/* Chevron Spacer for alignment with grouped items */}
-                          <div className="w-[20px] flex-shrink-0" />
-                          <h3 className="text-base font-bold leading-tight break-words flex-1">{displayName}</h3>
-                          <div className="flex items-center gap-2 flex-shrink-0">
-                            {/* Spacer to match grouped layout Roman numeral width */}
-                            <div className="w-8" />
-                            {!isSide ? (
-                              <span className="inline-flex items-center rounded-md bg-blue-50 px-1.5 py-0.5 text-[10px] font-bold text-blue-600 ring-1 ring-inset ring-blue-500/20 uppercase tracking-wider w-[48px] justify-center">
-                                {t.canCustomize}
-                              </span>
-                            ) : (
-                              <div className="w-[48px]" />
-                            )}
-                          </div>
-                        </div>
+                        <h3 className="text-[15px] font-bold leading-tight truncate">{displayName}</h3>
                         {item.modifierIds.length > 0 && (
-                          <p className="text-sm opacity-80 mt-1 truncate pl-[28px]">
+                          <p className="text-sm opacity-80 mt-1 truncate">
                             {item.modifierIds.map(mid => {
                               const m = MODIFIERS.find(mod => mod.id === mid);
                               return m ? (lang === 'en' ? (m.nameEn || m.name) : m.name) : null;
                             }).filter(Boolean).join(', ')}
                           </p>
                         )}
-                        <p className="text-md font-medium mt-1 pl-[28px]">${item.totalPrice}</p>
                       </div>
-                      <button
-                        onClick={(e) => { e.stopPropagation(); removeFromCart(item.internalId); }}
-                        className={clsx(
-                          "flex-shrink-0 rounded-full p-4 transition-colors",
-                          "text-gray-400 hover:text-red-600 hover:bg-black/5 active:bg-red-100"
-                        )}
-                      >
-                        <Trash2 size={28} />
-                      </button>
+
+                      {/* Zone 3: Right Cluster (Fixed Alignments) */}
+                      <div className="flex items-center gap-1 flex-shrink-0">
+                        {/* Quantity Badge (Fixed width) */}
+                        <div className="w-[28px] flex justify-center">
+                          {/* Hidden spacer or invisible count to maintain grid structure if needed, or just empty */}
+                        </div>
+
+                        {/* Status Badge (Fixed width w-[48px]) */}
+                        <div className="w-[48px] flex justify-center">
+                          {!isSide && (
+                            <span className="inline-flex items-center rounded-md bg-blue-50 px-1.5 py-0.5 text-[10px] font-bold text-blue-600 ring-1 ring-inset ring-blue-500/20 uppercase tracking-wider">
+                              {t.canCustomize}
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Price (Fixed width w-[50px], Right Aligned) */}
+                        <div className="w-[50px] text-right">
+                          <p className="text-md font-medium">${item.totalPrice}</p>
+                        </div>
+
+                        {/* Action Button (Fixed width w-[32px] for click target) */}
+                        <div className="w-[32px] flex justify-end">
+                          <button
+                            onClick={(e) => { e.stopPropagation(); removeFromCart(item.internalId); }}
+                            className={clsx(
+                              "flex-shrink-0 rounded-full p-2 transition-colors",
+                              "text-gray-400 hover:text-red-600 hover:bg-black/5 active:bg-red-100"
+                            )}
+                          >
+                            <Trash2 size={24} />
+                          </button>
+                        </div>
+                      </div>
                     </div>
                   );
                 }
@@ -1246,50 +1262,69 @@ export default function PosPage() {
                     <div
                       onClick={() => !isNoCustom && toggleGroup(productId)}
                       className={clsx(
-                        "flex items-center justify-between p-4 transition-colors",
+                        "flex items-center p-2 transition-colors",
                         !isNoCustom && "cursor-pointer",
                         bgColor
                       )}
                     >
-                      <div className="flex items-center justify-between gap-2 min-w-0">
+                      {/* Zone 1: Expansion Icon / Spacer (Fixed width w-6) */}
+                      <div className="w-6 flex-shrink-0 flex items-center justify-center">
                         {!isNoCustom ? (
-                          isExpanded ? <ChevronDown size={20} className="flex-shrink-0" /> : <ChevronRight size={20} className="flex-shrink-0" />
+                          isExpanded ? <ChevronDown size={20} /> : <ChevronRight size={20} />
                         ) : (
-                          // Spacer to align with items that have chevrons
-                          <div className="w-[20px] flex-shrink-0" />
+                          // Spacer
+                          <div className="w-[20px]" />
                         )}
+                      </div>
 
+                      {/* Zone 2: Product Name (Flex Fill) */}
+                      <div className="flex-1 min-w-0 pr-2">
                         <h3 className={clsx(
-                          "text-base font-bold leading-tight break-words flex-1",
+                          "text-[15px] font-bold leading-tight truncate",
                           groupColor.split(' ').find(c => c.startsWith('text-')) || 'text-gray-800'
                         )}>
                           {displayName}
                         </h3>
-                        <div className="flex items-center gap-2 flex-shrink-0">
+                      </div>
+
+                      {/* Zone 3: Right Cluster (Fixed Alignments) */}
+                      <div className="flex items-center gap-1 flex-shrink-0">
+                        {/* Quantity Badge (Fixed width w-[28px]) */}
+                        <div className="w-[28px] flex justify-center">
                           <span className="flex-shrink-0 w-8 text-center rounded-full bg-black/80 py-0.5 text-[10px] text-white">x{count}</span>
-                          {!isSide ? (
-                            <span className="inline-flex items-center rounded-md bg-blue-50 px-1.5 py-0.5 text-[10px] font-bold text-blue-600 ring-1 ring-inset ring-blue-500/20 uppercase tracking-wider w-[48px] justify-center">
+                        </div>
+
+                        {/* Status Badge (Fixed width w-[48px]) */}
+                        <div className="w-[48px] flex justify-center">
+                          {!isSide && (
+                            <span className="inline-flex items-center rounded-md bg-blue-50 px-1.5 py-0.5 text-[10px] font-bold text-blue-600 ring-1 ring-inset ring-blue-500/20 uppercase tracking-wider">
                               {t.canCustomize}
                             </span>
-                          ) : (
-                            <div className="w-[48px]" />
                           )}
                         </div>
-                      </div>
-                      <div className="text-right pl-2 flex-shrink-0 flex items-center gap-3">
-                        <p className="font-bold text-gray-700">${items.reduce((sum, i) => sum + i.totalPrice, 0)}</p>
-                        {isNoCustom && (
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              // Remove the last item in the group (effectively decreasing count by 1)
-                              removeFromCart(items[items.length - 1].internalId);
-                            }}
-                            className="rounded-full p-2 text-gray-300 hover:text-red-500 hover:bg-red-50 transition-colors"
-                          >
-                            <Trash2 size={24} />
-                          </button>
-                        )}
+
+                        {/* Price (Fixed width w-[50px], Right Aligned) */}
+                        <div className="w-[50px] text-right">
+                          <p className="font-bold text-gray-700">${items.reduce((sum, i) => sum + i.totalPrice, 0)}</p>
+                        </div>
+
+                        {/* Action Button (Fixed width w-[32px] for click target) */}
+                        <div className="w-[32px] flex justify-end">
+                          {isNoCustom ? (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                removeFromCart(items[items.length - 1].internalId);
+                              }}
+                              className="rounded-full p-2 text-gray-300 hover:text-red-500 hover:bg-red-50 transition-colors"
+                            >
+                              <Trash2 size={24} />
+                            </button>
+                          ) : (
+                            // Spacer to reserve space for the delete button seen in single items
+                            <div className="w-[32px]" />
+                          )}
+                        </div>
                       </div>
                     </div>
 
@@ -1380,55 +1415,73 @@ export default function PosPage() {
                     key={item.internalId}
                     onClick={() => openModifierModal(item)}
                     className={clsx(
-                      "group relative flex cursor-pointer items-center justify-between rounded-lg p-4 shadow-sm border-2 transition-all",
+                      "group relative flex items-center p-2 shadow-sm border-2 transition-all",
+                      "cursor-pointer", // Always cursor-pointer in flat list as individual items are editable
                       cartItemColor
                     )}
                   >
+                    {/* Zone 1: Expansion Icon / Spacer (Fixed width w-6) */}
+                    <div className="w-6 flex-shrink-0 flex items-center justify-center">
+                      {/* Empty in Flat List */}
+                    </div>
+
+                    {/* Zone 2: Product Name & Modifiers (Flex Fill) */}
                     <div className="flex-1 min-w-0 pr-2">
-                      <div className="flex items-center gap-2">
-                        {/* Chevron Spacer for alignment with grouped items */}
-                        <div className="w-[20px] flex-shrink-0" />
-                        <h3 className="text-base font-bold leading-tight break-words flex-1">{displayName}</h3>
-                        <div className="flex items-center gap-2 flex-shrink-0">
-                          {showIndex ? (
-                            <span className="flex-shrink-0 w-8 text-center rounded-md bg-black/5 py-0.5 text-[10px] font-bold opacity-80 font-serif">
-                              {toRoman(myIndex + 1)}
-                            </span>
-                          ) : (
-                            <div className="w-8" />
-                          )}
-                          {!isSide ? (
-                            <span className="inline-flex items-center rounded-md bg-blue-50 px-1.5 py-0.5 text-[10px] font-bold text-blue-600 ring-1 ring-inset ring-blue-500/20 uppercase tracking-wider w-[48px] justify-center">
-                              {t.canCustomize}
-                            </span>
-                          ) : (
-                            <div className="w-[48px]" />
-                          )}
-                        </div>
-                      </div>
+                      <h3 className="text-[15px] font-bold leading-tight truncate">{displayName}</h3>
                       {item.modifierIds.length > 0 && (
-                        <p className="text-sm opacity-80 mt-1 truncate pl-[28px]">
+                        <p className="text-sm opacity-80 mt-1 truncate">
                           {item.modifierIds.map(mid => {
                             const m = MODIFIERS.find(mod => mod.id === mid);
                             return m ? (lang === 'en' ? (m.nameEn || m.name) : m.name) : null;
                           }).filter(Boolean).join(', ')}
                         </p>
                       )}
-                      <p className="text-md font-medium mt-1 pl-[28px]">${item.totalPrice}</p>
                     </div>
-                    {/* Actions */}
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        removeFromCart(item.internalId);
-                      }}
-                      className={clsx(
-                        "flex-shrink-0 rounded-full p-4 transition-colors",
-                        "text-gray-400 hover:text-red-600 hover:bg-black/5 active:bg-red-100"
-                      )}
-                    >
-                      <Trash2 size={28} />
-                    </button>
+
+                    {/* Zone 3: Right Cluster (Fixed Alignments) */}
+                    <div className="flex items-center gap-1 flex-shrink-0">
+                      {/* Sub-Zone 3.1: Index / Spacer (Fixed width w-[28px]) */}
+                      <div className="w-[28px] flex justify-center">
+                        {showIndex ? (
+                          <span className="flex-shrink-0 w-[28px] text-center rounded-md bg-black/5 py-0.5 text-[10px] font-bold opacity-80 font-serif">
+                            {toRoman(myIndex + 1)}
+                          </span>
+                        ) : (
+                          // Explicit w-[28px] spacer when no index, to prevent jitter
+                          <div className="w-[28px]" />
+                        )}
+                      </div>
+
+                      {/* Sub-Zone 3.2: Status Badge (Fixed width w-[48px]) */}
+                      <div className="w-[48px] flex justify-center">
+                        {!isSide && (
+                          <span className="inline-flex items-center rounded-md bg-blue-50 px-1.5 py-0.5 text-[10px] font-bold text-blue-600 ring-1 ring-inset ring-blue-500/20 uppercase tracking-wider whitespace-nowrap">
+                            {t.canCustomize}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Sub-Zone 3.3: Price (Fixed width w-[50px], Right Aligned) */}
+                      <div className="w-[50px] text-right">
+                        <p className="text-md font-medium">${item.totalPrice}</p>
+                      </div>
+
+                      {/* Sub-Zone 3.4: Action Button (Fixed width w-[32px]) */}
+                      <div className="w-[32px] flex justify-end">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            removeFromCart(item.internalId);
+                          }}
+                          className={clsx(
+                            "flex-shrink-0 rounded-full p-2 transition-colors",
+                            "text-gray-400 hover:text-red-600 hover:bg-black/5 active:bg-red-100"
+                          )}
+                        >
+                          <Trash2 size={24} />
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 );
               })
