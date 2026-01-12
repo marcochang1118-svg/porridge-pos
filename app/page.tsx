@@ -1201,7 +1201,7 @@ export default function PosPage() {
                         <div className="flex items-center gap-2">
                           {/* Chevron Spacer for alignment with grouped items */}
                           <div className="w-[20px] flex-shrink-0" />
-                          <h3 className="text-lg font-bold leading-tight truncate">{displayName}</h3>
+                          <h3 className="text-base font-bold leading-tight break-words flex-1">{displayName}</h3>
                           <div className="flex items-center gap-2 flex-shrink-0">
                             {/* Spacer to match grouped layout Roman numeral width */}
                             <div className="w-8" />
@@ -1260,7 +1260,7 @@ export default function PosPage() {
                         )}
 
                         <h3 className={clsx(
-                          "text-lg font-bold leading-tight truncate flex-1",
+                          "text-base font-bold leading-tight break-words flex-1",
                           groupColor.split(' ').find(c => c.startsWith('text-')) || 'text-gray-800'
                         )}>
                           {displayName}
@@ -1388,7 +1388,7 @@ export default function PosPage() {
                       <div className="flex items-center gap-2">
                         {/* Chevron Spacer for alignment with grouped items */}
                         <div className="w-[20px] flex-shrink-0" />
-                        <h3 className="text-lg font-bold leading-tight truncate">{displayName}</h3>
+                        <h3 className="text-base font-bold leading-tight break-words flex-1">{displayName}</h3>
                         <div className="flex items-center gap-2 flex-shrink-0">
                           {showIndex ? (
                             <span className="flex-shrink-0 w-8 text-center rounded-md bg-black/5 py-0.5 text-[10px] font-bold opacity-80 font-serif">
