@@ -1341,7 +1341,7 @@ export default function PosPage() {
                       <h3 className="text-lg font-bold flex items-center flex-wrap gap-2 leading-tight">
                         <span className="truncate">{displayName}</span>
                         {showIndex && (
-                          <span className="flex-shrink-0 rounded-md bg-black/5 px-2 py-0.5 text-sm font-bold opacity-80 font-serif">
+                          <span className="flex-shrink-0 w-10 text-center rounded-md bg-black/5 py-0.5 text-sm font-bold opacity-80 font-serif">
                             {toRoman(myIndex + 1)}
                           </span>
                         )}
