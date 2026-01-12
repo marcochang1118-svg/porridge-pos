@@ -121,11 +121,10 @@ const ProductCard = ({ product, addToCart, lang }: { product: any, addToCart: (p
 
           if (sizeMatch) {
             return (
-              <>
-                {sizeMatch[1].trim()}
-                <br />
-                <span className={clsx("text-sm font-normal opacity-90", hasImage ? "text-gray-200" : "")}>{sizeMatch[2]}</span>
-              </>
+              <span className="flex items-center justify-center gap-1 flex-wrap">
+                <span>{sizeMatch[1].trim()}</span>
+                <span className={clsx("text-sm font-normal opacity-90 whitespace-nowrap", hasImage ? "text-gray-200" : "")}>{sizeMatch[2]}</span>
+              </span>
             );
           }
           return rawName;
@@ -433,10 +432,17 @@ export default function PosPage() {
           return sum + (mod ? mod.price : 0);
         }, 0);
 
+        // Calculate Volume Discount (same as ModifierModal)
+        const selectedAddons = tempModifierIds.filter(id => {
+          const m = MODIFIERS.find(mod => mod.id === id);
+          return m?.category === 'addon';
+        });
+        const volumeDiscount = Math.max(0, (selectedAddons.length - 1) * 5);
+
         return {
           ...item,
           modifierIds: tempModifierIds,
-          totalPrice: item.basePrice + modifiersPrice
+          totalPrice: item.basePrice + modifiersPrice - volumeDiscount
         };
       }
       return item;
@@ -534,6 +540,7 @@ export default function PosPage() {
   return (
     <div className="flex h-screen w-full overflow-hidden bg-gray-100 text-gray-900 font-sans flex-col md:flex-row">
 
+      <div className="fixed bottom-2 left-2 text-xs text-gray-300 font-mono z-50 pointer-events-none select-none">v1.6</div>
       <ModifierModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
@@ -1172,13 +1179,13 @@ export default function PosPage() {
 
                 const displayName = lang === 'en' ? (firstItem.nameEn || firstItem.name) : firstItem.name;
                 const product = PRODUCTS.find(p => p.id === firstItem.productId);
-                const isSide = product?.category_id === 'cat_sides' || product?.category_id === 'cat_drinks';
+                const isSide = product?.category_id === 'cat_sides' || product?.category_id === 'cat_drinks' || false;
 
                 // Single item render (Standard)
                 if (count === 1) {
                   const item = firstItem;
                   const product = PRODUCTS.find(p => p.id === item.productId);
-                  const isSide = product?.category_id === 'cat_sides' || product?.category_id === 'cat_drinks';
+                  const isSide = product?.category_id === 'cat_sides' || product?.category_id === 'cat_drinks' || false;
 
                   return (
                     <div
@@ -1191,16 +1198,31 @@ export default function PosPage() {
                       )}
                     >
                       <div className="flex-1 min-w-0 pr-2">
-                        <h3 className="text-lg font-bold leading-tight truncate">{displayName}</h3>
+                        <div className="flex items-center gap-2">
+                          {/* Chevron Spacer for alignment with grouped items */}
+                          <div className="w-[20px] flex-shrink-0" />
+                          <h3 className="text-lg font-bold leading-tight truncate">{displayName}</h3>
+                          <div className="flex items-center gap-2 flex-shrink-0">
+                            {/* Spacer to match grouped layout Roman numeral width */}
+                            <div className="w-8" />
+                            {!isSide ? (
+                              <span className="inline-flex items-center rounded-md bg-blue-50 px-1.5 py-0.5 text-[10px] font-bold text-blue-600 ring-1 ring-inset ring-blue-500/20 uppercase tracking-wider w-[48px] justify-center">
+                                {t.canCustomize}
+                              </span>
+                            ) : (
+                              <div className="w-[48px]" />
+                            )}
+                          </div>
+                        </div>
                         {item.modifierIds.length > 0 && (
-                          <p className="text-sm opacity-80 mt-1 truncate">
+                          <p className="text-sm opacity-80 mt-1 truncate pl-[28px]">
                             {item.modifierIds.map(mid => {
                               const m = MODIFIERS.find(mod => mod.id === mid);
                               return m ? (lang === 'en' ? (m.nameEn || m.name) : m.name) : null;
                             }).filter(Boolean).join(', ')}
                           </p>
                         )}
-                        <p className="text-md font-medium mt-1">${item.totalPrice}</p>
+                        <p className="text-md font-medium mt-1 pl-[28px]">${item.totalPrice}</p>
                       </div>
                       <button
                         onClick={(e) => { e.stopPropagation(); removeFromCart(item.internalId); }}
@@ -1255,40 +1277,45 @@ export default function PosPage() {
                       <div className="border-t border-gray-100 bg-gray-50/50 p-2 space-y-2">
                         {items.map((item, idx) => {
                           const product = PRODUCTS.find(p => p.id === item.productId);
-                          const isSide = product?.category_id === 'cat_sides' || product?.category_id === 'cat_drinks';
+                          const isSide = product?.category_id === 'cat_sides' || product?.category_id === 'cat_drinks' || false;
+                          const displayName = lang === 'en' ? (item.nameEn || item.name) : item.name;
 
                           return (
                             <div
                               key={item.internalId}
                               onClick={isSide ? undefined : () => openModifierModal(item)}
                               className={clsx(
-                                "flex items-center justify-between rounded-md bg-white p-3 shadow-sm border border-gray-100 ml-4",
-                                !isSide && "cursor-pointer hover:border-blue-300"
+                                "flex items-center justify-between rounded-r-md bg-white/50 p-3 shadow-none border-l-[4px] border-gray-100 hover:bg-white ml-6 transition-all",
+                                !isSide && "cursor-pointer",
+                                !isSide && groupColor.replace('text-', 'border-').split(' ')[0] // Apply theme color to left border
                               )}
                             >
                               <div className="flex-1 min-w-0 pr-2">
                                 <div className="flex items-center gap-2">
-                                  <span className={clsx("font-serif font-bold opacity-50 w-8 text-center flex-shrink-0", groupColor.replace('border-', 'text-').split(' ')[0])}>{toRoman(idx + 1)}.</span>
+                                  <span className={clsx("font-serif font-bold text-lg opacity-40 w-8 text-center flex-shrink-0")}>{toRoman(idx + 1)}.</span>
                                   {!isSide ? (
-                                    <span className="text-gray-700 font-medium">{t.customization} ({item.modifierIds.length})</span>
+                                    <span className={clsx("font-medium text-md", item.modifierIds.length > 0 ? "text-gray-800" : "text-gray-500")}>
+                                      {item.modifierIds.length > 0 ? t.customization : displayName}
+                                    </span>
                                   ) : (
                                     <span className="text-gray-500 font-medium">{lang === 'en' ? 'Standard' : '標準'} (500cc)</span>
                                   )}
                                 </div>
                                 {!isSide ? (
                                   item.modifierIds.length > 0 ? (
-                                    <p className="text-sm text-blue-600 mt-1 truncate">
+                                    <p className="text-sm text-blue-600 mt-1 truncate pl-[42px]">
                                       {item.modifierIds.map(mid => {
                                         const m = MODIFIERS.find(mod => mod.id === mid);
                                         return m ? (lang === 'en' ? (m.nameEn || m.name) : m.name) : '';
                                       }).join(', ')}
                                     </p>
                                   ) : (
-                                    <p className="text-sm text-gray-400 mt-1">{t.noNotes}</p>
+                                    <p className="text-xs text-gray-400 mt-0.5 pl-[42px]">{t.noNotes}</p>
                                   )
                                 ) : (
-                                  <p className="text-sm text-gray-400 mt-1">{lang === 'en' ? 'No Add-ons' : '無客製化'}</p>
+                                  <p className="text-sm text-gray-400 mt-1 pl-[42px]">{lang === 'en' ? 'No Add-ons' : '無客製化'}</p>
                                 )}
+
                               </div>
                               <div className="flex items-center gap-3 flex-shrink-0">
                                 <span className="text-sm font-medium">${item.totalPrice}</span>
@@ -1324,6 +1351,8 @@ export default function PosPage() {
                 const showIndex = sameProductItems.length > 1;
 
                 const displayName = lang === 'en' ? (item.nameEn || item.name) : item.name;
+                const product = PRODUCTS.find(p => p.id === item.productId);
+                const isSide = product?.category_id === 'cat_sides' || product?.category_id === 'cat_drinks' || false;
 
                 return (
                   <div
@@ -1335,8 +1364,10 @@ export default function PosPage() {
                     )}
                   >
                     <div className="flex-1 min-w-0 pr-2">
-                      <div className="flex items-center justify-between gap-2">
-                        <h3 className="text-lg font-bold leading-tight truncate flex-1">{displayName}</h3>
+                      <div className="flex items-center gap-2">
+                        {/* Chevron Spacer for alignment with grouped items */}
+                        <div className="w-[20px] flex-shrink-0" />
+                        <h3 className="text-lg font-bold leading-tight truncate">{displayName}</h3>
                         <div className="flex items-center gap-2 flex-shrink-0">
                           {showIndex ? (
                             <span className="flex-shrink-0 w-8 text-center rounded-md bg-black/5 py-0.5 text-[10px] font-bold opacity-80 font-serif">
@@ -1355,14 +1386,14 @@ export default function PosPage() {
                         </div>
                       </div>
                       {item.modifierIds.length > 0 && (
-                        <p className="text-sm opacity-80 mt-1 truncate">
+                        <p className="text-sm opacity-80 mt-1 truncate pl-[28px]">
                           {item.modifierIds.map(mid => {
                             const m = MODIFIERS.find(mod => mod.id === mid);
                             return m ? (lang === 'en' ? (m.nameEn || m.name) : m.name) : null;
                           }).filter(Boolean).join(', ')}
                         </p>
                       )}
-                      <p className="text-md font-medium mt-1">${item.totalPrice}</p>
+                      <p className="text-md font-medium mt-1 pl-[28px]">${item.totalPrice}</p>
                     </div>
                     {/* Actions */}
                     <button

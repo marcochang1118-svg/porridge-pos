@@ -81,6 +81,76 @@ export default function ModifierModal({
 
                 {/* Modifiers Grid */}
                 <div className="flex-1 overflow-y-auto p-6 space-y-8">
+                    {/* Add-ons Section */}
+                    <div>
+                        <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                            🔥 {lang === 'en' ? 'Special Add-ons (Extra $5 off from 2nd item)' : '超值加購 (第2項起，每項再折$5)'}
+                        </h3>
+                        <div className="grid grid-cols-2 gap-4">
+                            {MODIFIERS.filter((mod: any) => mod.category === 'addon').map((mod: any) => {
+                                const isSelected = selectedModifiers.includes(mod.id);
+                                const displayName = lang === 'en' ? (mod.nameEn || mod.name) : mod.name;
+
+                                // Determine if this item gets the discount
+                                let displayPrice = mod.price;
+                                let isDiscounted = false;
+
+                                if (isSelected) {
+                                    // If selected, check if it is NOT the first item (index > 0)
+                                    const indexInAddons = selectedAddons.indexOf(mod.id);
+                                    if (indexInAddons > 0) {
+                                        isDiscounted = true;
+                                        displayPrice = mod.price - 5;
+                                    }
+                                } else {
+                                    // If NOT selected, check if picking it would make it the 2nd+ item
+                                    if (selectedAddons.length > 0) {
+                                        isDiscounted = true;
+                                        displayPrice = mod.price - 5;
+                                    }
+                                }
+
+                                // Determine "Already Saved" amount (Visual Label)
+                                // Adjusted per user feedback: All Special Add-ons base savings = $5
+                                const baseSavings = 5;
+                                const totalSaved = baseSavings + (isDiscounted ? 5 : 0);
+
+                                return (
+                                    <button
+                                        key={mod.id}
+                                        onClick={() => onToggleModifier(mod.id)}
+                                        className={clsx(
+                                            'relative flex items-center justify-between rounded-xl border-2 p-6 transition-all overflow-hidden',
+                                            isSelected
+                                                ? 'border-green-600 bg-green-50 text-green-800 ring-2 ring-green-600/20'
+                                                : 'border-green-200 bg-white text-gray-700 hover:border-green-400'
+                                        )}
+                                    >
+                                        {/* "Save $X" Badge */}
+                                        <div className={clsx(
+                                            "absolute top-0 right-0 text-white text-[10px] font-bold px-2 py-0.5 rounded-bl-lg shadow-sm transition-all",
+                                            isDiscounted ? "bg-red-600 scale-110" : "bg-red-500"
+                                        )}>
+                                            {lang === 'en' ? `Save $${totalSaved}` : `省$${totalSaved}`}
+                                        </div>
+
+                                        <span className="text-2xl font-bold">{displayName}</span>
+                                        <div className="flex items-center gap-2 mt-2">
+                                            {isDiscounted && (
+                                                <span className="text-sm line-through text-gray-400 font-normal">
+                                                    ${mod.price}
+                                                </span>
+                                            )}
+                                            <span className={clsx("text-xl font-bold", isSelected ? "text-green-700" : "text-red-500")}>
+                                                {displayPrice > 0 ? `+$${displayPrice}` : t.free}
+                                            </span>
+                                        </div>
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
+
                     {/* Standard Options */}
                     <div>
                         <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center">
@@ -111,70 +181,13 @@ export default function ModifierModal({
                             })}
                         </div>
                     </div>
-
-                    {/* Add-ons Section */}
-                    <div>
-                        <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center">
-                            🔥 {lang === 'en' ? 'Special Add-ons ($5 off from 2nd item)' : '超值加購 (第2項起，每項再折$5)'}
-                        </h3>
-                        <div className="grid grid-cols-2 gap-4">
-                            {MODIFIERS.filter((mod: any) => mod.category === 'addon').map((mod: any) => {
-                                const isSelected = selectedModifiers.includes(mod.id);
-                                const displayName = lang === 'en' ? (mod.nameEn || mod.name) : mod.name;
-
-                                // Determine if this item gets the discount
-                                let displayPrice = mod.price;
-                                let isDiscounted = false;
-
-                                if (isSelected) {
-                                    // If selected, check if it is NOT the first item (index > 0)
-                                    const indexInAddons = selectedAddons.indexOf(mod.id);
-                                    if (indexInAddons > 0) {
-                                        isDiscounted = true;
-                                        displayPrice = mod.price - 5;
-                                    }
-                                } else {
-                                    // If NOT selected, check if picking it would make it the 2nd+ item
-                                    if (selectedAddons.length > 0) {
-                                        isDiscounted = true;
-                                        displayPrice = mod.price - 5;
-                                    }
-                                }
-
-                                return (
-                                    <button
-                                        key={mod.id}
-                                        onClick={() => onToggleModifier(mod.id)}
-                                        className={clsx(
-                                            'flex items-center justify-between rounded-xl border-2 p-6 transition-all',
-                                            isSelected
-                                                ? 'border-green-600 bg-green-50 text-green-800 ring-2 ring-green-600/20'
-                                                : 'border-green-200 bg-white text-gray-700 hover:border-green-400'
-                                        )}
-                                    >
-                                        <span className="text-2xl font-bold">{displayName}</span>
-                                        <div className="flex items-center gap-2">
-                                            {isDiscounted && (
-                                                <span className="text-sm line-through text-gray-400 font-normal">
-                                                    ${mod.price}
-                                                </span>
-                                            )}
-                                            <span className={clsx("text-xl font-bold", isSelected ? "text-green-700" : "text-red-500")}>
-                                                {displayPrice > 0 ? `+$${displayPrice}` : t.free}
-                                            </span>
-                                        </div>
-                                    </button>
-                                );
-                            })}
-                        </div>
-                    </div>
                 </div>
 
                 {/* Footer */}
                 <div className="border-t border-gray-100 bg-gray-50 p-6 flex items-center justify-between gap-6">
                     <div className="flex flex-col w-32 flex-shrink-0">
                         <span className="text-sm font-medium text-gray-500">
-                            {lang === 'en' ? 'Total' : '總金額'} <span className="text-lg opacity-40 font-bold ml-1">v1.6</span>
+                            {lang === 'en' ? 'Total' : '總金額'}
                         </span>
                         <span className="text-3xl font-bold text-blue-600">
                             ${totalPrice}
