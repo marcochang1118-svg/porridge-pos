@@ -34,8 +34,7 @@ const UI_TEXT = {
     grouping: '已合併',
     noGrouping: '不合併',
     customization: '客製化內容',
-    noNotes: '無備註',
-    canCustomize: '可客製'
+    noNotes: '無備註'
   },
   en: {
     cartTitle: 'Current Order',
@@ -46,8 +45,7 @@ const UI_TEXT = {
     grouping: 'Grouped',
     noGrouping: 'List View',
     customization: 'Customizations',
-    noNotes: 'No notes',
-    canCustomize: 'Customizable'
+    noNotes: 'No notes'
   }
 };
 
@@ -1191,15 +1189,7 @@ export default function PosPage() {
                       )}
                     >
                       <div className="flex-1 min-w-0 pr-2">
-                        <h3 className="text-lg font-bold leading-tight flex items-center gap-2">
-                          <div className="w-10 flex-shrink-0" /> {/* Spacer */}
-                          {!isSide && (
-                            <span className="flex-shrink-0 inline-flex items-center rounded-md bg-blue-50 px-1.5 py-0.5 text-[10px] font-bold text-blue-600 ring-1 ring-inset ring-blue-500/20 uppercase tracking-wider">
-                              {t.canCustomize}
-                            </span>
-                          )}
-                          <span className="truncate">{displayName}</span>
-                        </h3>
+                        <h3 className="text-lg font-bold leading-tight truncate">{displayName}</h3>
                         {item.modifierIds.length > 0 && (
                           <p className="text-sm opacity-80 mt-1 truncate">
                             {item.modifierIds.map(mid => {
@@ -1237,16 +1227,11 @@ export default function PosPage() {
                       <div className="flex items-center gap-2 min-w-0">
                         {isExpanded ? <ChevronDown size={20} className="flex-shrink-0" /> : <ChevronRight size={20} className="flex-shrink-0" />}
                         <h3 className={clsx(
-                          "text-lg font-bold leading-tight flex items-center gap-2 min-w-0",
+                          "text-lg font-bold leading-tight truncate",
                           groupColor.split(' ').find(c => c.startsWith('text-')) || 'text-gray-800'
                         )}>
-                          <span className="flex-shrink-0 w-10 text-center rounded-full bg-black/80 px-2 py-0.5 text-xs text-white">x{count}</span>
-                          {!isSide && (
-                            <span className="flex-shrink-0 inline-flex items-center rounded-md bg-blue-50 px-1.5 py-0.5 text-[10px] font-bold text-blue-600 ring-1 ring-inset ring-blue-500/20 uppercase tracking-wider">
-                              {t.canCustomize}
-                            </span>
-                          )}
-                          <span className="truncate">{displayName}</span>
+                          {displayName}
+                          <span className="ml-2 rounded-full bg-black/80 px-2 py-0.5 text-sm text-white">x{count}</span>
                         </h3>
                       </div>
                       <div className="text-right pl-2 flex-shrink-0">
@@ -1339,24 +1324,13 @@ export default function PosPage() {
                     )}
                   >
                     <div className="flex-1 min-w-0 pr-2">
-                      <h3 className="text-lg font-bold flex items-center gap-2 leading-tight">
-                        {showIndex ? (
-                          <span className="flex-shrink-0 w-10 text-center rounded-md bg-black/5 py-0.5 text-sm font-bold opacity-80 font-serif">
+                      <h3 className="text-lg font-bold flex items-center leading-tight">
+                        <span className="truncate">{displayName}</span>
+                        {showIndex && (
+                          <span className="ml-2 flex-shrink-0 rounded-md bg-black/5 px-2 py-0.5 text-sm font-bold opacity-80 font-serif">
                             {toRoman(myIndex + 1)}
                           </span>
-                        ) : (
-                          <div className="w-10 flex-shrink-0" />
                         )}
-                        {(() => {
-                          const product = PRODUCTS.find(p => p.id === item.productId);
-                          const isSide = product?.category_id === 'cat_sides' || product?.category_id === 'cat_drinks';
-                          return !isSide && (
-                            <span className="flex-shrink-0 inline-flex items-center rounded-md bg-blue-50 px-1.5 py-0.5 text-[10px] font-bold text-blue-600 ring-1 ring-inset ring-blue-500/20 uppercase tracking-wider">
-                              {t.canCustomize}
-                            </span>
-                          );
-                        })()}
-                        <span className="truncate">{displayName}</span>
                       </h3>
                       {item.modifierIds.length > 0 && (
                         <p className="text-sm opacity-80 mt-1 truncate">
