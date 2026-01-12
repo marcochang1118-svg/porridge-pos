@@ -34,7 +34,8 @@ const UI_TEXT = {
     grouping: '已合併',
     noGrouping: '不合併',
     customization: '客製化內容',
-    noNotes: '無備註'
+    noNotes: '無備註',
+    canCustomize: '可客製'
   },
   en: {
     cartTitle: 'Current Order',
@@ -45,7 +46,8 @@ const UI_TEXT = {
     grouping: 'Grouped',
     noGrouping: 'List View',
     customization: 'Customizations',
-    noNotes: 'No notes'
+    noNotes: 'No notes',
+    canCustomize: 'Customizable'
   }
 };
 
@@ -1224,15 +1226,24 @@ export default function PosPage() {
                         bgColor
                       )}
                     >
-                      <div className="flex items-center gap-2 min-w-0">
+                      <div className="flex items-center justify-between gap-2 min-w-0">
                         {isExpanded ? <ChevronDown size={20} className="flex-shrink-0" /> : <ChevronRight size={20} className="flex-shrink-0" />}
                         <h3 className={clsx(
-                          "text-lg font-bold leading-tight truncate",
+                          "text-lg font-bold leading-tight truncate flex-1",
                           groupColor.split(' ').find(c => c.startsWith('text-')) || 'text-gray-800'
                         )}>
                           {displayName}
-                          <span className="ml-2 rounded-full bg-black/80 px-2 py-0.5 text-sm text-white">x{count}</span>
                         </h3>
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          <span className="flex-shrink-0 w-8 text-center rounded-full bg-black/80 py-0.5 text-[10px] text-white">x{count}</span>
+                          {!isSide ? (
+                            <span className="inline-flex items-center rounded-md bg-blue-50 px-1.5 py-0.5 text-[10px] font-bold text-blue-600 ring-1 ring-inset ring-blue-500/20 uppercase tracking-wider w-[48px] justify-center">
+                              {t.canCustomize}
+                            </span>
+                          ) : (
+                            <div className="w-[48px]" />
+                          )}
+                        </div>
                       </div>
                       <div className="text-right pl-2 flex-shrink-0">
                         <p className="font-bold text-gray-700">${items.reduce((sum, i) => sum + i.totalPrice, 0)}</p>
@@ -1324,14 +1335,25 @@ export default function PosPage() {
                     )}
                   >
                     <div className="flex-1 min-w-0 pr-2">
-                      <h3 className="text-lg font-bold flex items-center leading-tight">
-                        <span className="truncate">{displayName}</span>
-                        {showIndex && (
-                          <span className="ml-2 flex-shrink-0 rounded-md bg-black/5 px-2 py-0.5 text-sm font-bold opacity-80 font-serif">
-                            {toRoman(myIndex + 1)}
-                          </span>
-                        )}
-                      </h3>
+                      <div className="flex items-center justify-between gap-2">
+                        <h3 className="text-lg font-bold leading-tight truncate flex-1">{displayName}</h3>
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          {showIndex ? (
+                            <span className="flex-shrink-0 w-8 text-center rounded-md bg-black/5 py-0.5 text-[10px] font-bold opacity-80 font-serif">
+                              {toRoman(myIndex + 1)}
+                            </span>
+                          ) : (
+                            <div className="w-8" />
+                          )}
+                          {!isSide ? (
+                            <span className="inline-flex items-center rounded-md bg-blue-50 px-1.5 py-0.5 text-[10px] font-bold text-blue-600 ring-1 ring-inset ring-blue-500/20 uppercase tracking-wider w-[48px] justify-center">
+                              {t.canCustomize}
+                            </span>
+                          ) : (
+                            <div className="w-[48px]" />
+                          )}
+                        </div>
+                      </div>
                       {item.modifierIds.length > 0 && (
                         <p className="text-sm opacity-80 mt-1 truncate">
                           {item.modifierIds.map(mid => {
