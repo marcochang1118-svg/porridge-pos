@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { CATEGORIES, PRODUCTS, MODIFIERS } from '@/lib/mockData';
 import { Trash2, ChevronDown, ChevronRight, Layers, List, Globe, TrendingUp, TrendingDown, DollarSign, Pencil, X } from 'lucide-react';
 import { clsx } from 'clsx';
@@ -146,6 +146,89 @@ export default function PosPage() {
   const [viewMode, setViewMode] = useState<'pos' | 'dashboard'>('pos');
   const [dailyOrders, setDailyOrders] = useState<Order[]>([]);
   const [expenses, setExpenses] = useState<Expense[]>([]);
+
+  // Mobile Resize State
+  const [mobileCartRatio, setMobileCartRatio] = useState(40); // 40% default
+  const touchStartY = useRef<number | null>(null);
+
+  // Loading State
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    handleResize(); // Initial check
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Mouse Event Handlers for Desktop Support
+  const isDragging = useRef(false);
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    isDragging.current = true;
+    touchStartY.current = e.clientY;
+    document.body.style.cursor = 'grabbing';
+  };
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isDragging.current || touchStartY.current === null) return;
+
+      const currentY = e.clientY;
+      const diff = touchStartY.current - currentY;
+
+      // Same logic as Touch
+      if (diff > 50 && mobileCartRatio === 40) {
+        setMobileCartRatio(70);
+        touchStartY.current = null; // Reset to avoid continuous triggering
+        isDragging.current = false;
+        document.body.style.cursor = 'default';
+      }
+      if (diff < -50 && mobileCartRatio === 70) {
+        setMobileCartRatio(40);
+        touchStartY.current = null;
+        isDragging.current = false;
+        document.body.style.cursor = 'default';
+      }
+    };
+
+    const handleMouseUp = () => {
+      isDragging.current = false;
+      touchStartY.current = null;
+      document.body.style.cursor = 'default';
+    };
+
+    // Attach global listeners when component mounts (or just keep them active)
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [mobileCartRatio]);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartY.current = e.touches[0].clientY;
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (touchStartY.current === null) return;
+    const currentY = e.touches[0].clientY;
+    const diff = touchStartY.current - currentY;
+
+    // Pull Up (diff > 0) -> Expand Cart to 70%
+    if (diff > 50 && mobileCartRatio === 40) {
+      setMobileCartRatio(70);
+      touchStartY.current = null; // Reset to prevent multiple triggers
+    }
+    // Pull Down (diff < 0) -> Shrink Cart to 40%
+    if (diff < -50 && mobileCartRatio === 70) {
+      setMobileCartRatio(40);
+      touchStartY.current = null;
+    }
+  };
 
   // Checkout Modal
   const [isCheckoutModalOpen, setIsCheckoutModalOpen] = useState(false);
@@ -447,7 +530,7 @@ export default function PosPage() {
   const editingExpense = expenses.find(e => e.id === editingExpenseId);
 
   return (
-    <div className="flex h-screen w-full overflow-hidden bg-gray-100 text-gray-900 font-sans flex-col lg:flex-row">
+    <div className="flex h-screen w-full overflow-hidden bg-gray-100 text-gray-900 font-sans flex-col md:flex-row">
 
       <ModifierModal
         isOpen={isModalOpen}
@@ -482,10 +565,15 @@ export default function PosPage() {
       />
 
       {/* LEFT: Product Menu (or Dashboard) */}
-      <div className={clsx(
-        "flex w-full h-[60%] lg:h-full flex-col border-b lg:border-b-0 lg:border-r border-gray-300 bg-white transition-all duration-300",
-        viewMode === 'dashboard' ? "lg:w-full" : "lg:w-[70%]"
-      )}>
+      <div
+        className={clsx(
+          "flex w-full flex-col border-b md:border-b-0 md:border-r border-gray-300 bg-white transition-all duration-300",
+          viewMode === 'dashboard' ? "md:w-full h-full" : "md:w-[60%] lg:w-[70%] md:h-full"
+        )}
+        style={{
+          height: viewMode === 'dashboard' ? '100%' : (isMobile ? `${100 - mobileCartRatio}%` : '100%')
+        }}
+      >
 
         {/* Category Tabs / Dashboard Actions */}
         <div className="flex h-16 w-full items-center justify-between border-b border-gray-200 bg-gray-50 px-4 flex-shrink-0">
@@ -823,22 +911,167 @@ export default function PosPage() {
 
               <div className="text-center pt-8">
                 <button
-                  onClick={() => {
-                    if (confirm(lang === 'en' ? 'Clear all history?' : '確定要清除所有紀錄嗎？')) {
-                      setDailyOrders([]);
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (window.confirm(lang === 'en' ? 'Clear all history?' : '確定要清除所有紀錄嗎？(無法復原)')) {
+                      // 1. Clear Local Storage
                       localStorage.removeItem('dailyOrders');
+                      localStorage.removeItem('expenses');
+
+                      // 2. Clear State
+                      setDailyOrders([]);
+                      setExpenses([]);
+
+                      // 3. Force UI Update notification
+                      alert(lang === 'en' ? 'Data cleared successfully' : '資料已全部清除！');
                     }
                   }}
-                  className="text-red-500 text-sm hover:underline opacity-60"
+                  className="px-4 py-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-colors text-sm font-medium"
                 >
                   {lang === 'en' ? 'Reset Data' : '清除所有資料'}
+                </button>
+
+
+
+                <button
+                  type="button"
+                  disabled={isGenerating}
+                  onClick={async () => {
+                    if (!confirm(lang === 'en' ? 'Generate smart profit data?' : '確定要生成「獲利模式」測試資料嗎？\n(這會模擬真實經營：成本約佔營收 35%，並產生每月固定開銷)')) return;
+
+                    setIsGenerating(true);
+
+                    // Use setTimeout to allow UI to render the disabled state
+                    setTimeout(() => {
+                      const mockOrders: Order[] = [];
+                      const mockExpenses: Expense[] = [];
+                      const now = new Date();
+
+                      // Iterate through last 12 months (approx 365 days)
+                      for (let d = 365; d >= 0; d--) {
+                        const currentDate = new Date(now);
+                        currentDate.setDate(currentDate.getDate() - d);
+                        const dateStr = currentDate.toLocaleDateString();
+                        const dayOfMonth = currentDate.getDate();
+
+                        // 1. Generate Daily Orders (Revenue)
+                        // Busy days: Weekend (Fri, Sat, Sun)
+                        const isWeekend = [0, 5, 6].includes(currentDate.getDay());
+                        const dailyOrderCount = isWeekend ? Math.floor(Math.random() * 8) + 5 : Math.floor(Math.random() * 5) + 2; // 5-12 orders or 2-6 orders
+
+                        let dailyRevenue = 0;
+                        const dailyItems: CartItem[] = [];
+
+                        for (let i = 0; i < dailyOrderCount; i++) {
+                          const itemCount = Math.floor(Math.random() * 3) + 1;
+                          const items: CartItem[] = [];
+                          let orderTotal = 0;
+
+                          for (let j = 0; j < itemCount; j++) {
+                            const product = PRODUCTS[Math.floor(Math.random() * PRODUCTS.length)];
+                            items.push({
+                              internalId: Math.random().toString().slice(2, 8),
+                              productId: product.id,
+                              name: product.name,
+                              nameEn: product.nameEn,
+                              basePrice: product.price,
+                              modifierIds: [],
+                              totalPrice: product.price,
+                              type: product.type
+                            });
+                            orderTotal += product.price;
+                          }
+
+                          mockOrders.push({
+                            id: Math.random().toString().slice(2, 8),
+                            items,
+                            total: orderTotal,
+                            date: dateStr,
+                            timestamp: currentDate.getTime() + Math.random() * 10000,
+                            paymentMethod: Math.random() > 0.4 ? 'cash' : 'linepay'
+                          });
+
+                          dailyRevenue += orderTotal;
+                        }
+
+                        // 2. Generate Expenses (Cost) based on Revenue (Smart Logic)
+                        if (dailyRevenue > 0) {
+                          // Ingredients Cost: approx 30-40% of revenue
+                          const costRatio = 0.3 + (Math.random() * 0.1);
+                          const costAmount = Math.floor(dailyRevenue * costRatio);
+
+                          mockExpenses.push({
+                            id: Math.random().toString().slice(2, 8),
+                            type: 'cogs',
+                            name: `本日食材採購 (${dateStr})`,
+                            amount: costAmount,
+                            date: dateStr,
+                            timestamp: currentDate.getTime()
+                          });
+                        }
+
+                        // 3. Monthly Fixed Costs (Rent & Utilities)
+                        if (dayOfMonth === 1) {
+                          mockExpenses.push({
+                            id: Math.random().toString().slice(2, 8),
+                            type: 'opex',
+                            name: '店面租金',
+                            amount: 15000,
+                            date: dateStr,
+                            timestamp: currentDate.getTime()
+                          });
+                        }
+                        if (dayOfMonth === 15) {
+                          mockExpenses.push({
+                            id: Math.random().toString().slice(2, 8),
+                            type: 'opex',
+                            name: '水電瓦斯費',
+                            amount: 3500,
+                            date: dateStr,
+                            timestamp: currentDate.getTime()
+                          });
+                        }
+                      }
+
+                      // Update State & LocalStorage
+                      const combinedOrders = [...dailyOrders, ...mockOrders];
+                      const combinedExpenses = [...expenses, ...mockExpenses];
+
+                      setDailyOrders(combinedOrders);
+                      setExpenses(combinedExpenses);
+
+                      try {
+                        localStorage.setItem('dailyOrders', JSON.stringify(combinedOrders));
+                        localStorage.setItem('expenses', JSON.stringify(combinedExpenses));
+                        alert(lang === 'en'
+                          ? 'Success! Smart Profit Data Generated.'
+                          : '成功！已生成「獲利模式」資料 📈\n\n- 訂單：隨機分佈 (週末較多)\n- 成本：自動設為營收的 30%~40%\n- 支出：每月固定租金/水電');
+                      } catch (e) {
+                        alert('Storage Quota Exceeded!');
+                        console.error(e);
+                      } finally {
+                        setIsGenerating(false);
+                      }
+                    }, 50); // Small delay to allow UI to update
+                  }}
+                  className={clsx(
+                    "text-sm hover:underline ml-4",
+                    isGenerating ? "text-gray-400 cursor-not-allowed" : "text-blue-500 hover:text-blue-700"
+                  )}
+                >
+                  {isGenerating
+                    ? (lang === 'en' ? 'Generating...' : '生成中...')
+                    : (lang === 'en' ? 'Generate Profit Data' : '生成獲利測試資料')
+                  }
                 </button>
               </div>
             </div>
           ) : (
             <>
               {/* Mobile View: Single Grid (Sorted) */}
-              <div className="grid grid-cols-2 gap-4 lg:hidden">
+              <div className="grid grid-cols-2 gap-4 md:hidden">
                 {PRODUCTS
                   .filter((p) => p.category_id === activeCategory)
                   .sort((a, b) => {
@@ -850,15 +1083,15 @@ export default function PosPage() {
                   ))}
               </div>
 
-              {/* Desktop View: Separated Rows by Type */}
-              <div className="hidden lg:block space-y-8">
+              {/* Tablet/Desktop View: Separated Rows by Type */}
+              <div className="hidden md:block space-y-8">
                 {['meat', 'seafood', 'cheese', 'special', 'side', 'addon', 'drink'].map((type) => {
                   const items = PRODUCTS.filter(p => p.category_id === activeCategory && p.type === type);
                   if (items.length === 0) return null;
 
                   return (
                     <div key={type} className="space-y-3">
-                      <div className="grid grid-cols-4 gap-4">
+                      <div className="grid grid-cols-3 lg:grid-cols-4 gap-4">
                         {items.map((product: any) => (
                           <ProductCard key={product.id} product={product} addToCart={addToCart} lang={lang} />
                         ))}
@@ -875,9 +1108,22 @@ export default function PosPage() {
 
       {/* RIGHT: Cart */}
       <div
-        className="flex flex-col bg-gray-50 h-[40%] lg:h-full transition-all duration-300 w-full lg:w-[30%]"
-        style={{ display: viewMode === 'dashboard' ? 'none' : 'flex' }}
+        className="flex flex-col bg-gray-50 transition-all duration-300 w-full md:w-[40%] lg:w-[30%] md:h-full border-t md:border-t-0 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] md:shadow-none"
+        style={{
+          height: viewMode === 'dashboard' ? '0px' : (isMobile ? `${mobileCartRatio}%` : '100%'),
+          display: viewMode === 'dashboard' ? 'none' : 'flex'
+        }}
       >
+        {/* Mobile Drag Handle */}
+        <div
+          className="h-6 w-full bg-white border-t border-gray-200 flex items-center justify-center cursor-grab md:hidden flex-shrink-0 touch-none hover:bg-gray-50 active:bg-gray-100 transition-colors"
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onMouseDown={handleMouseDown}
+        >
+          <div className="w-12 h-1.5 bg-gray-300 rounded-full" />
+        </div>
+
         {/* Cart Header */}
         <div className="flex h-16 items-center justify-between border-b border-gray-200 px-4 shadow-sm bg-white flex-shrink-0">
           <div className="flex items-center gap-2">

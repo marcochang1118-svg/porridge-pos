@@ -99,7 +99,7 @@ export const PRODUCTS = [
         nameEn: 'Cantonese Seafood Porridge',
         price: 110,
         type: 'seafood',
-        image: '/images/cantonese-seafood-porridge.png'
+        image: '/images/cantonese-seafood-porridge-new.jpg'
     },
     {
         id: 'p12',
