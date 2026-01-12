@@ -65,9 +65,33 @@ export const PRODUCTS = [
         type: 'seafood',
         image: '/images/snapper-fish-porridge.png'
     },
-    { id: 'p8', category_id: 'cat_porridge', name: '起司皮瘦粥', nameEn: 'Cheese, Century Egg & Pork', price: 105, type: 'cheese' },
-    { id: 'p9', category_id: 'cat_porridge', name: '起司玉米粥', nameEn: 'Cheese & Corn Porridge', price: 105, type: 'cheese' },
-    { id: 'p10', category_id: 'cat_porridge', name: '起司鮮肉粥', nameEn: 'Cheese & Pork Porridge', price: 105, type: 'cheese' },
+    {
+        id: 'p8',
+        category_id: 'cat_porridge',
+        name: '起司皮瘦粥',
+        nameEn: 'Cheese, Century Egg & Pork',
+        price: 105,
+        type: 'cheese',
+        image: '/images/cheese-century-egg-pork-porridge.jpg'
+    },
+    {
+        id: 'p9',
+        category_id: 'cat_porridge',
+        name: '起司玉米粥',
+        nameEn: 'Cheese & Corn Porridge',
+        price: 105,
+        type: 'cheese',
+        image: '/images/cheese-corn-porridge.jpg'
+    },
+    {
+        id: 'p10',
+        category_id: 'cat_porridge',
+        name: '起司鮮肉粥',
+        nameEn: 'Cheese & Pork Porridge',
+        price: 105,
+        type: 'cheese',
+        image: '/images/cheese-pork-porridge.jpg'
+    },
     {
         id: 'p11',
         category_id: 'cat_porridge',
