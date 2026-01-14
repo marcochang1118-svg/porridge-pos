@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { CATEGORIES, PRODUCTS, MODIFIERS } from '@/lib/mockData';
 import { Trash2, ChevronDown, ChevronRight, Layers, List, Globe, TrendingUp, TrendingDown, DollarSign, Pencil, X } from 'lucide-react';
 import { clsx } from 'clsx';
+import { Reorder } from 'framer-motion';
 import ModifierModal from '../components/ModifierModal';
 import AddExpenseModal from '../components/AddExpenseModal';
 import CheckoutModal from '../components/CheckoutModal';
@@ -239,58 +240,16 @@ export default function PosPage() {
   const [customStart, setCustomStart] = useState('');
   const [customEnd, setCustomEnd] = useState('');
 
+  // Reorder State
+  const [categories, setCategories] = useState(CATEGORIES);
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  // Sync state if CATEGORIES constant changes (though it's constant for now)
+  // Removed to allow persistence
+
+
   // Scroll Container Ref for Drag-to-Scroll
   const scrollContainerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const slider = scrollContainerRef.current;
-    if (!slider) return;
-
-    let isDown = false;
-    let startX: number;
-    let scrollLeft: number;
-
-    const onMouseDown = (e: MouseEvent) => {
-      isDown = true;
-      slider.classList.add('active');
-      startX = e.pageX - slider.offsetLeft;
-      scrollLeft = slider.scrollLeft;
-      // Disable snap strictly while dragging
-      slider.style.scrollSnapType = 'none';
-    };
-
-    const onMouseLeave = () => {
-      isDown = false;
-      slider.classList.remove('active');
-      slider.style.scrollSnapType = 'x mandatory';
-    };
-
-    const onMouseUp = () => {
-      isDown = false;
-      slider.classList.remove('active');
-      slider.style.scrollSnapType = 'x mandatory';
-    };
-
-    const onMouseMove = (e: MouseEvent) => {
-      if (!isDown) return;
-      e.preventDefault();
-      const x = e.pageX - slider.offsetLeft;
-      const walk = (x - startX) * 2; // Scroll-fast
-      slider.scrollLeft = scrollLeft - walk;
-    };
-
-    slider.addEventListener('mousedown', onMouseDown);
-    slider.addEventListener('mouseleave', onMouseLeave);
-    slider.addEventListener('mouseup', onMouseUp);
-    slider.addEventListener('mousemove', onMouseMove);
-
-    return () => {
-      slider.removeEventListener('mousedown', onMouseDown);
-      slider.removeEventListener('mouseleave', onMouseLeave);
-      slider.removeEventListener('mouseup', onMouseUp);
-      slider.removeEventListener('mousemove', onMouseMove);
-    };
-  }, []);
 
   // Language Preference
   const [lang, setLang] = useState<'zh' | 'en'>('zh');
@@ -298,7 +257,7 @@ export default function PosPage() {
 
   // Load orders from local storage on mount
   // Load orders from local storage on mount
-  useState(() => {
+  useEffect(() => {
     if (typeof window !== 'undefined') {
       const savedOrders = localStorage.getItem('dailyOrders');
       if (savedOrders) {
@@ -316,8 +275,26 @@ export default function PosPage() {
           console.error("Failed to parse expenses", e);
         }
       }
+
+      // Load saved category order
+      const savedCategories = localStorage.getItem('categoryOrder');
+      if (savedCategories) {
+        try {
+          setCategories(JSON.parse(savedCategories));
+        } catch (e) {
+          console.error("Failed to parse category order", e);
+        }
+      }
+      setIsLoaded(true);
     }
-  });
+  }, []);
+
+  // Save categories when changed (after load)
+  useEffect(() => {
+    if (isLoaded) {
+      localStorage.setItem('categoryOrder', JSON.stringify(categories));
+    }
+  }, [categories, isLoaded]);
 
   // Calculate Dashboard Stats
   const today = new Date();
@@ -650,7 +627,7 @@ export default function PosPage() {
         <div className="flex h-16 w-full items-center justify-between border-b border-gray-200 bg-gray-50 px-4 flex-shrink-0">
           <div
             ref={scrollContainerRef}
-            className="flex items-center gap-2 overflow-x-auto scrollbar-hide snap-x snap-mandatory touch-pan-x cursor-grab active:cursor-grabbing"
+            className="flex items-center gap-2 overflow-x-auto scrollbar-hide snap-x snap-mandatory touch-pan-x"
           >
             {/* Mode Toggle Button (Dashboard vs POS) */}
             <button
@@ -668,21 +645,34 @@ export default function PosPage() {
             <div className="w-px h-8 bg-gray-300 mx-1 flex-shrink-0 snap-start"></div>
 
             {viewMode === 'pos' ? (
-              // POS Categories
-              CATEGORIES.map((cat) => (
-                <button
-                  key={cat.id}
-                  onClick={() => { setActiveCategory(cat.id); setViewMode('pos'); }}
-                  className={clsx(
-                    'flex-shrink-0 rounded-full px-6 py-2 text-lg font-bold transition-all snap-start select-none',
-                    viewMode === 'pos' && activeCategory === cat.id
-                      ? 'bg-blue-600 text-white shadow-md'
-                      : 'bg-white text-gray-600 hover:bg-gray-100'
-                  )}
-                >
-                  {lang === 'en' ? cat.nameEn : cat.name}
-                </button>
-              ))
+              // POS Categories with Drag-to-Reorder
+              <Reorder.Group
+                axis="x"
+                values={categories}
+                onReorder={setCategories}
+                className="flex gap-2"
+              >
+                {categories.map((cat) => (
+                  <Reorder.Item
+                    key={cat.id}
+                    value={cat}
+                    as="div"
+                    className="flex-shrink-0 snap-start"
+                  >
+                    <button
+                      onClick={() => { setActiveCategory(cat.id); setViewMode('pos'); }}
+                      className={clsx(
+                        'rounded-full px-6 py-2 text-lg font-bold transition-all select-none',
+                        viewMode === 'pos' && activeCategory === cat.id
+                          ? 'bg-blue-600 text-white shadow-md'
+                          : 'bg-white text-gray-600 hover:bg-gray-100'
+                      )}
+                    >
+                      {lang === 'en' ? cat.nameEn : cat.name}
+                    </button>
+                  </Reorder.Item>
+                ))}
+              </Reorder.Group>
             ) : (
               // DASHBOARD TABS (Report vs Menu)
               <div className="flex bg-gray-200/50 p-1 rounded-full">
