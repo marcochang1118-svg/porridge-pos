@@ -458,7 +458,11 @@ export default function PosPage() {
   };
 
   const confirmCheckout = (method: 'cash' | 'linepay') => {
-    const total = cart.reduce((acc, item) => acc + item.totalPrice, 0);
+    // Recalculate total with discount
+    const sideDishCount = cart.filter(item => item.type === 'side' || item.type === 'addon').length;
+    const sideDishDiscount = Math.max(0, (sideDishCount - 1) * 5);
+    const total = Math.max(0, cart.reduce((acc, item) => acc + item.totalPrice, 0) - sideDishDiscount);
+
     const newOrder: Order = {
       id: Date.now().toString(),
       items: [...cart],
@@ -527,7 +531,10 @@ export default function PosPage() {
     setIsExpenseModalOpen(true);
   };
 
-  const cartTotal = cart.reduce((acc, item) => acc + item.totalPrice, 0);
+  // Calculate Cart Total with "2nd Side Dish $5 Off" Logic
+  const sideDishCount = cart.filter(item => item.type === 'side' || item.type === 'addon').length;
+  const sideDishDiscount = Math.max(0, (sideDishCount - 1) * 5);
+  const cartTotal = cart.reduce((acc, item) => acc + item.totalPrice, 0) - sideDishDiscount;
 
   // Helper to get product name for modal
   const editingCartItem = cart.find(i => i.internalId === editingItemId);
