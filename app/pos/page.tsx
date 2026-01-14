@@ -550,6 +550,7 @@ export default function PosPage() {
         onToggleModifier={toggleModifier}
         onConfirm={confirmModifiers}
         lang={lang}
+        productId={editingCartItem?.productId}
       />
 
       <AddExpenseModal
