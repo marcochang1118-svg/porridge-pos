@@ -163,8 +163,12 @@ export default function ModifierModal({
                             {MODIFIERS
                                 .filter((mod: any) => {
                                     if (mod.category === 'addon') return false;
-                                    // Special Logic: 'No BBQ Sauce' only for Beef & Egg Porridge (p5)
-                                    if (mod.id === 'm12' && productId !== 'p5') return false;
+                                    // Special Logic: 'No BBQ Sauce' (m12) only for Beef Porridge
+                                    if (mod.id === 'm12') {
+                                        const isBeef = (productId === 'p5') ||
+                                            (productName && (productName.includes('牛肉') || productName.toLowerCase().includes('beef')));
+                                        if (!isBeef) return false;
+                                    }
                                     return true;
                                 })
                                 .sort((a: any, b: any) => {
