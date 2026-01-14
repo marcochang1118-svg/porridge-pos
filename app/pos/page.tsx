@@ -691,7 +691,10 @@ export default function PosPage() {
             <div className="max-w-5xl mx-auto">
               {dashboardTab === 'menu' ? (
                 // 1. MENU MANAGER PROTOTYPE
-                <MenuManager lang={lang} />
+                <div className="flex flex-col items-center justify-center p-12 text-gray-400 bg-white rounded-2xl border-2 border-dashed border-gray-200">
+                  <p className="font-bold">Please go to /dashboard for Menu Management</p>
+                  <p className="text-sm">請前往管理後台進行菜單設定</p>
+                </div>
               ) : (
                 // 2. SALES REPORT (Existing content)
                 <div className="space-y-6">

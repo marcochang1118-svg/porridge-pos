@@ -10,7 +10,8 @@ import { Reorder } from 'framer-motion';
 // Mock Product Type (copy from lib/mockData or define locally for proto)
 type Product = {
     id: string;
-    category: string;
+    category_id: string; // Changed from category to match mockData
+    category?: string; // Optional overlap
     name: string;
     nameEn?: string;
     price: number;
@@ -23,7 +24,7 @@ type Category = {
     id: string;
     name: string;
     nameEn: string;
-    sort_order?: number;
+    sort_order: number;
 };
 
 export default function MenuManager({
@@ -65,7 +66,7 @@ export default function MenuManager({
     const handleCreate = () => {
         setEditingProduct(null);
         setFormData({
-            category: categories[0].id,
+            category_id: categories[0].id,
             price: 0,
             name: '',
             image: ''
@@ -324,39 +325,9 @@ export default function MenuManager({
                                 {categories.map(cat => (
                                     <div key={cat.id} className="flex items-center justify-between p-3 border border-gray-100 rounded-lg hover:bg-gray-50 group">
                                         <div className="flex items-center gap-3">
-                                            <div className="flex flex-col gap-1">
-                                                <button
-                                                    onClick={() => {
-                                                        const idx = categories.findIndex(c => c.id === cat.id);
-                                                        if (idx > 0) {
-                                                            const newCats = [...categories];
-                                                            [newCats[idx], newCats[idx - 1]] = [newCats[idx - 1], newCats[idx]];
-                                                            setCategories(newCats);
-                                                        }
-                                                    }}
-                                                    disabled={categories.findIndex(c => c.id === cat.id) === 0}
-                                                    className="p-1 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-gray-400"
-                                                >
-                                                    <ChevronUp size={14} />
-                                                </button>
-                                                <button
-                                                    onClick={() => {
-                                                        const idx = categories.findIndex(c => c.id === cat.id);
-                                                        if (idx < categories.length - 1) {
-                                                            const newCats = [...categories];
-                                                            [newCats[idx], newCats[idx + 1]] = [newCats[idx + 1], newCats[idx]];
-                                                            setCategories(newCats);
-                                                        }
-                                                    }}
-                                                    disabled={categories.findIndex(c => c.id === cat.id) === categories.length - 1}
-                                                    className="p-1 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-gray-400"
-                                                >
-                                                    <ChevronDown size={14} />
-                                                </button>
-                                            </div>
                                             <div>
                                                 <div className="font-bold text-gray-800">{cat.name}</div>
-                                                <div className="text-xs text-gray-400">{cat.nameEn}</div>
+                                                <div className="text-xs text-gray-500 font-mono">{cat.nameEn}</div>
                                             </div>
                                         </div>
                                         <div className="flex gap-2 opacity-50 group-hover:opacity-100">
