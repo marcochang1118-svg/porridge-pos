@@ -595,12 +595,12 @@ export default function PosPage() {
 
         {/* Category Tabs / Dashboard Actions */}
         <div className="flex h-16 w-full items-center justify-between border-b border-gray-200 bg-gray-50 px-4 flex-shrink-0">
-          <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
+          <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide snap-x snap-mandatory touch-pan-x">
             {/* Mode Toggle Button (Dashboard vs POS) */}
             <button
               onClick={() => setViewMode(viewMode === 'pos' ? 'dashboard' : 'pos')}
               className={clsx(
-                'flex-shrink-0 rounded-full px-6 py-2 text-lg font-bold transition-all border-2 mb-0',
+                'flex-shrink-0 rounded-full px-6 py-2 text-lg font-bold transition-all border-2 mb-0 snap-start',
                 viewMode === 'dashboard'
                   ? 'bg-purple-600 text-white border-purple-600 shadow-md'
                   : 'bg-white text-purple-600 border-purple-200 hover:bg-purple-50'
@@ -609,7 +609,7 @@ export default function PosPage() {
               {lang === 'en' ? 'back to POS' : (viewMode === 'dashboard' ? '⬅ 回點餐' : '📊 管理後台')}
             </button>
 
-            <div className="w-px h-8 bg-gray-300 mx-1 flex-shrink-0"></div>
+            <div className="w-px h-8 bg-gray-300 mx-1 flex-shrink-0 snap-start"></div>
 
             {viewMode === 'pos' ? (
               // POS Categories
@@ -618,7 +618,7 @@ export default function PosPage() {
                   key={cat.id}
                   onClick={() => { setActiveCategory(cat.id); setViewMode('pos'); }}
                   className={clsx(
-                    'flex-shrink-0 rounded-full px-6 py-2 text-lg font-bold transition-all',
+                    'flex-shrink-0 rounded-full px-6 py-2 text-lg font-bold transition-all snap-start',
                     viewMode === 'pos' && activeCategory === cat.id
                       ? 'bg-blue-600 text-white shadow-md'
                       : 'bg-white text-gray-600 hover:bg-gray-100'
