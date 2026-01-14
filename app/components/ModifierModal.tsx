@@ -179,7 +179,20 @@ export default function ModifierModal({
                                                     : 'border-gray-200 bg-white text-gray-700 hover:border-blue-300'
                                             )}
                                         >
-                                            <span className="text-xl font-bold text-center leading-tight">{displayName}</span>
+                                            <span className="text-xl font-bold text-center leading-tight">
+                                                {(() => {
+                                                    const match = displayName.match(/(.*)(\(.*\))/);
+                                                    if (match) {
+                                                        return (
+                                                            <>
+                                                                {match[1]}
+                                                                <span className="text-sm font-medium ml-1">{match[2]}</span>
+                                                            </>
+                                                        );
+                                                    }
+                                                    return displayName;
+                                                })()}
+                                            </span>
                                             <span className={clsx("text-lg font-medium", isSelected ? "text-blue-600" : "text-gray-500")}>
                                                 {mod.price > 0 ? `+$${mod.price}` : t.free}
                                             </span>
