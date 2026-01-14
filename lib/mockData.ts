@@ -120,13 +120,16 @@ export const PRODUCTS = [
 ];
 
 export const MODIFIERS = [
+    { id: 'm5', name: '不加芹菜', nameEn: 'No Celery', price: 0, category: 'option' },
+    { id: 'm12', name: '不加沙茶', nameEn: 'No BBQ Sauce', price: 0, category: 'option' },
+    { id: 'm13', name: '不加胡椒', nameEn: 'No Pepper', price: 0, category: 'option' },
+    { id: 'm14', name: '不要肉鬆油條', nameEn: 'No Meat Floss/Dough', price: 0, category: 'option' },
     { id: 'm1', name: '加起司', nameEn: 'Add Cheese', price: 15, category: 'option' },
     { id: 'm2', name: '加皮蛋', nameEn: 'Add Century Egg', price: 20, category: 'option' },
     { id: 'm3', name: '加雞蛋', nameEn: 'Add Egg', price: 15, category: 'option' },
     { id: 'm4', name: '加玉米', nameEn: 'Add Corn', price: 20, category: 'option' },
     { id: 'm6', name: '加肉類', nameEn: 'Add Meat', price: 40, category: 'option' },
-    { id: 'm5', name: '不加芹菜', nameEn: 'No Celery', price: 0, category: 'option' },
-    { id: 'm7', name: '加大碗', nameEn: 'Large Size', price: 25, category: 'option' },
+    { id: 'm7', name: '升級大碗 (1000cc)', nameEn: 'Upgrade Large (1000cc)', price: 25, category: 'option' },
     { id: 'm8', name: '牛蒡絲(加購)', nameEn: 'Burdock (Add-on)', price: 25, category: 'addon' },
     { id: 'm9', name: '皮蛋豆腐(加購)', nameEn: 'Tofu (Add-on)', price: 40, category: 'addon' },
     { id: 'm10', name: '冬瓜茶(加購)', nameEn: 'Winter Melon (500cc)', price: 20, category: 'addon' },

@@ -157,28 +157,35 @@ export default function ModifierModal({
                             🛠️ {lang === 'en' ? 'Custom Adjustments' : '客製化調整'}
                         </h3>
                         <div className="grid grid-cols-2 gap-4">
-                            {MODIFIERS.filter((mod: any) => mod.category !== 'addon').map((mod: any) => {
-                                const isSelected = selectedModifiers.includes(mod.id);
-                                const displayName = lang === 'en' ? (mod.nameEn || mod.name) : mod.name;
+                            {MODIFIERS
+                                .filter((mod: any) => mod.category !== 'addon')
+                                .sort((a: any, b: any) => {
+                                    if (a.price === 0 && b.price !== 0) return -1;
+                                    if (a.price !== 0 && b.price === 0) return 1;
+                                    return 0; // Keep original order for same price
+                                })
+                                .map((mod: any) => {
+                                    const isSelected = selectedModifiers.includes(mod.id);
+                                    const displayName = lang === 'en' ? (mod.nameEn || mod.name) : mod.name;
 
-                                return (
-                                    <button
-                                        key={mod.id}
-                                        onClick={() => onToggleModifier(mod.id)}
-                                        className={clsx(
-                                            'flex flex-col items-center justify-center rounded-xl border-2 p-4 transition-all min-h-[100px] gap-1',
-                                            isSelected
-                                                ? 'border-blue-600 bg-blue-50 text-blue-800 ring-2 ring-blue-600/20'
-                                                : 'border-gray-200 bg-white text-gray-700 hover:border-blue-300'
-                                        )}
-                                    >
-                                        <span className="text-xl font-bold text-center leading-tight">{displayName}</span>
-                                        <span className={clsx("text-lg font-medium", isSelected ? "text-blue-600" : "text-gray-500")}>
-                                            {mod.price > 0 ? `+$${mod.price}` : t.free}
-                                        </span>
-                                    </button>
-                                );
-                            })}
+                                    return (
+                                        <button
+                                            key={mod.id}
+                                            onClick={() => onToggleModifier(mod.id)}
+                                            className={clsx(
+                                                'flex flex-col items-center justify-center rounded-xl border-2 p-4 transition-all min-h-[100px] gap-1',
+                                                isSelected
+                                                    ? 'border-blue-600 bg-blue-50 text-blue-800 ring-2 ring-blue-600/20'
+                                                    : 'border-gray-200 bg-white text-gray-700 hover:border-blue-300'
+                                            )}
+                                        >
+                                            <span className="text-xl font-bold text-center leading-tight">{displayName}</span>
+                                            <span className={clsx("text-lg font-medium", isSelected ? "text-blue-600" : "text-gray-500")}>
+                                                {mod.price > 0 ? `+$${mod.price}` : t.free}
+                                            </span>
+                                        </button>
+                                    );
+                                })}
                         </div>
                     </div>
                 </div>
