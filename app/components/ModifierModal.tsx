@@ -69,31 +69,65 @@ export default function ModifierModal({
                 {/* ... (Header) ... */}
 
                 {/* Modifiers Grid */}
-                <div className="flex-1 overflow-y-auto p-6">
+                <div className="flex-1 overflow-y-auto p-6 space-y-8">
+                    {/* Add-ons Section */}
+                    {MODIFIERS.some((m: any) => m.category === 'addon') && (
+                        <div>
+                            <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                                🔥 {lang === 'en' ? 'Super Value Add-ons (2nd item -$5)' : '超值加購 (第二件現折$5)'}
+                            </h3>
+                            <div className="grid grid-cols-2 gap-4">
+                                {MODIFIERS
+                                    .filter((mod: any) => mod.category === 'addon')
+                                    .map((mod: any) => {
+                                        const isSelected = selectedModifiers.includes(mod.id);
+                                        const displayName = lang === 'en' ? (mod.nameEn || mod.name) : mod.name;
+
+                                        return (
+                                            <button
+                                                key={mod.id}
+                                                onClick={() => onToggleModifier(mod.id)}
+                                                className={clsx(
+                                                    'flex items-center justify-between rounded-xl border-2 p-6 transition-all',
+                                                    isSelected
+                                                        ? 'border-green-600 bg-green-50 text-green-800 ring-2 ring-green-600/20'
+                                                        : 'border-green-200 bg-white text-gray-700 hover:border-green-400'
+                                                )}
+                                            >
+                                                <span className="text-xl font-bold">{displayName}</span>
+                                                <span className={clsx("text-lg font-bold", isSelected ? "text-green-700" : "text-gray-500")}>
+                                                    +${mod.price}
+                                                </span>
+                                            </button>
+                                        );
+                                    })}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Standard Options */}
                     <div>
-                        <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-                            <span>🛠️ {lang === 'en' ? 'Customizations & Add-ons' : '客製化與加購'}</span>
-                            <span className="text-sm font-normal text-green-600 bg-green-50 px-2 py-1 rounded-lg border border-green-100">
-                                {lang === 'en' ? '2nd Add-on -$5' : '加購第二件折$5'}
-                            </span>
+                        <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                            🛠️ {lang === 'en' ? 'Custom Adjustments' : '客製化調整'}
                         </h3>
                         <div className="grid grid-cols-2 gap-4">
                             {MODIFIERS
+                                .filter((mod: any) => {
+                                    if (mod.category === 'addon') return false;
+                                    if (mod.id === 'm12') return false; // Hide No BBQ Sauce
+                                    return true;
+                                })
                                 .sort((a: any, b: any) => {
-                                    // 1. Separate by Category (Option vs Addon)
-                                    if (a.category !== 'addon' && b.category === 'addon') return -1;
-                                    if (a.category === 'addon' && b.category !== 'addon') return 1;
-
-                                    // 2. Free items first within category
                                     if (a.price === 0 && b.price !== 0) return -1;
                                     if (a.price !== 0 && b.price === 0) return 1;
-
-                                    // 3. Price Low to High
-                                    return a.price - b.price;
+                                    if (a.price > 0 && b.price > 0) {
+                                        if (a.id === 'm7') return -1;
+                                        return a.price - b.price;
+                                    }
+                                    return 0;
                                 })
                                 .map((mod: any) => {
                                     const isSelected = selectedModifiers.includes(mod.id);
-                                    const isAddon = mod.category === 'addon';
                                     const displayName = lang === 'en' ? (mod.nameEn || mod.name) : mod.name;
 
                                     return (
@@ -104,15 +138,13 @@ export default function ModifierModal({
                                                 'flex flex-col items-center justify-center rounded-xl border-2 p-4 transition-all min-h-[100px] gap-1',
                                                 isSelected
                                                     ? 'border-blue-600 bg-blue-50 text-blue-800 ring-2 ring-blue-600/20'
-                                                    : isAddon
-                                                        ? 'border-green-200 bg-white text-gray-700 hover:border-green-400'
-                                                        : 'border-gray-200 bg-white text-gray-700 hover:border-blue-300'
+                                                    : 'border-gray-200 bg-white text-gray-700 hover:border-blue-300'
                                             )}
                                         >
                                             <span className="text-xl font-bold text-center leading-tight">
                                                 {displayName}
                                             </span>
-                                            <span className={clsx("text-lg font-medium", isSelected ? "text-blue-600" : (isAddon ? "text-green-600" : "text-gray-500"))}>
+                                            <span className={clsx("text-lg font-medium", isSelected ? "text-blue-600" : "text-gray-500")}>
                                                 {mod.price > 0 ? `+$${mod.price}` : t.free}
                                             </span>
                                         </button>
