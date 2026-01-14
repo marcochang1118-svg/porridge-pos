@@ -239,6 +239,59 @@ export default function PosPage() {
   const [customStart, setCustomStart] = useState('');
   const [customEnd, setCustomEnd] = useState('');
 
+  // Scroll Container Ref for Drag-to-Scroll
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const slider = scrollContainerRef.current;
+    if (!slider) return;
+
+    let isDown = false;
+    let startX: number;
+    let scrollLeft: number;
+
+    const onMouseDown = (e: MouseEvent) => {
+      isDown = true;
+      slider.classList.add('active');
+      startX = e.pageX - slider.offsetLeft;
+      scrollLeft = slider.scrollLeft;
+      // Disable snap strictly while dragging
+      slider.style.scrollSnapType = 'none';
+    };
+
+    const onMouseLeave = () => {
+      isDown = false;
+      slider.classList.remove('active');
+      slider.style.scrollSnapType = 'x mandatory';
+    };
+
+    const onMouseUp = () => {
+      isDown = false;
+      slider.classList.remove('active');
+      slider.style.scrollSnapType = 'x mandatory';
+    };
+
+    const onMouseMove = (e: MouseEvent) => {
+      if (!isDown) return;
+      e.preventDefault();
+      const x = e.pageX - slider.offsetLeft;
+      const walk = (x - startX) * 2; // Scroll-fast
+      slider.scrollLeft = scrollLeft - walk;
+    };
+
+    slider.addEventListener('mousedown', onMouseDown);
+    slider.addEventListener('mouseleave', onMouseLeave);
+    slider.addEventListener('mouseup', onMouseUp);
+    slider.addEventListener('mousemove', onMouseMove);
+
+    return () => {
+      slider.removeEventListener('mousedown', onMouseDown);
+      slider.removeEventListener('mouseleave', onMouseLeave);
+      slider.removeEventListener('mouseup', onMouseUp);
+      slider.removeEventListener('mousemove', onMouseMove);
+    };
+  }, []);
+
   // Language Preference
   const [lang, setLang] = useState<'zh' | 'en'>('zh');
   const t = UI_TEXT[lang];
@@ -596,42 +649,8 @@ export default function PosPage() {
         {/* Category Tabs / Dashboard Actions */}
         <div className="flex h-16 w-full items-center justify-between border-b border-gray-200 bg-gray-50 px-4 flex-shrink-0">
           <div
+            ref={scrollContainerRef}
             className="flex items-center gap-2 overflow-x-auto scrollbar-hide snap-x snap-mandatory touch-pan-x cursor-grab active:cursor-grabbing"
-            ref={(ref) => {
-              // Simple Drag-to-Scroll implementation for Desktop Mouse
-              if (!ref) return;
-              let isDown = false;
-              let startX: number;
-              let scrollLeft: number;
-
-              ref.onmousedown = (e) => {
-                isDown = true;
-                ref.classList.add('active');
-                startX = e.pageX - ref.offsetLeft;
-                scrollLeft = ref.scrollLeft;
-                // Disable snap mapping while dragging for smooth feel
-                ref.style.scrollSnapType = 'none';
-              };
-              ref.onmouseleave = () => {
-                isDown = false;
-                ref.classList.remove('active');
-                // Re-enable snap
-                ref.style.scrollSnapType = 'x mandatory';
-              };
-              ref.onmouseup = () => {
-                isDown = false;
-                ref.classList.remove('active');
-                // Re-enable snap
-                ref.style.scrollSnapType = 'x mandatory';
-              };
-              ref.onmousemove = (e) => {
-                if (!isDown) return;
-                e.preventDefault();
-                const x = e.pageX - ref.offsetLeft;
-                const walk = (x - startX) * 2; // Scroll-fast
-                ref.scrollLeft = scrollLeft - walk;
-              };
-            }}
           >
             {/* Mode Toggle Button (Dashboard vs POS) */}
             <button
