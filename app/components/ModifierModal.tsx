@@ -82,7 +82,9 @@ export default function ModifierModal({
                                 .filter((mod: any) => {
                                     if (mod.category === 'addon') return false;
                                     // Special Logic: 'No BBQ Sauce' only for Beef & Egg Porridge (p5)
-                                    if (mod.id === 'm12' && productId !== 'p5') return false;
+                                    // User Request (Step 330): Make Client side same as Business side (which hides it). So hiding it everywhere for now.
+                                    if (mod.id === 'm12') return false;
+                                    // if (mod.id === 'm12' && productId !== 'p5') return false;
                                     return true;
                                 })
                                 .sort((a: any, b: any) => {

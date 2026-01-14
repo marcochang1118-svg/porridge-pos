@@ -138,13 +138,19 @@ const ProductCard = ({ product, addToCart, lang }: { product: any, addToCart: (p
   );
 };
 
-export default function PosPage() {
-  console.log('PosPage Rendered - Fullscreen Fix v2');
+import MenuManager from '../components/MenuManager';
+
+export default function DashboardPage() {
+  console.log('DashboardPage Rendered');
+
+  // Products & Categories State (Uplifted)
+  const [categories, setCategories] = useState(CATEGORIES);
   const [activeCategory, setActiveCategory] = useState(CATEGORIES[0].id);
   const [cart, setCart] = useState<CartItem[]>([]);
 
   // Dashboard State
-  const [viewMode, setViewMode] = useState<'pos' | 'dashboard'>('pos');
+  const [viewMode, setViewMode] = useState<'pos' | 'dashboard'>('dashboard');
+  const [dashboardTab, setDashboardTab] = useState<'report' | 'menu'>('report');
   const [dailyOrders, setDailyOrders] = useState<Order[]>([]);
   const [expenses, setExpenses] = useState<Expense[]>([]);
 
@@ -604,7 +610,7 @@ export default function PosPage() {
 
             {viewMode === 'pos' ? (
               // POS Categories
-              CATEGORIES.map((cat) => (
+              categories.map((cat) => (
                 <button
                   key={cat.id}
                   onClick={() => { setActiveCategory(cat.id); setViewMode('pos'); }}
@@ -619,7 +625,31 @@ export default function PosPage() {
                 </button>
               ))
             ) : (
-              // Dashboard Quick Expense Actions (New Feature)
+              // DASHBOARD TABS (Report vs Menu)
+              <div className="flex bg-gray-200/50 p-1 rounded-full">
+                <button
+                  onClick={() => setDashboardTab('report')}
+                  className={clsx(
+                    "px-4 py-1.5 rounded-full text-sm font-bold transition-all",
+                    dashboardTab === 'report' ? "bg-white text-gray-800 shadow-sm" : "text-gray-500 hover:text-gray-700"
+                  )}
+                >
+                  {lang === 'en' ? 'Sales Report' : '營收報表'}
+                </button>
+                <button
+                  onClick={() => setDashboardTab('menu')}
+                  className={clsx(
+                    "px-4 py-1.5 rounded-full text-sm font-bold transition-all",
+                    dashboardTab === 'menu' ? "bg-white text-gray-800 shadow-sm" : "text-gray-500 hover:text-gray-700"
+                  )}
+                >
+                  {lang === 'en' ? 'Menu Setup' : '菜單管理'}
+                </button>
+              </div>
+            )}
+
+            {/* Quick Actions (Keep them but maybe verify if they fit) */}
+            {viewMode === 'dashboard' && dashboardTab === 'report' && (
               <>
                 <button
                   onClick={() => {
@@ -660,422 +690,433 @@ export default function PosPage() {
         {/* Product Grid */}
         <div className="flex-1 overflow-y-auto p-4 bg-gray-50">
           {viewMode === 'dashboard' ? (
-            <div className="max-w-4xl mx-auto space-y-6">
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
-                <h2 className="text-2xl font-bold text-gray-800">
-                  {lang === 'en' ? 'Sales Report' : '營收報表'}
-                  <span className="text-base font-normal text-gray-500 ml-3 bg-gray-100 px-3 py-1 rounded-full">
-                    {lang === 'en'
-                      ? `${rangeStart.toLocaleDateString()} ~ ${rangeEnd.toLocaleDateString()}`
-                      : `${rangeStart.getFullYear()}/${rangeStart.getMonth() + 1}/${rangeStart.getDate()} ~ ${rangeEnd.getFullYear()}/${rangeEnd.getMonth() + 1}/${rangeEnd.getDate()}`
-                    }
-                  </span>
-                </h2>
-
-                {/* Period Toggles & Date Picker */}
-                <div className="relative flex flex-col gap-2 items-end">
-                  <div className="flex bg-white rounded-lg p-1 shadow-sm border border-gray-200">
-                    {(['day', 'month', 'quarter', 'year', 'custom'] as const).map(p => (
-                      <button
-                        key={p}
-                        onClick={() => {
-                          setReportPeriod(p);
-                          if (p === 'custom') setIsDatePickerOpen(true);
-                        }}
-                        className={clsx(
-                          "px-4 py-1.5 rounded-md text-sm font-medium transition-all",
-                          reportPeriod === p ? "bg-purple-100 text-purple-700 shadow-sm" : "text-gray-500 hover:bg-gray-50"
-                        )}
-                      >
-                        {lang === 'en'
-                          ? (p === 'day' ? 'Today' : p === 'month' ? 'Month' : p === 'quarter' ? 'Quarter' : p === 'year' ? 'Year' : 'Custom')
-                          : (p === 'day' ? '本日' : p === 'month' ? '本月' : p === 'quarter' ? '本季' : p === 'year' ? '本年' : '自選')}
-                      </button>
-                    ))}
-                  </div>
-
-                  {/* Custom Date Inputs (Absolute to prevent layout shift) */}
-                  {reportPeriod === 'custom' && isDatePickerOpen && (
-                    <div className="absolute top-10 right-0 z-30 flex flex-col gap-3 bg-white p-4 rounded-xl shadow-xl border border-gray-200 animate-in fade-in zoom-in-95 origin-top-right w-64 md:w-72">
-                      <div className="flex justify-between items-center border-b pb-2 mb-1">
-                        <span className="font-bold text-gray-700 text-sm">{lang === 'en' ? 'Select Range' : '選擇日期範圍'}</span>
-                        <button onClick={() => setIsDatePickerOpen(false)} className="p-1 hover:bg-gray-100 rounded-full">
-                          <X size={16} className="text-gray-400" />
-                        </button>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="date"
-                          value={customStart}
-                          onChange={(e) => setCustomStart(e.target.value)}
-                          className="flex-1 border border-gray-300 rounded px-2 py-1.5 text-sm outline-none focus:border-purple-500 bg-gray-50 from-input"
-                        />
-                        <span className="text-gray-400">~</span>
-                        <input
-                          type="date"
-                          value={customEnd}
-                          onChange={(e) => {
-                            setCustomEnd(e.target.value);
-                            if (e.target.value) setIsDatePickerOpen(false);
-                          }}
-                          className="flex-1 border border-gray-300 rounded px-2 py-1.5 text-sm outline-none focus:border-purple-500 bg-gray-50 to-input"
-                        />
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* P&L Key Metrics (Updated) */}
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                {/* Revenue */}
-                <div className="bg-white p-6 rounded-2xl shadow-sm border-l-4 border-l-blue-500 border-gray-100">
-                  <p className="text-gray-500 font-medium mb-1 flex items-center gap-1">
-                    <TrendingUp size={16} className="text-blue-500" />
-                    {lang === 'en' ? 'Revenue' : '總營收 (Sales)'}
-                  </p>
-                  <p className="text-3xl font-bold text-blue-600">${totalRevenue}</p>
-                  <p className="text-sm text-gray-400 mt-1">{totalOrdersCount} {lang === 'en' ? 'orders' : '筆訂單'}</p>
-                </div>
-
-                {/* COGS */}
-                <div className="bg-white p-6 rounded-2xl shadow-sm border-l-4 border-l-red-500 border-gray-100">
-                  <p className="text-gray-500 font-medium mb-1 flex items-center gap-1">
-                    <TrendingDown size={16} className="text-red-500" />
-                    {lang === 'en' ? 'COGS' : '進貨成本 (COGS)'}
-                  </p>
-                  <p className="text-3xl font-bold text-red-600">-${totalCOGS}</p>
-                  <p className="text-sm text-gray-400 mt-1">{filteredExpenses.filter(e => e.type === 'cogs').length} {lang === 'en' ? 'entries' : '筆紀錄'}</p>
-                </div>
-
-                {/* OpEx */}
-                <div className="bg-white p-6 rounded-2xl shadow-sm border-l-4 border-l-yellow-500 border-gray-100">
-                  <p className="text-gray-500 font-medium mb-1 flex items-center gap-1">
-                    <DollarSign size={16} className="text-yellow-500" />
-                    {lang === 'en' ? 'Expenses' : '營業費用 (OpEx)'}
-                  </p>
-                  <p className="text-3xl font-bold text-yellow-600">-${totalOpEx}</p>
-                  <p className="text-sm text-gray-400 mt-1">{filteredExpenses.filter(e => e.type === 'opex').length} {lang === 'en' ? 'items' : '筆紀錄'}</p>
-                </div>
-
-                {/* Net Profit */}
-                <div className={clsx(
-                  "p-6 rounded-2xl shadow-md border-l-4 border-gray-100",
-                  netProfit >= 0 ? "bg-green-50 border-l-green-500" : "bg-red-50 border-l-red-500"
-                )}>
-                  <p className="text-gray-600 font-bold mb-1 flex items-center gap-1">
-                    🎉 {lang === 'en' ? 'Net Profit' : '淨利 (Net Profit)'}
-                  </p>
-                  <p className={clsx("text-3xl font-extrabold break-all", netProfit >= 0 ? "text-green-700" : "text-red-700")}>
-                    ${netProfit.toLocaleString()}
-                  </p>
-                  <p className="text-sm opacity-60 mt-1 font-medium">
-                    {lang === 'en' ? 'Margin' : '淨利率'}: {totalRevenue > 0 ? Math.round((netProfit / totalRevenue) * 100) : 0}%
-                  </p>
-                </div>
-              </div>
-
-              {/* Profit Chart (New) */}
-              <div className="mb-6">
-                <ProfitChart
-                  orders={filteredOrders}
-                  expenses={filteredExpenses}
-                  startDate={rangeStart}
-                  endDate={rangeEnd}
-                  period={reportPeriod}
+            <div className="max-w-5xl mx-auto">
+              {dashboardTab === 'menu' ? (
+                <MenuManager
                   lang={lang}
+                  categories={categories}
+                  onUpdateCategories={setCategories}
                 />
-              </div>
+              ) : (
+                <div className="space-y-6">
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
+                    <h2 className="text-2xl font-bold text-gray-800">
+                      {lang === 'en' ? 'Sales Report' : '營收報表'}
+                      <span className="text-base font-normal text-gray-500 ml-3 bg-gray-100 px-3 py-1 rounded-full">
+                        {lang === 'en'
+                          ? `${rangeStart.toLocaleDateString()} ~ ${rangeEnd.toLocaleDateString()}`
+                          : `${rangeStart.getFullYear()}/${rangeStart.getMonth() + 1}/${rangeStart.getDate()} ~ ${rangeEnd.getFullYear()}/${rangeEnd.getMonth() + 1}/${rangeEnd.getDate()}`
+                        }
+                      </span>
+                    </h2>
 
-              {/* Expense List (New) */}
-              <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
-                <h3 className="text-lg font-bold text-gray-800 mb-4 border-b pb-2 flex justify-between items-center">
-                  {lang === 'en' ? 'Expense History' : '支出紀錄明細'}
-                  <span className="text-sm font-normal text-gray-500">
-                    Total: -${totalExpenses}
-                  </span>
-                </h3>
-                <div className="space-y-3 max-h-60 overflow-y-auto pr-2">
-                  {filteredExpenses.length === 0 ? (
-                    <p className="text-gray-400 text-center py-4">{lang === 'en' ? 'No expenses recorded.' : '尚無支出紀錄'}</p>
-                  ) : (
-                    filteredExpenses
-                      .sort((a, b) => b.timestamp - a.timestamp)
-                      .map((expense) => (
-                        <div key={expense.id} className="flex items-center justify-between p-3 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors">
-                          <div className="flex items-center gap-3">
-                            <span className={clsx(
-                              "px-2 py-1 rounded text-xs font-bold uppercase w-16 text-center",
-                              expense.type === 'cogs' ? "bg-red-100 text-red-700" : "bg-yellow-100 text-yellow-700"
-                            )}>
-                              {expense.type === 'cogs' ? 'COGS' : 'OpEx'}
-                            </span>
-                            <div>
-                              <p className="font-bold text-gray-800">{expense.name}</p>
-                              <p className="text-xs text-gray-500">
-                                {new Date(expense.timestamp).toLocaleString(lang === 'zh' ? 'zh-TW' : 'en-US', { hour12: false })}
-                              </p>
-                            </div>
+                    {/* Period Toggles & Date Picker */}
+                    <div className="relative flex flex-col gap-2 items-end">
+                      <div className="flex bg-white rounded-lg p-1 shadow-sm border border-gray-200">
+                        {(['day', 'month', 'quarter', 'year', 'custom'] as const).map(p => (
+                          <button
+                            key={p}
+                            onClick={() => {
+                              setReportPeriod(p);
+                              if (p === 'custom') setIsDatePickerOpen(true);
+                            }}
+                            className={clsx(
+                              "px-4 py-1.5 rounded-md text-sm font-medium transition-all",
+                              reportPeriod === p ? "bg-purple-100 text-purple-700 shadow-sm" : "text-gray-500 hover:bg-gray-50"
+                            )}
+                          >
+                            {lang === 'en'
+                              ? (p === 'day' ? 'Today' : p === 'month' ? 'Month' : p === 'quarter' ? 'Quarter' : p === 'year' ? 'Year' : 'Custom')
+                              : (p === 'day' ? '本日' : p === 'month' ? '本月' : p === 'quarter' ? '本季' : p === 'year' ? '本年' : '自選')}
+                          </button>
+                        ))}
+                      </div>
+
+                      {/* Custom Date Inputs (Absolute to prevent layout shift) */}
+                      {reportPeriod === 'custom' && isDatePickerOpen && (
+                        <div className="absolute top-10 right-0 z-30 flex flex-col gap-3 bg-white p-4 rounded-xl shadow-xl border border-gray-200 animate-in fade-in zoom-in-95 origin-top-right w-64 md:w-72">
+                          <div className="flex justify-between items-center border-b pb-2 mb-1">
+                            <span className="font-bold text-gray-700 text-sm">{lang === 'en' ? 'Select Range' : '選擇日期範圍'}</span>
+                            <button onClick={() => setIsDatePickerOpen(false)} className="p-1 hover:bg-gray-100 rounded-full">
+                              <X size={16} className="text-gray-400" />
+                            </button>
                           </div>
-                          <div className="flex items-center gap-4">
-                            <span className="font-bold text-gray-700">-${expense.amount}</span>
-                            <div className="flex items-center gap-2">
-                              <button
-                                onClick={() => openEditExpense(expense)}
-                                className="p-1.5 rounded-full hover:bg-gray-200 text-gray-500 transition-colors"
-                              >
-                                <Pencil size={18} />
-                              </button>
-                              <button
-                                onClick={() => deleteExpense(expense.id)}
-                                className="p-1.5 rounded-full hover:bg-red-100 text-red-500 transition-colors"
-                              >
-                                <Trash2 size={18} />
-                              </button>
-                            </div>
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="date"
+                              value={customStart}
+                              onChange={(e) => setCustomStart(e.target.value)}
+                              className="flex-1 border border-gray-300 rounded px-2 py-1.5 text-sm outline-none focus:border-purple-500 bg-gray-50 from-input"
+                            />
+                            <span className="text-gray-400">~</span>
+                            <input
+                              type="date"
+                              value={customEnd}
+                              onChange={(e) => {
+                                setCustomEnd(e.target.value);
+                                if (e.target.value) setIsDatePickerOpen(false);
+                              }}
+                              className="flex-1 border border-gray-300 rounded px-2 py-1.5 text-sm outline-none focus:border-purple-500 bg-gray-50 to-input"
+                            />
                           </div>
                         </div>
-                      ))
-                  )}
-                </div>
-              </div>
-
-              {/* Product Breakdown */}
-              <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
-                <h3 className="text-lg font-bold text-gray-800 mb-4 border-b pb-2">
-                  {lang === 'en' ? 'Product Sales' : '熱銷商品統計'}
-                </h3>
-                <div className="space-y-3">
-                  {Object.keys(productStats).length === 0 ? (
-                    <p className="text-gray-400 text-center py-4">{lang === 'en' ? 'No sales yet today.' : '尚無銷售資料'}</p>
-                  ) : (
-                    Object.entries(productStats)
-                      .sort(([, a], [, b]) => b - a)
-                      .map(([name, count]) => (
-                        <div key={name} className="flex items-center justify-between">
-                          <span className="text-gray-700 font-medium">{name}</span>
-                          <span className="bg-gray-100 text-gray-600 px-3 py-1 rounded-full text-sm font-bold">x {count}</span>
-                        </div>
-                      ))
-                  )}
-                </div>
-              </div>
-
-              {/* Hourly Analysis (Peak Hours) */}
-              <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
-                <h3 className="text-lg font-bold text-gray-800 mb-6 border-b pb-2">
-                  {lang === 'en' ? 'Hourly Sales (Peak Times)' : '熱銷時段分析'}
-                </h3>
-
-                {Object.keys(hourlyStats).length === 0 ? (
-                  <p className="text-gray-400 text-center py-4">{lang === 'en' ? 'No sales yet today.' : '尚無時段資料'}</p>
-                ) : (
-                  <div className="space-y-6">
-                    {/* Chart & Details */}
-                    {Object.entries(hourlyStats)
-                      .sort(([hourA], [hourB]) => parseInt(hourA) - parseInt(hourB))
-                      .map(([hourStr, stats]) => {
-                        const hour = parseInt(hourStr);
-                        const listTime = `${hour}:00 - ${hour + 1}:00`;
-                        const percentage = (stats.revenue / maxHourlyRevenue) * 100;
-                        const topProducts = Object.entries(stats.products)
-                          .sort(([, a], [, b]) => b - a)
-                          .slice(0, 3); // Top 3
-
-                        return (
-                          <div key={hour} className="flex flex-col gap-2">
-                            {/* Header row */}
-                            <div className="flex justify-between items-end">
-                              <span className="font-bold text-gray-700 w-32">{listTime}</span>
-                              <div className="flex gap-4 text-sm">
-                                <span className="text-blue-600 font-bold">${stats.revenue}</span>
-                                <span className="text-gray-500">{stats.count} {lang === 'en' ? 'orders' : '單'}</span>
-                              </div>
-                            </div>
-
-                            {/* Bar Chart */}
-                            <div className="w-full bg-gray-100 rounded-full h-2.5 mb-1 overflow-hidden">
-                              <div
-                                className="bg-blue-500 h-2.5 rounded-full transition-all duration-500"
-                                style={{ width: `${percentage}%` }}
-                              ></div>
-                            </div>
-
-                            {/* Detailed Product Breakdown for this hour */}
-                            <div className="pl-2 border-l-2 border-gray-200 ml-1">
-                              <div className="flex flex-wrap gap-2 mt-1">
-                                {topProducts.map(([pName, pCount]) => (
-                                  <span key={pName} className="text-xs bg-orange-50 text-orange-800 px-2 py-0.5 rounded border border-orange-100">
-                                    {pName} <span className="font-bold opacity-70">x{pCount}</span>
-                                  </span>
-                                ))}
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      })}
+                      )}
+                    </div>
                   </div>
-                )}
-              </div>
 
-              <div className="text-center pt-8">
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    if (window.confirm(lang === 'en' ? 'Clear all history?' : '確定要清除所有紀錄嗎？(無法復原)')) {
-                      // 1. Clear Local Storage
-                      localStorage.removeItem('dailyOrders');
-                      localStorage.removeItem('expenses');
+                  {/* P&L Key Metrics (Updated) */}
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                    {/* Revenue */}
+                    <div className="bg-white p-6 rounded-2xl shadow-sm border-l-4 border-l-blue-500 border-gray-100">
+                      <p className="text-gray-500 font-medium mb-1 flex items-center gap-1">
+                        <TrendingUp size={16} className="text-blue-500" />
+                        {lang === 'en' ? 'Revenue' : '總營收 (Sales)'}
+                      </p>
+                      <p className="text-3xl font-bold text-blue-600">${totalRevenue}</p>
+                      <p className="text-sm text-gray-400 mt-1">{totalOrdersCount} {lang === 'en' ? 'orders' : '筆訂單'}</p>
+                    </div>
 
-                      // 2. Clear State
-                      setDailyOrders([]);
-                      setExpenses([]);
+                    {/* COGS */}
+                    <div className="bg-white p-6 rounded-2xl shadow-sm border-l-4 border-l-red-500 border-gray-100">
+                      <p className="text-gray-500 font-medium mb-1 flex items-center gap-1">
+                        <TrendingDown size={16} className="text-red-500" />
+                        {lang === 'en' ? 'COGS' : '進貨成本 (COGS)'}
+                      </p>
+                      <p className="text-3xl font-bold text-red-600">-${totalCOGS}</p>
+                      <p className="text-sm text-gray-400 mt-1">{filteredExpenses.filter(e => e.type === 'cogs').length} {lang === 'en' ? 'entries' : '筆紀錄'}</p>
+                    </div>
 
-                      // 3. Force UI Update notification
-                      alert(lang === 'en' ? 'Data cleared successfully' : '資料已全部清除！');
-                    }
-                  }}
-                  className="px-4 py-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-colors text-sm font-medium"
-                >
-                  {lang === 'en' ? 'Reset Data' : '清除所有資料'}
-                </button>
+                    {/* OpEx */}
+                    <div className="bg-white p-6 rounded-2xl shadow-sm border-l-4 border-l-yellow-500 border-gray-100">
+                      <p className="text-gray-500 font-medium mb-1 flex items-center gap-1">
+                        <DollarSign size={16} className="text-yellow-500" />
+                        {lang === 'en' ? 'Expenses' : '營業費用 (OpEx)'}
+                      </p>
+                      <p className="text-3xl font-bold text-yellow-600">-${totalOpEx}</p>
+                      <p className="text-sm text-gray-400 mt-1">{filteredExpenses.filter(e => e.type === 'opex').length} {lang === 'en' ? 'items' : '筆紀錄'}</p>
+                    </div>
+
+                    {/* Net Profit */}
+                    <div className={clsx(
+                      "p-6 rounded-2xl shadow-md border-l-4 border-gray-100",
+                      netProfit >= 0 ? "bg-green-50 border-l-green-500" : "bg-red-50 border-l-red-500"
+                    )}>
+                      <p className="text-gray-600 font-bold mb-1 flex items-center gap-1">
+                        🎉 {lang === 'en' ? 'Net Profit' : '淨利 (Net Profit)'}
+                      </p>
+                      <p className={clsx("text-3xl font-extrabold break-all", netProfit >= 0 ? "text-green-700" : "text-red-700")}>
+                        ${netProfit.toLocaleString()}
+                      </p>
+                      <p className="text-sm opacity-60 mt-1 font-medium">
+                        {lang === 'en' ? 'Margin' : '淨利率'}: {totalRevenue > 0 ? Math.round((netProfit / totalRevenue) * 100) : 0}%
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Profit Chart (New) */}
+                  <div className="mb-6">
+                    <ProfitChart
+                      orders={filteredOrders}
+                      expenses={filteredExpenses}
+                      startDate={rangeStart}
+                      endDate={rangeEnd}
+                      period={reportPeriod}
+                      lang={lang}
+                    />
+                  </div>
+
+                  {/* Expense List (New) */}
+                  <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
+                    <h3 className="text-lg font-bold text-gray-800 mb-4 border-b pb-2 flex justify-between items-center">
+                      {lang === 'en' ? 'Expense History' : '支出紀錄明細'}
+                      <span className="text-sm font-normal text-gray-500">
+                        Total: -${totalExpenses}
+                      </span>
+                    </h3>
+                    <div className="space-y-3 max-h-60 overflow-y-auto pr-2">
+                      {filteredExpenses.length === 0 ? (
+                        <p className="text-gray-400 text-center py-4">{lang === 'en' ? 'No expenses recorded.' : '尚無支出紀錄'}</p>
+                      ) : (
+                        filteredExpenses
+                          .sort((a, b) => b.timestamp - a.timestamp)
+                          .map((expense) => (
+                            <div key={expense.id} className="flex items-center justify-between p-3 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors">
+                              <div className="flex items-center gap-3">
+                                <span className={clsx(
+                                  "px-2 py-1 rounded text-xs font-bold uppercase w-16 text-center",
+                                  expense.type === 'cogs' ? "bg-red-100 text-red-700" : "bg-yellow-100 text-yellow-700"
+                                )}>
+                                  {expense.type === 'cogs' ? 'COGS' : 'OpEx'}
+                                </span>
+                                <div>
+                                  <p className="font-bold text-gray-800">{expense.name}</p>
+                                  <p className="text-xs text-gray-500">
+                                    {new Date(expense.timestamp).toLocaleString(lang === 'zh' ? 'zh-TW' : 'en-US', { hour12: false })}
+                                  </p>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-4">
+                                <span className="font-bold text-gray-700">-${expense.amount}</span>
+                                <div className="flex items-center gap-2">
+                                  <button
+                                    onClick={() => openEditExpense(expense)}
+                                    className="p-1.5 rounded-full hover:bg-gray-200 text-gray-500 transition-colors"
+                                  >
+                                    <Pencil size={18} />
+                                  </button>
+                                  <button
+                                    onClick={() => deleteExpense(expense.id)}
+                                    className="p-1.5 rounded-full hover:bg-red-100 text-red-500 transition-colors"
+                                  >
+                                    <Trash2 size={18} />
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          ))
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Product Breakdown */}
+                  <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
+                    <h3 className="text-lg font-bold text-gray-800 mb-4 border-b pb-2">
+                      {lang === 'en' ? 'Product Sales' : '熱銷商品統計'}
+                    </h3>
+                    <div className="space-y-3">
+                      {Object.keys(productStats).length === 0 ? (
+                        <p className="text-gray-400 text-center py-4">{lang === 'en' ? 'No sales yet today.' : '尚無銷售資料'}</p>
+                      ) : (
+                        Object.entries(productStats)
+                          .sort(([, a], [, b]) => b - a)
+                          .map(([name, count]) => (
+                            <div key={name} className="flex items-center justify-between">
+                              <span className="text-gray-700 font-medium">{name}</span>
+                              <span className="bg-gray-100 text-gray-600 px-3 py-1 rounded-full text-sm font-bold">x {count}</span>
+                            </div>
+                          ))
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Hourly Analysis (Peak Hours) */}
+                  <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
+                    <h3 className="text-lg font-bold text-gray-800 mb-6 border-b pb-2">
+                      {lang === 'en' ? 'Hourly Sales (Peak Times)' : '熱銷時段分析'}
+                    </h3>
+
+                    {Object.keys(hourlyStats).length === 0 ? (
+                      <p className="text-gray-400 text-center py-4">{lang === 'en' ? 'No sales yet today.' : '尚無時段資料'}</p>
+                    ) : (
+                      <div className="space-y-6">
+                        {/* Chart & Details */}
+                        {Object.entries(hourlyStats)
+                          .sort(([hourA], [hourB]) => parseInt(hourA) - parseInt(hourB))
+                          .map(([hourStr, stats]) => {
+                            const hour = parseInt(hourStr);
+                            const listTime = `${hour}:00 - ${hour + 1}:00`;
+                            const percentage = (stats.revenue / maxHourlyRevenue) * 100;
+                            const topProducts = Object.entries(stats.products)
+                              .sort(([, a], [, b]) => b - a)
+                              .slice(0, 3); // Top 3
+
+                            return (
+                              <div key={hour} className="flex flex-col gap-2">
+                                {/* Header row */}
+                                <div className="flex justify-between items-end">
+                                  <span className="font-bold text-gray-700 w-32">{listTime}</span>
+                                  <div className="flex gap-4 text-sm">
+                                    <span className="text-blue-600 font-bold">${stats.revenue}</span>
+                                    <span className="text-gray-500">{stats.count} {lang === 'en' ? 'orders' : '單'}</span>
+                                  </div>
+                                </div>
+
+                                {/* Bar Chart */}
+                                <div className="w-full bg-gray-100 rounded-full h-2.5 mb-1 overflow-hidden">
+                                  <div
+                                    className="bg-blue-500 h-2.5 rounded-full transition-all duration-500"
+                                    style={{ width: `${percentage}%` }}
+                                  ></div>
+                                </div>
+
+                                {/* Detailed Product Breakdown for this hour */}
+                                <div className="pl-2 border-l-2 border-gray-200 ml-1">
+                                  <div className="flex flex-wrap gap-2 mt-1">
+                                    {topProducts.map(([pName, pCount]) => (
+                                      <span key={pName} className="text-xs bg-orange-50 text-orange-800 px-2 py-0.5 rounded border border-orange-100">
+                                        {pName} <span className="font-bold opacity-70">x{pCount}</span>
+                                      </span>
+                                    ))}
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="text-center pt-8">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        if (window.confirm(lang === 'en' ? 'Clear all history?' : '確定要清除所有紀錄嗎？(無法復原)')) {
+                          // 1. Clear Local Storage
+                          localStorage.removeItem('dailyOrders');
+                          localStorage.removeItem('expenses');
+
+                          // 2. Clear State
+                          setDailyOrders([]);
+                          setExpenses([]);
+
+                          // 3. Force UI Update notification
+                          alert(lang === 'en' ? 'Data cleared successfully' : '資料已全部清除！');
+                        }
+                      }}
+                      className="px-4 py-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-colors text-sm font-medium"
+                    >
+                      {lang === 'en' ? 'Reset Data' : '清除所有資料'}
+                    </button>
 
 
 
-                <button
-                  type="button"
-                  disabled={isGenerating}
-                  onClick={async () => {
-                    if (!confirm(lang === 'en' ? 'Generate smart profit data?' : '確定要生成「獲利模式」測試資料嗎？\n(這會模擬真實經營：成本約佔營收 35%，並產生每月固定開銷)')) return;
+                    <button
+                      type="button"
+                      disabled={isGenerating}
+                      onClick={async () => {
+                        if (!confirm(lang === 'en' ? 'Generate smart profit data?' : '確定要生成「獲利模式」測試資料嗎？\n(這會模擬真實經營：成本約佔營收 35%，並產生每月固定開銷)')) return;
 
-                    setIsGenerating(true);
+                        setIsGenerating(true);
 
-                    // Use setTimeout to allow UI to render the disabled state
-                    setTimeout(() => {
-                      const mockOrders: Order[] = [];
-                      const mockExpenses: Expense[] = [];
-                      const now = new Date();
+                        // Use setTimeout to allow UI to render the disabled state
+                        setTimeout(() => {
+                          const mockOrders: Order[] = [];
+                          const mockExpenses: Expense[] = [];
+                          const now = new Date();
 
-                      // Iterate through last 12 months (approx 365 days)
-                      for (let d = 365; d >= 0; d--) {
-                        const currentDate = new Date(now);
-                        currentDate.setDate(currentDate.getDate() - d);
-                        const dateStr = currentDate.toLocaleDateString();
-                        const dayOfMonth = currentDate.getDate();
+                          // Iterate through last 12 months (approx 365 days)
+                          for (let d = 365; d >= 0; d--) {
+                            const currentDate = new Date(now);
+                            currentDate.setDate(currentDate.getDate() - d);
+                            const dateStr = currentDate.toLocaleDateString();
+                            const dayOfMonth = currentDate.getDate();
 
-                        // 1. Generate Daily Orders (Revenue)
-                        // Busy days: Weekend (Fri, Sat, Sun)
-                        const isWeekend = [0, 5, 6].includes(currentDate.getDay());
-                        const dailyOrderCount = isWeekend ? Math.floor(Math.random() * 8) + 5 : Math.floor(Math.random() * 5) + 2; // 5-12 orders or 2-6 orders
+                            // 1. Generate Daily Orders (Revenue)
+                            // Busy days: Weekend (Fri, Sat, Sun)
+                            const isWeekend = [0, 5, 6].includes(currentDate.getDay());
+                            const dailyOrderCount = isWeekend ? Math.floor(Math.random() * 8) + 5 : Math.floor(Math.random() * 5) + 2; // 5-12 orders or 2-6 orders
 
-                        let dailyRevenue = 0;
-                        const dailyItems: CartItem[] = [];
+                            let dailyRevenue = 0;
+                            const dailyItems: CartItem[] = [];
 
-                        for (let i = 0; i < dailyOrderCount; i++) {
-                          const itemCount = Math.floor(Math.random() * 3) + 1;
-                          const items: CartItem[] = [];
-                          let orderTotal = 0;
+                            for (let i = 0; i < dailyOrderCount; i++) {
+                              const itemCount = Math.floor(Math.random() * 3) + 1;
+                              const items: CartItem[] = [];
+                              let orderTotal = 0;
 
-                          for (let j = 0; j < itemCount; j++) {
-                            const product = PRODUCTS[Math.floor(Math.random() * PRODUCTS.length)];
-                            items.push({
-                              internalId: Math.random().toString().slice(2, 8),
-                              productId: product.id,
-                              name: product.name,
-                              nameEn: product.nameEn,
-                              basePrice: product.price,
-                              modifierIds: [],
-                              totalPrice: product.price,
-                              type: product.type
-                            });
-                            orderTotal += product.price;
+                              for (let j = 0; j < itemCount; j++) {
+                                const product = PRODUCTS[Math.floor(Math.random() * PRODUCTS.length)];
+                                items.push({
+                                  internalId: Math.random().toString().slice(2, 8),
+                                  productId: product.id,
+                                  name: product.name,
+                                  nameEn: product.nameEn,
+                                  basePrice: product.price,
+                                  modifierIds: [],
+                                  totalPrice: product.price,
+                                  type: product.type
+                                });
+                                orderTotal += product.price;
+                              }
+
+                              mockOrders.push({
+                                id: Math.random().toString().slice(2, 8),
+                                items,
+                                total: orderTotal,
+                                date: dateStr,
+                                timestamp: currentDate.getTime() + Math.random() * 10000,
+                                paymentMethod: Math.random() > 0.4 ? 'cash' : 'linepay'
+                              });
+
+                              dailyRevenue += orderTotal;
+                            }
+
+                            // 2. Generate Expenses (Cost) based on Revenue (Smart Logic)
+                            if (dailyRevenue > 0) {
+                              // Ingredients Cost: approx 30-40% of revenue
+                              const costRatio = 0.3 + (Math.random() * 0.1);
+                              const costAmount = Math.floor(dailyRevenue * costRatio);
+
+                              mockExpenses.push({
+                                id: Math.random().toString().slice(2, 8),
+                                type: 'cogs',
+                                name: `本日食材採購 (${dateStr})`,
+                                amount: costAmount,
+                                date: dateStr,
+                                timestamp: currentDate.getTime()
+                              });
+                            }
+
+                            // 3. Monthly Fixed Costs (Rent & Utilities)
+                            if (dayOfMonth === 1) {
+                              mockExpenses.push({
+                                id: Math.random().toString().slice(2, 8),
+                                type: 'opex',
+                                name: '店面租金',
+                                amount: 15000,
+                                date: dateStr,
+                                timestamp: currentDate.getTime()
+                              });
+                            }
+                            if (dayOfMonth === 15) {
+                              mockExpenses.push({
+                                id: Math.random().toString().slice(2, 8),
+                                type: 'opex',
+                                name: '水電瓦斯費',
+                                amount: 3500,
+                                date: dateStr,
+                                timestamp: currentDate.getTime()
+                              });
+                            }
                           }
 
-                          mockOrders.push({
-                            id: Math.random().toString().slice(2, 8),
-                            items,
-                            total: orderTotal,
-                            date: dateStr,
-                            timestamp: currentDate.getTime() + Math.random() * 10000,
-                            paymentMethod: Math.random() > 0.4 ? 'cash' : 'linepay'
-                          });
+                          // Update State & LocalStorage
+                          const combinedOrders = [...dailyOrders, ...mockOrders];
+                          const combinedExpenses = [...expenses, ...mockExpenses];
 
-                          dailyRevenue += orderTotal;
-                        }
+                          setDailyOrders(combinedOrders);
+                          setExpenses(combinedExpenses);
 
-                        // 2. Generate Expenses (Cost) based on Revenue (Smart Logic)
-                        if (dailyRevenue > 0) {
-                          // Ingredients Cost: approx 30-40% of revenue
-                          const costRatio = 0.3 + (Math.random() * 0.1);
-                          const costAmount = Math.floor(dailyRevenue * costRatio);
-
-                          mockExpenses.push({
-                            id: Math.random().toString().slice(2, 8),
-                            type: 'cogs',
-                            name: `本日食材採購 (${dateStr})`,
-                            amount: costAmount,
-                            date: dateStr,
-                            timestamp: currentDate.getTime()
-                          });
-                        }
-
-                        // 3. Monthly Fixed Costs (Rent & Utilities)
-                        if (dayOfMonth === 1) {
-                          mockExpenses.push({
-                            id: Math.random().toString().slice(2, 8),
-                            type: 'opex',
-                            name: '店面租金',
-                            amount: 15000,
-                            date: dateStr,
-                            timestamp: currentDate.getTime()
-                          });
-                        }
-                        if (dayOfMonth === 15) {
-                          mockExpenses.push({
-                            id: Math.random().toString().slice(2, 8),
-                            type: 'opex',
-                            name: '水電瓦斯費',
-                            amount: 3500,
-                            date: dateStr,
-                            timestamp: currentDate.getTime()
-                          });
-                        }
+                          try {
+                            localStorage.setItem('dailyOrders', JSON.stringify(combinedOrders));
+                            localStorage.setItem('expenses', JSON.stringify(combinedExpenses));
+                            alert(lang === 'en'
+                              ? 'Success! Smart Profit Data Generated.'
+                              : '成功！已生成「獲利模式」資料 📈\n\n- 訂單：隨機分佈 (週末較多)\n- 成本：自動設為營收的 30%~40%\n- 支出：每月固定租金/水電');
+                          } catch (e) {
+                            alert('Storage Quota Exceeded!');
+                            console.error(e);
+                          } finally {
+                            setIsGenerating(false);
+                          }
+                        }, 50); // Small delay to allow UI to update
+                      }}
+                      className={clsx(
+                        "text-sm hover:underline ml-4",
+                        isGenerating ? "text-gray-400 cursor-not-allowed" : "text-blue-500 hover:text-blue-700"
+                      )}
+                    >
+                      {isGenerating
+                        ? (lang === 'en' ? 'Generating...' : '生成中...')
+                        : (lang === 'en' ? 'Generate Profit Data' : '生成獲利測試資料')
                       }
+                    </button>
+                  </div>
+                </div>
 
-                      // Update State & LocalStorage
-                      const combinedOrders = [...dailyOrders, ...mockOrders];
-                      const combinedExpenses = [...expenses, ...mockExpenses];
-
-                      setDailyOrders(combinedOrders);
-                      setExpenses(combinedExpenses);
-
-                      try {
-                        localStorage.setItem('dailyOrders', JSON.stringify(combinedOrders));
-                        localStorage.setItem('expenses', JSON.stringify(combinedExpenses));
-                        alert(lang === 'en'
-                          ? 'Success! Smart Profit Data Generated.'
-                          : '成功！已生成「獲利模式」資料 📈\n\n- 訂單：隨機分佈 (週末較多)\n- 成本：自動設為營收的 30%~40%\n- 支出：每月固定租金/水電');
-                      } catch (e) {
-                        alert('Storage Quota Exceeded!');
-                        console.error(e);
-                      } finally {
-                        setIsGenerating(false);
-                      }
-                    }, 50); // Small delay to allow UI to update
-                  }}
-                  className={clsx(
-                    "text-sm hover:underline ml-4",
-                    isGenerating ? "text-gray-400 cursor-not-allowed" : "text-blue-500 hover:text-blue-700"
-                  )}
-                >
-                  {isGenerating
-                    ? (lang === 'en' ? 'Generating...' : '生成中...')
-                    : (lang === 'en' ? 'Generate Profit Data' : '生成獲利測試資料')
-                  }
-                </button>
-              </div>
+              )}
             </div>
           ) : (
             <>
