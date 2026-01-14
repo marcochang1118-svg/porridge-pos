@@ -69,78 +69,31 @@ export default function ModifierModal({
                 {/* ... (Header) ... */}
 
                 {/* Modifiers Grid */}
-                <div className="flex-1 overflow-y-auto p-6 space-y-8">
-                    {/* Add-ons Section */}
-                    {MODIFIERS.some((m: any) => m.category === 'addon') && (
-                        <div>
-                            <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center">
-                                🔥 {lang === 'en' ? 'Super Value Add-ons (2nd item -$5)' : '超值加購 (第二件現折$5)'}
-                            </h3>
-                            <div className="grid grid-cols-1 gap-3">
-                                {MODIFIERS
-                                    .filter((mod: any) => mod.category === 'addon')
-                                    .map((mod: any) => {
-                                        const isSelected = selectedModifiers.includes(mod.id);
-                                        const displayName = lang === 'en' ? (mod.nameEn || mod.name) : mod.name;
-
-                                        return (
-                                            <button
-                                                key={mod.id}
-                                                onClick={() => onToggleModifier(mod.id)}
-                                                className={clsx(
-                                                    'flex items-center justify-between rounded-xl border-2 p-4 transition-all shadow-sm',
-                                                    isSelected
-                                                        ? 'border-red-500 bg-red-50 text-red-800 ring-2 ring-red-500/20'
-                                                        : 'border-gray-200 bg-white text-gray-700 hover:border-red-300 hover:shadow-md'
-                                                )}
-                                            >
-                                                <div className="flex items-center gap-3">
-                                                    <span className="text-2xl pt-1">🍱</span>
-                                                    <span className="text-lg font-bold">{displayName}</span>
-                                                </div>
-                                                <span className={clsx("text-lg font-bold", isSelected ? "text-red-600" : "text-gray-400")}>
-                                                    +${mod.price}
-                                                </span>
-                                            </button>
-                                        );
-                                    })}
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Standard Options */}
+                <div className="flex-1 overflow-y-auto p-6">
                     <div>
-                        <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center">
-                            🛠️ {lang === 'en' ? 'Custom Adjustments' : '客製化調整'}
+                        <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                            <span>🛠️ {lang === 'en' ? 'Customizations & Add-ons' : '客製化與加購'}</span>
+                            <span className="text-sm font-normal text-green-600 bg-green-50 px-2 py-1 rounded-lg border border-green-100">
+                                {lang === 'en' ? '2nd Add-on -$5' : '加購第二件折$5'}
+                            </span>
                         </h3>
                         <div className="grid grid-cols-2 gap-4">
                             {MODIFIERS
-                                .filter((mod: any) => {
-                                    if (mod.category === 'addon') return false;
-                                    // Special Logic: 'No BBQ Sauce' only for Beef & Egg Porridge (p5)
-                                    // User Request (Step 330): Make Client side same as Business side (which hides it). So hiding it everywhere for now.
-                                    if (mod.id === 'm12') return false;
-                                    // if (mod.id === 'm12' && productId !== 'p5') return false;
-                                    return true;
-                                })
                                 .sort((a: any, b: any) => {
-                                    // 1. Free items first
+                                    // 1. Separate by Category (Option vs Addon)
+                                    if (a.category !== 'addon' && b.category === 'addon') return -1;
+                                    if (a.category === 'addon' && b.category !== 'addon') return 1;
+
+                                    // 2. Free items first within category
                                     if (a.price === 0 && b.price !== 0) return -1;
                                     if (a.price !== 0 && b.price === 0) return 1;
 
-                                    // 2. Both are paid items
-                                    if (a.price > 0 && b.price > 0) {
-                                        // "Upgrade Large" (m7) priority
-                                        if (a.id === 'm7') return -1;
-                                        if (b.id === 'm7') return 1;
-
-                                        // Sort by Price (Ascending)
-                                        return a.price - b.price;
-                                    }
-                                    return 0;
+                                    // 3. Price Low to High
+                                    return a.price - b.price;
                                 })
                                 .map((mod: any) => {
                                     const isSelected = selectedModifiers.includes(mod.id);
+                                    const isAddon = mod.category === 'addon';
                                     const displayName = lang === 'en' ? (mod.nameEn || mod.name) : mod.name;
 
                                     return (
@@ -151,24 +104,15 @@ export default function ModifierModal({
                                                 'flex flex-col items-center justify-center rounded-xl border-2 p-4 transition-all min-h-[100px] gap-1',
                                                 isSelected
                                                     ? 'border-blue-600 bg-blue-50 text-blue-800 ring-2 ring-blue-600/20'
-                                                    : 'border-gray-200 bg-white text-gray-700 hover:border-blue-300'
+                                                    : isAddon
+                                                        ? 'border-green-200 bg-white text-gray-700 hover:border-green-400'
+                                                        : 'border-gray-200 bg-white text-gray-700 hover:border-blue-300'
                                             )}
                                         >
                                             <span className="text-xl font-bold text-center leading-tight">
-                                                {(() => {
-                                                    const match = displayName.match(/(.*)(\(.*\))/);
-                                                    if (match) {
-                                                        return (
-                                                            <>
-                                                                {match[1]}
-                                                                <span className="text-sm font-medium ml-1">{match[2]}</span>
-                                                            </>
-                                                        );
-                                                    }
-                                                    return displayName;
-                                                })()}
+                                                {displayName}
                                             </span>
-                                            <span className={clsx("text-lg font-medium", isSelected ? "text-blue-600" : "text-gray-500")}>
+                                            <span className={clsx("text-lg font-medium", isSelected ? "text-blue-600" : (isAddon ? "text-green-600" : "text-gray-500"))}>
                                                 {mod.price > 0 ? `+$${mod.price}` : t.free}
                                             </span>
                                         </button>
