@@ -45,7 +45,23 @@ export default function ModifierModal({
 
     const t = MODAL_TEXT[lang];
 
-    // ... (rest of filtering logic)
+    // Calculate Total Price
+    const modifiersTotal = selectedModifiers.reduce((sum, modId) => {
+        const mod = MODIFIERS.find((m: any) => m.id === modId);
+        return sum + (mod ? mod.price : 0);
+    }, 0);
+
+    // Dynamic Discount Logic: 2nd item onwards gets -$5
+    // Filter selected modifiers to only add-ons to establish "order"
+    const selectedAddons = selectedModifiers.filter(id => {
+        const m = MODIFIERS.find((mod: any) => mod.id === id);
+        return m?.category === 'addon';
+    });
+
+    // Calculate total discount: (Count - 1) * 5, min 0
+    const volumeDiscount = Math.max(0, (selectedAddons.length - 1) * 5);
+
+    const totalPrice = basePrice + modifiersTotal - volumeDiscount;
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
