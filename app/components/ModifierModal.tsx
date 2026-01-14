@@ -70,9 +70,20 @@ export default function ModifierModal({
                                     return true;
                                 })
                                 .sort((a: any, b: any) => {
+                                    // 1. Free items first
                                     if (a.price === 0 && b.price !== 0) return -1;
                                     if (a.price !== 0 && b.price === 0) return 1;
-                                    return 0; // Keep original order for same price
+
+                                    // 2. Both are paid items
+                                    if (a.price > 0 && b.price > 0) {
+                                        // "Upgrade Large" (m7) priority
+                                        if (a.id === 'm7') return -1;
+                                        if (b.id === 'm7') return 1;
+
+                                        // Sort by Price (Ascending)
+                                        return a.price - b.price;
+                                    }
+                                    return 0;
                                 })
                                 .map((mod: any) => {
                                     const isSelected = selectedModifiers.includes(mod.id);
