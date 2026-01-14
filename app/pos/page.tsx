@@ -595,12 +595,49 @@ export default function PosPage() {
 
         {/* Category Tabs / Dashboard Actions */}
         <div className="flex h-16 w-full items-center justify-between border-b border-gray-200 bg-gray-50 px-4 flex-shrink-0">
-          <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide snap-x snap-mandatory touch-pan-x">
+          <div
+            className="flex items-center gap-2 overflow-x-auto scrollbar-hide snap-x snap-mandatory touch-pan-x cursor-grab active:cursor-grabbing"
+            ref={(ref) => {
+              // Simple Drag-to-Scroll implementation for Desktop Mouse
+              if (!ref) return;
+              let isDown = false;
+              let startX: number;
+              let scrollLeft: number;
+
+              ref.onmousedown = (e) => {
+                isDown = true;
+                ref.classList.add('active');
+                startX = e.pageX - ref.offsetLeft;
+                scrollLeft = ref.scrollLeft;
+                // Disable snap mapping while dragging for smooth feel
+                ref.style.scrollSnapType = 'none';
+              };
+              ref.onmouseleave = () => {
+                isDown = false;
+                ref.classList.remove('active');
+                // Re-enable snap
+                ref.style.scrollSnapType = 'x mandatory';
+              };
+              ref.onmouseup = () => {
+                isDown = false;
+                ref.classList.remove('active');
+                // Re-enable snap
+                ref.style.scrollSnapType = 'x mandatory';
+              };
+              ref.onmousemove = (e) => {
+                if (!isDown) return;
+                e.preventDefault();
+                const x = e.pageX - ref.offsetLeft;
+                const walk = (x - startX) * 2; // Scroll-fast
+                ref.scrollLeft = scrollLeft - walk;
+              };
+            }}
+          >
             {/* Mode Toggle Button (Dashboard vs POS) */}
             <button
               onClick={() => setViewMode(viewMode === 'pos' ? 'dashboard' : 'pos')}
               className={clsx(
-                'flex-shrink-0 rounded-full px-6 py-2 text-lg font-bold transition-all border-2 mb-0 snap-start',
+                'flex-shrink-0 rounded-full px-6 py-2 text-lg font-bold transition-all border-2 mb-0 snap-start select-none',
                 viewMode === 'dashboard'
                   ? 'bg-purple-600 text-white border-purple-600 shadow-md'
                   : 'bg-white text-purple-600 border-purple-200 hover:bg-purple-50'
@@ -618,7 +655,7 @@ export default function PosPage() {
                   key={cat.id}
                   onClick={() => { setActiveCategory(cat.id); setViewMode('pos'); }}
                   className={clsx(
-                    'flex-shrink-0 rounded-full px-6 py-2 text-lg font-bold transition-all snap-start',
+                    'flex-shrink-0 rounded-full px-6 py-2 text-lg font-bold transition-all snap-start select-none',
                     viewMode === 'pos' && activeCategory === cat.id
                       ? 'bg-blue-600 text-white shadow-md'
                       : 'bg-white text-gray-600 hover:bg-gray-100'
