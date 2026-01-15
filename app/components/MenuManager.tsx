@@ -250,92 +250,6 @@ export default function MenuManager({
         updateCategoryOrder(localCategories);
     };
 
-    // --- SEED DATABASE ---
-    const handleSeedData = async () => {
-        if (!confirm(lang === 'en' ? 'Import sample data? This will add products to your menu.' : '確定要匯入範例資料嗎？這將會新增多項餐點到您的菜單中。')) return;
-
-        try {
-            // 1. Categories
-            const catPorridgeId = await addCategory({ name: '粥品', nameEn: 'Porridge', sort_order: 1 });
-            const catSidesId = await addCategory({ name: '小菜', nameEn: 'Sides', sort_order: 2 });
-            const catDrinksId = await addCategory({ name: '飲品', nameEn: 'Drinks', sort_order: 3 });
-
-            // 2. Modifiers (Common)
-            await addModifier({ name: '皮蛋', nameEn: 'Century Egg', price: 15, category: 'addon' });
-            await addModifier({ name: '肉鬆', nameEn: 'Pork Floss', price: 10, category: 'addon' });
-            await addModifier({ name: '油條', nameEn: 'You Tiao', price: 10, category: 'addon' });
-            await addModifier({ name: '加蛋', nameEn: 'Add Egg', price: 15, category: 'addon' });
-            await addModifier({ name: '不蔥', nameEn: 'No Scallion', price: 0, category: 'option' });
-
-            // 3. Products
-            // Porridge
-            await addProduct({
-                name: '皮蛋瘦肉粥',
-                nameEn: 'Pork & Century Egg Porridge',
-                price: 80,
-                category_id: catPorridgeId,
-                type: 'meat',
-                image: '/images/century-egg-porridge.png'
-            });
-            await addProduct({
-                name: '招牌海鮮粥',
-                nameEn: 'Seafood Porridge',
-                price: 95,
-                category_id: catPorridgeId,
-                type: 'seafood',
-                image: '/images/cantonese-seafood-porridge.png'
-            });
-            await addProduct({
-                name: '牛肉滑蛋粥',
-                nameEn: 'Beef & Egg Porridge',
-                price: 90,
-                category_id: catPorridgeId,
-                type: 'meat',
-                image: '/images/beef-egg-porridge.png'
-            });
-            await addProduct({
-                name: '吻仔魚粥',
-                nameEn: 'Baby Fish Porridge',
-                price: 85,
-                category_id: catPorridgeId,
-                type: 'seafood',
-                image: '/images/seaweed-silverfish-porridge.png'
-            });
-
-            // Sides (Use 'side' or 'meat' etc as per request, using 'side' type for styling)
-            await addProduct({
-                name: '燙青菜',
-                nameEn: 'Boiled Vegetables',
-                price: 40,
-                category_id: catSidesId,
-                type: 'side',
-                // No image for side currently, keeping empty or adding placeholder if desired
-            });
-            await addProduct({
-                name: '皮蛋豆腐',
-                nameEn: 'Tofu with Century Egg',
-                price: 45,
-                category_id: catSidesId,
-                type: 'side'
-            });
-            await addProduct({
-                name: '蒜泥白肉',
-                nameEn: 'Pork with Garlic Sauce',
-                price: 60,
-                category_id: catSidesId,
-                type: 'meat'
-            });
-
-            // Drinks
-            await addProduct({ name: '古早味紅茶', nameEn: 'Black Tea', price: 25, category_id: catDrinksId, type: 'drink' });
-            await addProduct({ name: '豆漿', nameEn: 'Soy Milk', price: 25, category_id: catDrinksId, type: 'drink' });
-
-            alert(lang === 'en' ? 'Import successful!' : '匯入成功！');
-        } catch (e) {
-            console.error(e);
-            alert(lang === 'en' ? 'Import failed' : '匯入失敗');
-        }
-    };
 
     return (
         <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-sm border border-gray-200 dark:border-zinc-800 p-6 min-h-[600px]">
@@ -364,14 +278,6 @@ export default function MenuManager({
                 </div>
 
                 <div className="flex gap-2">
-                    {/* Import Button */}
-                    <button
-                        onClick={handleSeedData}
-                        className="bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-zinc-300 px-4 py-2 rounded-lg flex items-center gap-2 font-bold hover:bg-gray-200 dark:hover:bg-zinc-700 transition-colors"
-                    >
-                        <Save size={20} />
-                        {lang === 'en' ? 'Import Sample' : '匯入範例'}
-                    </button>
                     {activeTab === 'products' ? (
                         <>
                             <button
