@@ -59,13 +59,13 @@ export default function CheckoutModal({ isOpen, onClose, total, onConfirm, lang 
                     <div className="grid grid-cols-2 gap-4">
                         <button
                             onClick={() => onConfirm('cash')}
-                            className="bg-[#FFFBF0] dark:bg-yellow-900/10 hover:bg-[#FFF5D6] dark:hover:bg-yellow-900/30 border border-[#FDE68A] dark:border-yellow-900/50 text-[#92400E] dark:text-yellow-100 flex flex-col items-center justify-center gap-3 rounded-2xl p-6 transition-all active:scale-95 shadow-sm hover:shadow-md hover:border-[#FCD34D] dark:hover:border-yellow-700"
+                            className="group flex flex-col items-center justify-center gap-3 rounded-2xl bg-amber-500 p-6 text-white shadow-lg shadow-amber-500/20 hover:bg-amber-600 hover:shadow-amber-500/40 transition-all active:scale-95 border-2 border-transparent"
                         >
                             <div className="relative w-[66px] h-[66px] flex items-center justify-center">
                                 <img
                                     src="/flat_dollar_coin.png"
                                     alt="Cash"
-                                    className="w-[62px] h-[62px] object-contain drop-shadow-sm"
+                                    className="w-[62px] h-[62px] object-contain drop-shadow-sm brightness-110 contrast-125"
                                 />
                             </div>
                             <span className="font-bold text-lg">{lang === 'en' ? 'Cash' : '現金'}</span>
