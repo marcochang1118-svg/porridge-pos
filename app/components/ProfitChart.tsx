@@ -1,18 +1,17 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import {
     ResponsiveContainer,
     ComposedChart,
     Line,
     Bar,
-    Area,
     XAxis,
     YAxis,
     CartesianGrid,
-    Tooltip,
-    Legend
+    Tooltip
 } from 'recharts';
+import { useTheme } from './ThemeProvider';
 
 type CartItem = {
     totalPrice: number;
@@ -40,6 +39,18 @@ interface ProfitChartProps {
 }
 
 export default function ProfitChart({ orders, expenses, startDate, endDate, period, lang }: ProfitChartProps) {
+    const { theme } = useTheme();
+    const [isDark, setIsDark] = useState(false);
+
+    useEffect(() => {
+        if (theme === 'system') {
+            const systemIsDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            setIsDark(systemIsDark);
+        } else {
+            setIsDark(theme === 'dark');
+        }
+    }, [theme]);
+
     // 1. Process Data into Buckets
     const chartData = useMemo(() => {
         const data: any[] = [];
@@ -151,25 +162,35 @@ export default function ProfitChart({ orders, expenses, startDate, endDate, peri
         return Array.from(buckets.values());
     }, [orders, expenses, startDate, endDate, period]);
 
+    const colors = {
+        text: isDark ? '#E5E7EB' : '#374151', // gray-200 : gray-700
+        grid: isDark ? '#374151' : '#E5E7EB', // gray-700 : gray-200
+        revenue: '#60A5FA', // blue-400
+        cost: '#F87171', // red-400
+        profit: '#10B981', // emerald-500
+        tooltipBg: isDark ? '#18181B' : '#FFFFFF', // zinc-900 : white
+        tooltipText: isDark ? '#FFFFFF' : '#000000',
+    };
+
     return (
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 h-[400px] w-full flex flex-col">
+        <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-zinc-800 h-[400px] w-full flex flex-col">
             <div className="flex justify-between items-center mb-4 flex-shrink-0">
-                <h3 className="text-lg font-bold text-gray-800">
+                <h3 className="text-lg font-bold text-gray-800 dark:text-white">
                     {lang === 'en' ? 'Profit Trend' : '營收與成本趨勢圖'}
                 </h3>
                 {/* Custom HTML Legend for perfect alignment and visibility */}
                 <div className="flex items-center gap-4 text-xs md:text-sm">
                     <div className="flex items-center gap-1.5">
                         <span className="w-3 h-3 rounded-full bg-green-500"></span>
-                        <span className="text-gray-600">{lang === 'en' ? 'Net Profit' : '實際淨利'}</span>
+                        <span className="text-gray-600 dark:text-gray-400">{lang === 'en' ? 'Net Profit' : '實際淨利'}</span>
                     </div>
                     <div className="flex items-center gap-1.5">
                         <span className="w-3 h-3 rounded-t-sm" style={{ backgroundColor: '#F87171' }}></span>
-                        <span className="text-gray-600">{lang === 'en' ? 'Cost' : '成本'}</span>
+                        <span className="text-gray-600 dark:text-gray-400">{lang === 'en' ? 'Cost' : '成本'}</span>
                     </div>
                     <div className="flex items-center gap-1.5">
                         <span className="w-3 h-3 rounded-t-sm" style={{ backgroundColor: '#60A5FA' }}></span>
-                        <span className="text-gray-600">{lang === 'en' ? 'Revenue' : '營收'}</span>
+                        <span className="text-gray-600 dark:text-gray-400">{lang === 'en' ? 'Revenue' : '營收'}</span>
                     </div>
                 </div>
             </div>
@@ -177,26 +198,32 @@ export default function ProfitChart({ orders, expenses, startDate, endDate, peri
             <div className="flex-1 min-h-0 w-full">
                 <ResponsiveContainer width="100%" height="100%">
                     <ComposedChart data={chartData} margin={{ top: 10, right: 0, left: -20, bottom: 0 }}>
-                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={colors.grid} />
                         <XAxis
                             dataKey="name"
                             axisLine={false}
                             tickLine={false}
-                            tick={{ fill: '#9CA3AF', fontSize: 12 }}
+                            tick={{ fill: colors.text, fontSize: 12 }}
                             dy={10}
                         />
                         <YAxis
                             axisLine={false}
                             tickLine={false}
-                            tick={{ fill: '#9CA3AF', fontSize: 12 }}
+                            tick={{ fill: colors.text, fontSize: 12 }}
                         />
                         <Tooltip
-                            contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+                            contentStyle={{
+                                borderRadius: '12px',
+                                border: 'none',
+                                boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                                backgroundColor: colors.tooltipBg,
+                                color: colors.tooltipText
+                            }}
                         />
 
-                        <Bar dataKey="revenue" name={lang === 'en' ? 'Revenue' : '營收'} barSize={20} fill="#60A5FA" radius={[4, 4, 0, 0]} />
-                        <Bar dataKey="cost" name={lang === 'en' ? 'Cost' : '成本'} barSize={20} fill="#F87171" radius={[4, 4, 0, 0]} />
-                        <Line type="monotone" dataKey="profit" name={lang === 'en' ? 'Net Profit' : '實際淨利'} stroke="#10B981" strokeWidth={3} dot={{ r: 4 }} activeDot={{ r: 6 }} />
+                        <Bar dataKey="revenue" name={lang === 'en' ? 'Revenue' : '營收'} barSize={20} fill={colors.revenue} radius={[4, 4, 0, 0]} />
+                        <Bar dataKey="cost" name={lang === 'en' ? 'Cost' : '成本'} barSize={20} fill={colors.cost} radius={[4, 4, 0, 0]} />
+                        <Line type="monotone" dataKey="profit" name={lang === 'en' ? 'Net Profit' : '實際淨利'} stroke={colors.profit} strokeWidth={3} dot={{ r: 4 }} activeDot={{ r: 6 }} />
                     </ComposedChart>
                 </ResponsiveContainer>
             </div>

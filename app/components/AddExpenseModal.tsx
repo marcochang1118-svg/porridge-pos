@@ -106,15 +106,15 @@ export default function AddExpenseModal({
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-            <div className="flex w-full max-w-md flex-col overflow-hidden rounded-2xl bg-white shadow-2xl animate-in zoom-in-95 duration-200">
+            <div className="flex w-full max-w-md flex-col overflow-hidden rounded-2xl bg-white dark:bg-zinc-900 shadow-2xl animate-in zoom-in-95 duration-200">
                 {/* Header */}
-                <div className="flex items-center justify-between border-b border-gray-100 p-4 bg-gray-50">
-                    <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
+                <div className="flex items-center justify-between border-b border-gray-100 dark:border-zinc-800 p-4 bg-gray-50 dark:bg-zinc-900">
+                    <h2 className="text-xl font-bold text-gray-800 dark:text-white flex items-center gap-2">
                         💰 {t.title}
                     </h2>
                     <button
                         onClick={onClose}
-                        className="rounded-full bg-white p-2 text-gray-500 hover:bg-gray-100 shadow-sm"
+                        className="rounded-full bg-white dark:bg-zinc-800 p-2 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-zinc-700 shadow-sm"
                     >
                         <X size={24} />
                     </button>
@@ -125,17 +125,17 @@ export default function AddExpenseModal({
                     {/* Type Toggle - Hidden if Locked */}
                     {!lockType && (
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">{t.typeLabel}</label>
-                            <div className="grid grid-cols-2 gap-2 bg-gray-100 p-1 rounded-lg">
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{t.typeLabel}</label>
+                            <div className="grid grid-cols-2 gap-2 bg-gray-100 dark:bg-zinc-800 p-1 rounded-lg">
                                 <button
                                     onClick={() => setType('cogs')}
-                                    className={`py-2 rounded-md text-sm font-bold transition-all ${type === 'cogs' ? 'bg-white text-red-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                                    className={`py-2 rounded-md text-sm font-bold transition-all ${type === 'cogs' ? 'bg-white dark:bg-zinc-700 text-red-600 dark:text-red-400 shadow-sm' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'}`}
                                 >
                                     {t.cogs}
                                 </button>
                                 <button
                                     onClick={() => setType('opex')}
-                                    className={`py-2 rounded-md text-sm font-bold transition-all ${type === 'opex' ? 'bg-white text-yellow-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                                    className={`py-2 rounded-md text-sm font-bold transition-all ${type === 'opex' ? 'bg-white dark:bg-zinc-700 text-yellow-600 dark:text-yellow-400 shadow-sm' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'}`}
                                 >
                                     {t.opex}
                                 </button>
@@ -145,7 +145,7 @@ export default function AddExpenseModal({
 
                     {/* Name Input with Suggestions */}
                     <div ref={wrapperRef} className="relative">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">{t.nameLabel}</label>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t.nameLabel}</label>
                         <div className="relative">
                             <input
                                 type="text"
@@ -159,7 +159,7 @@ export default function AddExpenseModal({
                                     setShowSuggestions(true);
                                 }}
                                 placeholder={t.namePlaceholder}
-                                className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-lg focus:border-blue-500 focus:ring-blue-500 outline-none transition-colors"
+                                className="w-full border-2 border-gray-200 dark:border-zinc-700 rounded-xl px-4 py-3 text-lg focus:border-blue-500 focus:ring-blue-500 outline-none transition-colors bg-white dark:bg-zinc-800 text-gray-800 dark:text-white"
                                 autoComplete="off" // Disable browser history
                             />
                             <Search className="absolute right-3 top-3.5 text-gray-400" size={20} />
@@ -167,7 +167,7 @@ export default function AddExpenseModal({
 
                         {/* Suggestions Dropdown */}
                         {showSuggestions && suggestions.length > 0 && (
-                            <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg max-h-48 overflow-y-auto animate-in fade-in slide-in-from-top-2">
+                            <div className="absolute z-10 w-full mt-1 bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-xl shadow-lg max-h-48 overflow-y-auto animate-in fade-in slide-in-from-top-2">
                                 {suggestions.map((item, index) => (
                                     <button
                                         key={index}
@@ -179,7 +179,7 @@ export default function AddExpenseModal({
                                             // Focus amount input next tick
                                             setTimeout(() => amountInputRef.current?.focus(), 0);
                                         }}
-                                        className="w-full text-left px-4 py-3 hover:bg-blue-50 transition-colors border-b border-gray-50 last:border-0 text-gray-700 font-medium"
+                                        className="w-full text-left px-4 py-3 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors border-b border-gray-50 dark:border-zinc-700 last:border-0 text-gray-700 dark:text-gray-300 font-medium"
                                     >
                                         {item}
                                     </button>
@@ -190,7 +190,7 @@ export default function AddExpenseModal({
 
                     {/* Amount Input */}
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">{t.amountLabel}</label>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t.amountLabel}</label>
                         <div className="relative">
                             <span className="absolute left-4 top-3.5 text-gray-500 font-bold">$</span>
                             <input
@@ -200,14 +200,14 @@ export default function AddExpenseModal({
                                 value={amount}
                                 onChange={(e) => setAmount(e.target.value)}
                                 placeholder="0"
-                                className="w-full border-2 border-gray-200 rounded-xl pl-9 pr-4 py-3 text-2xl font-bold text-gray-800 focus:border-blue-500 focus:ring-blue-500 outline-none transition-colors"
+                                className="w-full border-2 border-gray-200 dark:border-zinc-700 rounded-xl pl-9 pr-4 py-3 text-2xl font-bold text-gray-800 dark:text-white bg-white dark:bg-zinc-800 focus:border-blue-500 focus:ring-blue-500 outline-none transition-colors"
                             />
                         </div>
                     </div>
                 </div>
 
                 {/* Footer */}
-                <div className="p-4 border-t border-gray-100 bg-gray-50">
+                <div className="p-4 border-t border-gray-100 dark:border-zinc-800 bg-gray-50 dark:bg-zinc-900">
                     <button
                         onClick={handleSubmit}
                         className="w-full rounded-xl bg-blue-600 py-3 text-xl font-bold text-white shadow-lg transition-transform active:scale-95 hover:bg-blue-700"

@@ -67,17 +67,17 @@ export default function ModifierModal({
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-            <div className="flex h-[80vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl animate-in zoom-in-95 duration-200">
+            <div className="flex h-[80vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl bg-white dark:bg-zinc-900 shadow-2xl animate-in zoom-in-95 duration-200">
 
                 {/* Header */}
-                <div className="flex items-center justify-between border-b border-gray-100 p-6">
+                <div className="flex items-center justify-between border-b border-gray-100 dark:border-zinc-800 p-6">
                     <div>
-                        <h2 className="text-3xl font-bold text-gray-800">{productName}</h2>
-                        <p className="text-lg text-gray-500">{t.subtitle}</p>
+                        <h2 className="text-3xl font-bold text-gray-800 dark:text-white">{productName}</h2>
+                        <p className="text-lg text-gray-500 dark:text-gray-400">{t.subtitle}</p>
                     </div>
                     <button
                         onClick={onClose}
-                        className="rounded-full bg-gray-100 p-3 text-gray-500 transition-colors hover:bg-gray-200"
+                        className="rounded-full bg-gray-100 dark:bg-zinc-800 p-3 text-gray-500 dark:text-gray-400 transition-colors hover:bg-gray-200 dark:hover:bg-zinc-700"
                     >
                         <X size={32} />
                     </button>
@@ -88,7 +88,7 @@ export default function ModifierModal({
                     {/* Add-ons Section */}
                     {modifiers.some((m: any) => m.category === 'addon') && (
                         <div>
-                            <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                            <h3 className="text-xl font-bold text-gray-800 dark:text-white mb-4 flex items-center">
                                 🔥 {lang === 'en' ? 'Special Add-ons (Extra $5 off from 2nd item)' : '超值加購 (第2項起，每項再折$5)'}
                             </h3>
                             <div className="grid grid-cols-2 gap-4">
@@ -127,8 +127,8 @@ export default function ModifierModal({
                                             className={clsx(
                                                 'relative flex flex-col items-center justify-center rounded-xl border-2 p-4 transition-all overflow-hidden min-h-[120px] gap-2',
                                                 isSelected
-                                                    ? 'border-green-600 bg-green-50 text-green-800 ring-2 ring-green-600/20'
-                                                    : 'border-green-200 bg-white text-gray-700 hover:border-green-400'
+                                                    ? 'border-green-600 bg-green-50 dark:bg-green-900/20 text-green-800 dark:text-green-300 ring-2 ring-green-600/20'
+                                                    : 'border-green-200 dark:border-green-900/30 bg-white dark:bg-zinc-800 text-gray-700 dark:text-gray-300 hover:border-green-400 dark:hover:border-green-700'
                                             )}
                                         >
                                             {/* "Save $X" Badge */}
@@ -159,7 +159,7 @@ export default function ModifierModal({
 
                     {/* Standard Options */}
                     <div>
-                        <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                        <h3 className="text-xl font-bold text-gray-800 dark:text-white mb-4 flex items-center">
                             🛠️ {lang === 'en' ? 'Custom Adjustments' : '客製化調整'}
                         </h3>
                         <div className="grid grid-cols-2 gap-4">
@@ -201,14 +201,14 @@ export default function ModifierModal({
                                             className={clsx(
                                                 'flex flex-col items-center justify-center rounded-xl border-2 p-4 transition-all min-h-[100px] gap-1',
                                                 isSelected
-                                                    ? 'border-blue-600 bg-blue-50 text-blue-800 ring-2 ring-blue-600/20'
-                                                    : 'border-gray-200 bg-white text-gray-700 hover:border-blue-300'
+                                                    ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/20 text-blue-800 dark:text-blue-300 ring-2 ring-blue-600/20'
+                                                    : 'border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-700 dark:text-gray-300 hover:border-blue-300 dark:hover:border-blue-700'
                                             )}
                                         >
                                             <span className="text-xl font-bold text-center leading-tight">
                                                 {displayName}
                                             </span>
-                                            <span className={clsx("text-lg font-medium", isSelected ? "text-blue-600" : "text-gray-500")}>
+                                            <span className={clsx("text-lg font-medium", isSelected ? "text-blue-600 dark:text-blue-400" : "text-gray-500 dark:text-gray-400")}>
                                                 {mod.price > 0 ? `+$${mod.price}` : t.free}
                                             </span>
                                         </button>
@@ -219,9 +219,9 @@ export default function ModifierModal({
                 </div>
 
                 {/* Footer */}
-                <div className="border-t border-gray-100 bg-gray-50 p-6 flex items-center justify-between gap-6">
+                <div className="border-t border-gray-100 dark:border-zinc-800 bg-gray-50 dark:bg-zinc-900 p-6 flex items-center justify-between gap-6">
                     <div className="flex flex-col w-32 flex-shrink-0">
-                        <span className="text-sm font-medium text-gray-500">
+                        <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
                             {lang === 'en' ? 'Total' : '總金額'}
                         </span>
                         <span className="text-3xl font-bold text-blue-600">

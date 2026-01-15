@@ -39,27 +39,27 @@ export default function CheckoutModal({ isOpen, onClose, total, onConfirm, lang 
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md p-4 animate-in fade-in duration-200">
             <div
                 ref={dialogRef}
-                className="w-full max-w-sm rounded-[32px] bg-white shadow-2xl ring-1 ring-black/5 transform transition-all scale-100 animate-in zoom-in-95 duration-200 overflow-hidden"
+                className="w-full max-w-sm rounded-[32px] bg-white dark:bg-zinc-900 shadow-2xl ring-1 ring-black/5 dark:ring-white/10 transform transition-all scale-100 animate-in zoom-in-95 duration-200 overflow-hidden"
             >
                 {/* Header */}
-                <div className="flex items-center justify-between border-b border-gray-100 p-5 bg-gray-50/50">
-                    <h2 className="text-xl font-bold text-gray-900">{lang === 'en' ? 'Select Payment' : '選擇付款方式'}</h2>
-                    <button onClick={onClose} className="rounded-full p-2 hover:bg-gray-200/80 transition-colors">
-                        <X size={20} className="text-gray-500" />
+                <div className="flex items-center justify-between border-b border-gray-100 dark:border-zinc-800 p-5 bg-gray-50/50 dark:bg-zinc-800/50">
+                    <h2 className="text-xl font-bold text-gray-900 dark:text-white">{lang === 'en' ? 'Select Payment' : '選擇付款方式'}</h2>
+                    <button onClick={onClose} className="rounded-full p-2 hover:bg-gray-200/80 dark:hover:bg-zinc-700 transition-colors">
+                        <X size={20} className="text-gray-500 dark:text-gray-400" />
                     </button>
                 </div>
 
                 {/* Content */}
                 <div className="p-8">
                     <div className="text-center mb-10">
-                        <p className="text-gray-500 font-semibold mb-2 tracking-wide uppercase text-xs">{lang === 'en' ? 'Total Amount' : '應收金額'}</p>
+                        <p className="text-gray-500 dark:text-gray-400 font-semibold mb-2 tracking-wide uppercase text-xs">{lang === 'en' ? 'Total Amount' : '應收金額'}</p>
                         <p className="text-5xl font-black text-blue-600 tracking-tight">${total}</p>
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
                         <button
                             onClick={() => onConfirm('cash')}
-                            className="bg-[#FFFBF0] hover:bg-[#FFF5D6] border border-[#FDE68A] text-[#92400E] flex flex-col items-center justify-center gap-3 rounded-2xl p-6 transition-all active:scale-95 shadow-sm hover:shadow-md hover:border-[#FCD34D]"
+                            className="bg-[#FFFBF0] dark:bg-yellow-900/10 hover:bg-[#FFF5D6] dark:hover:bg-yellow-900/30 border border-[#FDE68A] dark:border-yellow-900/50 text-[#92400E] dark:text-yellow-100 flex flex-col items-center justify-center gap-3 rounded-2xl p-6 transition-all active:scale-95 shadow-sm hover:shadow-md hover:border-[#FCD34D] dark:hover:border-yellow-700"
                         >
                             <div className="relative w-[66px] h-[66px] flex items-center justify-center">
                                 <img

@@ -11,6 +11,7 @@ import {
     onSnapshot,
     query,
     orderBy,
+    writeBatch,
     Unsubscribe
 } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
@@ -121,15 +122,13 @@ export const deleteCategory = async (id: string) => {
 };
 
 export const updateCategoryOrder = async (categories: Category[]) => {
-    // Batch update for sorting
-    // Note: For large lists, strict batch size limits apply (500), but we have < 20 categories.
-    // We can just loop updateDoc for simplicity, or use writeBatch.
-    // Using loop here as it's low frequency.
-    const updatePromises = categories.map((cat, index) => {
+    // Batch update for sorting to ensure atomicity and prevent intermediate snapshots
+    const batch = writeBatch(db);
+    categories.forEach((cat, index) => {
         const docRef = doc(db, "categories", cat.id);
-        return updateDoc(docRef, { sort_order: index + 1 });
+        batch.update(docRef, { sort_order: index + 1 });
     });
-    await Promise.all(updatePromises);
+    await batch.commit();
 };
 
 

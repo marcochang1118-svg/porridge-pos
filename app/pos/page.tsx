@@ -256,32 +256,8 @@ export default function PosPage() {
 
     // 2. Subscribe to Categories
     const unsubscribeCategories = subscribeToCategories((newCategories) => {
-      // Logic: If we have a locally saved order, try to respect it, otherwise utilize DB order
-      const savedOrder = localStorage.getItem('categoryOrder');
-      if (savedOrder) {
-        try {
-          const parsedOrder = JSON.parse(savedOrder) as Category[];
-          // Map incoming categories to a map for quick lookup
-          const catMap = new Map(newCategories.map(c => [c.id, c]));
-
-          // Reconstruct based on saved ID order, filtering out deleted ones, appending new ones
-          const mergedCategories = parsedOrder
-            .filter(c => catMap.has(c.id))
-            .map(c => catMap.get(c.id)!);
-
-          // Add any new categories that weren't in saved order
-          newCategories.forEach(c => {
-            if (!mergedCategories.find(mc => mc.id === c.id)) {
-              mergedCategories.push(c);
-            }
-          });
-          setCategories(mergedCategories);
-        } catch (e) {
-          setCategories(newCategories);
-        }
-      } else {
-        setCategories(newCategories);
-      }
+      // Logic: Trust the DB order (sort_order) which is managed by the Dashboard
+      setCategories(newCategories);
 
       // Set active category to first one if none selected and categories exist
       if (!activeCategory && newCategories.length > 0) {
