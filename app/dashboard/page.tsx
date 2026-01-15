@@ -1245,10 +1245,13 @@ export default function DashboardPage() {
 
       {/* RIGHT: Cart */}
       <div
-        className="flex flex-col bg-gray-50 dark:bg-zinc-900 transition-all duration-300 w-full md:w-[40%] lg:w-[35%] md:h-full border-t md:border-t-0 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] md:shadow-none border-gray-200 dark:border-zinc-800"
+        className={clsx(
+          "flex flex-col bg-gray-50 dark:bg-zinc-900 transition-all duration-300 w-full md:w-[40%] lg:w-[35%] md:h-full border-t md:border-t-0 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] md:shadow-none border-gray-200 dark:border-zinc-800",
+          viewMode === 'dashboard' && "hidden"
+        )}
         style={{
           height: viewMode === 'dashboard' ? '0px' : (isMobile ? `${mobileCartRatio}%` : '100%'),
-          display: viewMode === 'dashboard' ? 'none' : 'flex'
+          // display is now handled by hidden class
         }}
       >
         {/* Mobile Drag Handle */}
