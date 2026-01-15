@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Pencil, Trash2, Plus, Image as ImageIcon, Save, X, List, ChevronUp, ChevronDown } from 'lucide-react';
 // import { PRODUCTS, CATEGORIES } from '@/lib/mockData'; // No longer needed
-import { subscribeToProducts, addProduct, updateProduct, deleteProduct, addCategory, updateCategory, deleteCategory, updateCategoryOrder, Product, Category, uploadImage } from '@/lib/services';
+import { subscribeToProducts, addProduct, updateProduct, deleteProduct, addCategory, updateCategory, deleteCategory, updateCategoryOrder, Product, Category, uploadImage, Modifier, subscribeToModifiers, addModifier, updateModifier, deleteModifier } from '@/lib/services';
 import { clsx } from 'clsx';
 import { Reorder } from 'framer-motion';
 import { Loader2 } from 'lucide-react';
@@ -46,6 +46,69 @@ export default function MenuManager({
     const [formData, setFormData] = useState<Partial<Product>>({});
     const [catForm, setCatForm] = useState<{ name: string, nameEn: string }>({ name: '', nameEn: '' });
     const [isUploading, setIsUploading] = useState(false);
+
+    // Modifier State
+    const [activeTab, setActiveTab] = useState<'products' | 'modifiers'>('products');
+    const [modifiers, setModifiers] = useState<Modifier[]>([]);
+    const [isModifierModalOpen, setIsModifierModalOpen] = useState(false);
+    const [editingModifier, setEditingModifier] = useState<Modifier | null>(null);
+    const [modifierForm, setModifierForm] = useState<Partial<Modifier>>({});
+
+    // Subscribe to modifiers
+    useEffect(() => {
+        const unsubscribe = subscribeToModifiers((data) => {
+            setModifiers(data);
+        });
+        return () => unsubscribe();
+    }, []);
+
+    // Modifier Handlers
+    const handleCreateModifier = () => {
+        setEditingModifier(null);
+        setModifierForm({ name: '', price: 0, category: 'addon' });
+        setIsModifierModalOpen(true);
+    };
+
+    const handleEditModifier = (modifier: Modifier) => {
+        setEditingModifier(modifier);
+        setModifierForm({ ...modifier });
+        setIsModifierModalOpen(true);
+    };
+
+    const handleSaveModifier = async () => {
+        if (!modifierForm.name || modifierForm.price === undefined) {
+            alert(lang === 'en' ? 'Name and Price are required' : '名稱與價格為必填');
+            return;
+        }
+
+        try {
+            if (editingModifier) {
+                await updateModifier(editingModifier.id, {
+                    name: modifierForm.name,
+                    nameEn: modifierForm.nameEn,
+                    price: modifierForm.price,
+                    category: modifierForm.category
+                });
+            } else {
+                await addModifier({
+                    name: modifierForm.name,
+                    nameEn: modifierForm.nameEn,
+                    price: modifierForm.price,
+                    category: modifierForm.category || 'addon'
+                });
+            }
+            setIsModifierModalOpen(false);
+        } catch (e) {
+            console.error(e);
+            alert("Error saving modifier");
+        }
+    };
+
+    const handleDeleteModifier = async (id: string) => {
+        if (confirm(lang === 'en' ? 'Delete this modifier?' : '確定要刪除此配料嗎？')) {
+            await deleteModifier(id);
+        }
+    };
 
     // Filtering Logic
     const filteredProducts = selectedCategory === 'all'
@@ -164,354 +227,446 @@ export default function MenuManager({
                         </h2>
                         <p className="text-sm text-gray-500">
                             {lang === 'en' ? 'Manage products, prices and images' : '管理商品、價格與圖片'}
-                        </p>
-                    </div>
-                    <div className="flex gap-2">
-                        <button
-                            onClick={() => setIsCategoryModalOpen(true)}
-                            className="flex items-center gap-2 bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-lg font-bold hover:bg-gray-50 transition-colors"
-                        >
-                            <List size={20} />
-                            {lang === 'en' ? 'Categories' : '管理分類'}
-                        </button>
-                        <button
-                            onClick={handleCreate}
-                            className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg font-bold hover:bg-blue-700 transition-colors shadow-blue-200 shadow-lg"
-                        >
-                            <Plus size={20} />
-                            {lang === 'en' ? 'Add Product' : '新增商品'}
-                        </button>
-                    </div>
-                </div>
-
-                {/* Category Filters (Reorderable) */}
-                <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide items-center">
-                    <button
-                        onClick={() => setSelectedCategory('all')}
-                        className={clsx(
-                            "px-4 py-1.5 rounded-full text-sm font-bold transition-all border shrink-0",
-                            selectedCategory === 'all'
-                                ? "bg-gray-800 text-white border-gray-800"
-                                : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
+                            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 min-h-[600px]">
+                                {/* Header / Tabs */}
+                                <div className="flex justify-between items-center mb-6">
+                                    <div className="flex gap-4">
+                                        <button
+                                            onClick={() => setActiveTab('products')}
+                                            className={clsx(
+                                                "text-2xl font-bold transition-colors",
+                                                activeTab === 'products' ? "text-gray-800" : "text-gray-400 hover:text-gray-600"
+                                            )}
+                                        >
+                                            {lang === 'en' ? 'Menu Management' : '菜單管理'}
+                                        </button>
+                                        <span className="text-2xl font-bold text-gray-300">|</span>
+                                        <button
+                                            selectedCategory === 'all'
+                                        ? "bg-gray-800 text-white border-gray-800"
+                                        : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
                         )}
                     >
-                        {lang === 'en' ? 'All Items' : '全部商品'}
-                    </button>
+                                        {lang === 'en' ? 'All Items' : '全部商品'}
+                                    </button>
 
-                    <Reorder.Group
-                        axis="x"
-                        values={categories}
-                        onReorder={handleReorderCategories}
-                        className="flex gap-2"
-                    >
-                        {categories.map((cat) => (
-                            <Reorder.Item
-                                key={cat.id}
-                                value={cat}
-                                whileDrag={{ scale: 1.1 }}
-                                className="shrink-0"
-                            >
-                                <button
-                                    onClick={() => setSelectedCategory(cat.id)}
-                                    className={clsx(
-                                        "px-4 py-1.5 rounded-full text-sm font-bold transition-all border whitespace-nowrap cursor-grab active:cursor-grabbing",
-                                        selectedCategory === cat.id
-                                            ? "bg-blue-600 text-white border-blue-600 shadow-sm"
-                                            : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
-                                    )}
-                                >
-                                    {lang === 'en' ? cat.nameEn : cat.name}
-                                </button>
-                            </Reorder.Item>
-                        ))}
-                    </Reorder.Group>
-                </div>
-            </div>
-
-            {/* Product Table */}
-            <div className="overflow-x-auto">
-                <table className="w-full text-left">
-                    <thead className="bg-gray-50 text-gray-500 font-medium border-b border-gray-200">
-                        <tr>
-                            <th className="p-4 pl-6 w-20">Image</th>
-                            <th className="p-4">{lang === 'en' ? 'Product Name' : '商品名稱'}</th>
-                            <th className="p-4">{lang === 'en' ? 'Category' : '分類'}</th>
-                            <th className="p-4">{lang === 'en' ? 'Price' : '價格'}</th>
-                            <th className="p-4 text-right pr-6">{lang === 'en' ? 'Actions' : '操作'}</th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-100">
-                        {filteredProducts.map((product) => (
-                            <tr key={product.id} className="hover:bg-blue-50/30 transition-colors group">
-                                <td className="p-4 pl-6">
-                                    <div className="w-12 h-12 rounded-lg bg-gray-100 border border-gray-200 overflow-hidden flex items-center justify-center">
-                                        {product.image ? (
-                                            <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
-                                        ) : (
-                                            <ImageIcon size={20} className="text-gray-300" />
-                                        )}
-                                    </div>
-                                </td>
-                                <td className="p-4">
-                                    <div className="font-bold text-gray-800">{product.name}</div>
-                                    <div className="text-xs text-gray-400">{product.nameEn}</div>
-                                </td>
-                                <td className="p-4">
-                                    <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">
-                                        {categories.find(c => c.id === product.category_id)?.name || product.category_id}
-                                    </span>
-                                </td>
-                                <td className="p-4 font-mono font-medium text-gray-700">
-                                    ${product.price}
-                                </td>
-                                <td className="p-4 text-right pr-6">
-                                    <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                        <button
-                                            onClick={() => handleEdit(product)}
-                                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                                            title="Edit"
-                                        >
-                                            <Pencil size={18} />
-                                        </button>
-                                        <button
-                                            onClick={() => handleDelete(product.id)}
-                                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                                            title="Delete"
-                                        >
-                                            <Trash2 size={18} />
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
-
-            {/* Category Manager Modal */}
-            {isCategoryModalOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-                    <div className="w-full max-w-lg bg-white rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 flex flex-col max-h-[80vh]">
-                        <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50">
-                            <h3 className="text-lg font-bold text-gray-800">
-                                {lang === 'en' ? 'Manage Categories' : '管理分類'}
-                            </h3>
-                            <button onClick={() => setIsCategoryModalOpen(false)} className="text-gray-400 hover:text-gray-600">
-                                <X size={24} />
-                            </button>
-                        </div>
-
-                        <div className="p-6 overflow-y-auto flex-1">
-                            {/* Add/Edit Form */}
-                            <div className="bg-blue-50 p-4 rounded-xl mb-6">
-                                <h4 className="text-sm font-bold text-blue-800 mb-3">
-                                    {editingCategory ? (lang === 'en' ? 'Edit Category' : '編輯分類') : (lang === 'en' ? 'Add New Category' : '新增分類')}
-                                </h4>
-                                <div className="flex flex-col gap-3">
-                                    <div className="grid grid-cols-2 gap-3">
-                                        <input
-                                            placeholder={lang === 'en' ? 'Name (ZH)' : '分類名稱 (中文)'}
-                                            value={catForm.name}
-                                            onChange={e => setCatForm({ ...catForm, name: e.target.value })}
-                                            className="px-3 py-2 rounded-lg border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500/20"
-                                        />
-                                        <input
-                                            placeholder={lang === 'en' ? 'Name (EN)' : '英文名稱'}
-                                            value={catForm.nameEn}
-                                            onChange={e => setCatForm({ ...catForm, nameEn: e.target.value })}
-                                            className="px-3 py-2 rounded-lg border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500/20"
-                                        />
-                                    </div>
-                                    {editingCategory ? (
-                                        <div className="flex gap-2">
-                                            <button
-                                                onClick={handleSaveCategory}
-                                                disabled={!catForm.name}
-                                                className="flex-1 bg-blue-600 text-white p-2 rounded-lg hover:bg-blue-700 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    <Reorder.Group
+                                        axis="x"
+                                        values={categories}
+                                        onReorder={handleReorderCategories}
+                                        className="flex gap-2"
+                                    >
+                                        {categories.map((cat) => (
+                                            <Reorder.Item
+                                                key={cat.id}
+                                                value={cat}
+                                                whileDrag={{ scale: 1.1 }}
+                                                className="shrink-0"
                                             >
-                                                <Save size={18} /> {lang === 'en' ? 'Save Changes' : '儲存變更'}
-                                            </button>
-                                            <button
-                                                onClick={() => { setEditingCategory(null); setCatForm({ name: '', nameEn: '' }); }}
-                                                className="px-4 bg-gray-200 text-gray-600 rounded-lg hover:bg-gray-300 flex items-center justify-center"
-                                            >
-                                                {lang === 'en' ? 'Cancel' : '取消'}
-                                            </button>
-                                        </div>
-                                    ) : (
-                                        <button
-                                            onClick={handleSaveCategory}
-                                            disabled={!catForm.name}
-                                            className="w-full bg-blue-600 text-white py-2 rounded-lg font-bold hover:bg-blue-700 flex items-center justify-center gap-2 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                                        >
-                                            <Plus size={18} />
-                                            {lang === 'en' ? 'Add New Category' : '新增分類'}
-                                        </button>
-                                    )}
+                                                <button
+                                                    onClick={() => setSelectedCategory(cat.id)}
+                                                    className={clsx(
+                                                        "px-4 py-1.5 rounded-full text-sm font-bold transition-all border whitespace-nowrap cursor-grab active:cursor-grabbing",
+                                                        selectedCategory === cat.id
+                                                            ? "bg-blue-600 text-white border-blue-600 shadow-sm"
+                                                            : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
+                                                    )}
+                                                >
+                                                    {lang === 'en' ? cat.nameEn : cat.name}
+                                                </button>
+                                            </Reorder.Item>
+                                        ))}
+                                    </Reorder.Group>
                                 </div>
                             </div>
-
-                            {/* List */}
-                            <div className="space-y-2">
-                                {categories.map(cat => (
-                                    <div key={cat.id} className="flex items-center justify-between p-3 border border-gray-100 rounded-lg hover:bg-gray-50 group">
-                                        <div className="flex items-center gap-3">
-                                            <div>
-                                                <div className="font-bold text-gray-800">{cat.name}</div>
-                                                <div className="text-xs text-gray-500 font-mono">{cat.nameEn}</div>
-                                            </div>
+                            ) : (
+                            // --- Modifier View ---
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                {modifiers.map(mod => (
+                                    <div key={mod.id} className="border rounded-xl p-4 flex justify-between items-center hover:shadow-md transition-shadow bg-gray-50">
+                                        <div>
+                                            <h4 className="font-bold text-lg text-gray-800">{mod.name} <span className="text-sm font-normal text-gray-500">({mod.nameEn})</span></h4>
+                                            <p className="text-blue-600 font-bold">${mod.price}</p>
+                                            <span className="text-xs bg-gray-200 text-gray-600 px-2 py-0.5 rounded-full">{mod.category === 'addon' ? (lang === 'en' ? 'Add-on' : '加購') : (lang === 'en' ? 'Option' : '選項')}</span>
                                         </div>
-                                        <div className="flex gap-2 opacity-50 group-hover:opacity-100">
+                                        <div className="flex gap-2">
                                             <button
-                                                onClick={() => { setEditingCategory(cat); setCatForm({ name: cat.name, nameEn: cat.nameEn || '' }); }}
-                                                className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"
+                                                onClick={() => handleEditModifier(mod)}
+                                                className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-colors"
                                             >
-                                                <Pencil size={16} />
+                                                <Pencil size={18} />
                                             </button>
                                             <button
-                                                onClick={() => handleDeleteCategory(cat.id)}
-                                                className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
+                                                onClick={() => handleDeleteModifier(mod.id)}
+                                                className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors"
                                             >
-                                                <Trash2 size={16} />
+                                                <Trash2 size={18} />
                                             </button>
                                         </div>
                                     </div>
                                 ))}
+                                {modifiers.length === 0 && (
+                                    <div className="col-span-full py-12 text-center text-gray-400">
+                                        {lang === 'en' ? 'No modifiers yet.' : '尚無配料資料'}
+                                    </div>
+                                )}
                             </div>
-                        </div>
-                    </div>
-                </div>
             )}
 
-            {/* Edit/Create Modal (Product) */}
-            {isModalOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-                    <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
-                        <div className="p-6 border-b border-gray-100 flex justify-between items-center">
-                            <h3 className="text-lg font-bold text-gray-800">
-                                {editingProduct ? (lang === 'en' ? 'Edit Product' : '編輯商品') : (lang === 'en' ? 'New Product' : '新增商品')}
-                            </h3>
-                            <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-gray-600">
-                                <X size={24} />
-                            </button>
-                        </div>
-
-                        <div className="p-6 space-y-4">
-                            {/* Image Preview */}
-                            <div className="flex justify-center mb-4">
-                                <div className="w-32 h-32 bg-gray-100 rounded-xl border-2 border-dashed border-gray-300 flex items-center justify-center relative overflow-hidden group cursor-pointer hover:border-blue-400 transition-colors">
-                                    <input
-                                        type="file"
-                                        accept="image/*"
-                                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                                        onChange={async (e) => {
-                                            const file = e.target.files?.[0];
-                                            if (!file) return;
-
-                                            setIsUploading(true);
-                                            try {
-                                                const url = await uploadImage(file);
-                                                setFormData(prev => ({ ...prev, image: url }));
-                                            } catch (err) {
-                                                console.error(err);
-                                                alert(lang === 'en' ? 'Upload failed' : '上傳失敗');
-                                            } finally {
-                                                setIsUploading(false);
-                                            }
-                                        }}
-                                    />
-                                    {formData.image ? (
-                                        <img src={formData.image} className="w-full h-full object-cover" />
-                                    ) : (
-                                        <div className="text-center text-gray-400">
-                                            {isUploading ? (
-                                                <Loader2 className="mx-auto mb-1 animate-spin" />
-                                            ) : (
-                                                <ImageIcon className="mx-auto mb-1" />
-                                            )}
-                                            <span className="text-xs">{isUploading ? 'Uploading...' : 'Upload'}</span>
-                                        </div>
-                                    )}
-                                </div>
+                            {/* Product Table */}
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-left">
+                                    <thead className="bg-gray-50 text-gray-500 font-medium border-b border-gray-200">
+                                        <tr>
+                                            <th className="p-4 pl-6 w-20">Image</th>
+                                            <th className="p-4">{lang === 'en' ? 'Product Name' : '商品名稱'}</th>
+                                            <th className="p-4">{lang === 'en' ? 'Category' : '分類'}</th>
+                                            <th className="p-4">{lang === 'en' ? 'Price' : '價格'}</th>
+                                            <th className="p-4 text-right pr-6">{lang === 'en' ? 'Actions' : '操作'}</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-gray-100">
+                                        {filteredProducts.map((product) => (
+                                            <tr key={product.id} className="hover:bg-blue-50/30 transition-colors group">
+                                                <td className="p-4 pl-6">
+                                                    <div className="w-12 h-12 rounded-lg bg-gray-100 border border-gray-200 overflow-hidden flex items-center justify-center">
+                                                        {product.image ? (
+                                                            <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
+                                                        ) : (
+                                                            <ImageIcon size={20} className="text-gray-300" />
+                                                        )}
+                                                    </div>
+                                                </td>
+                                                <td className="p-4">
+                                                    <div className="font-bold text-gray-800">{product.name}</div>
+                                                    <div className="text-xs text-gray-400">{product.nameEn}</div>
+                                                </td>
+                                                <td className="p-4">
+                                                    <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">
+                                                        {categories.find(c => c.id === product.category_id)?.name || product.category_id}
+                                                    </span>
+                                                </td>
+                                                <td className="p-4 font-mono font-medium text-gray-700">
+                                                    ${product.price}
+                                                </td>
+                                                <td className="p-4 text-right pr-6">
+                                                    <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                        <button
+                                                            onClick={() => handleEdit(product)}
+                                                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                                                            title="Edit"
+                                                        >
+                                                            <Pencil size={18} />
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleDelete(product.id)}
+                                                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                                            title="Delete"
+                                                        >
+                                                            <Trash2 size={18} />
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
                             </div>
 
-                            {formData.image && (
-                                <div className="flex justify-center -mt-2 mb-4">
-                                    <button
-                                        onClick={() => setFormData(prev => ({ ...prev, image: '' }))}
-                                        className="text-xs text-red-500 hover:text-red-700 hover:underline flex items-center gap-1"
-                                    >
-                                        <Trash2 size={12} />
-                                        {lang === 'en' ? 'Remove Image' : '移除圖片'}
-                                    </button>
+                            {/* Category Manager Modal */}
+                            {isCategoryModalOpen && (
+                                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+                                    <div className="w-full max-w-lg bg-white rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 flex flex-col max-h-[80vh]">
+                                        <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+                                            <h3 className="text-lg font-bold text-gray-800">
+                                                {lang === 'en' ? 'Manage Categories' : '管理分類'}
+                                            </h3>
+                                            <button onClick={() => setIsCategoryModalOpen(false)} className="text-gray-400 hover:text-gray-600">
+                                                <X size={24} />
+                                            </button>
+                                        </div>
+
+                                        <div className="p-6 overflow-y-auto flex-1">
+                                            {/* Add/Edit Form */}
+                                            <div className="bg-blue-50 p-4 rounded-xl mb-6">
+                                                <h4 className="text-sm font-bold text-blue-800 mb-3">
+                                                    {editingCategory ? (lang === 'en' ? 'Edit Category' : '編輯分類') : (lang === 'en' ? 'Add New Category' : '新增分類')}
+                                                </h4>
+                                                <div className="flex flex-col gap-3">
+                                                    <div className="grid grid-cols-2 gap-3">
+                                                        <input
+                                                            placeholder={lang === 'en' ? 'Name (ZH)' : '分類名稱 (中文)'}
+                                                            value={catForm.name}
+                                                            onChange={e => setCatForm({ ...catForm, name: e.target.value })}
+                                                            className="px-3 py-2 rounded-lg border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500/20"
+                                                        />
+                                                        <input
+                                                            placeholder={lang === 'en' ? 'Name (EN)' : '英文名稱'}
+                                                            value={catForm.nameEn}
+                                                            onChange={e => setCatForm({ ...catForm, nameEn: e.target.value })}
+                                                            className="px-3 py-2 rounded-lg border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500/20"
+                                                        />
+                                                    </div>
+                                                    {editingCategory ? (
+                                                        <div className="flex gap-2">
+                                                            <button
+                                                                onClick={handleSaveCategory}
+                                                                disabled={!catForm.name}
+                                                                className="flex-1 bg-blue-600 text-white p-2 rounded-lg hover:bg-blue-700 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                            >
+                                                                <Save size={18} /> {lang === 'en' ? 'Save Changes' : '儲存變更'}
+                                                            </button>
+                                                            <button
+                                                                onClick={() => { setEditingCategory(null); setCatForm({ name: '', nameEn: '' }); }}
+                                                                className="px-4 bg-gray-200 text-gray-600 rounded-lg hover:bg-gray-300 flex items-center justify-center"
+                                                            >
+                                                                {lang === 'en' ? 'Cancel' : '取消'}
+                                                            </button>
+                                                        </div>
+                                                    ) : (
+                                                        <button
+                                                            onClick={handleSaveCategory}
+                                                            disabled={!catForm.name}
+                                                            className="w-full bg-blue-600 text-white py-2 rounded-lg font-bold hover:bg-blue-700 flex items-center justify-center gap-2 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                                                        >
+                                                            <Plus size={18} />
+                                                            {lang === 'en' ? 'Add New Category' : '新增分類'}
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            </div>
+
+                                            {/* List */}
+                                            <div className="space-y-2">
+                                                {categories.map(cat => (
+                                                    <div key={cat.id} className="flex items-center justify-between p-3 border border-gray-100 rounded-lg hover:bg-gray-50 group">
+                                                        <div className="flex items-center gap-3">
+                                                            <div>
+                                                                <div className="font-bold text-gray-800">{cat.name}</div>
+                                                                <div className="text-xs text-gray-500 font-mono">{cat.nameEn}</div>
+                                                            </div>
+                                                        </div>
+                                                        <div className="flex gap-2 opacity-50 group-hover:opacity-100">
+                                                            <button
+                                                                onClick={() => { setEditingCategory(cat); setCatForm({ name: cat.name, nameEn: cat.nameEn || '' }); }}
+                                                                className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"
+                                                            >
+                                                                <Pencil size={16} />
+                                                            </button>
+                                                            <button
+                                                                onClick={() => handleDeleteCategory(cat.id)}
+                                                                className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
+                                                            >
+                                                                <Trash2 size={16} />
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             )}
 
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">{lang === 'en' ? 'Product Name (ZH)' : '商品名稱 (中文)'}</label>
-                                <input
-                                    type="text"
-                                    value={formData.name || ''}
-                                    onChange={e => setFormData({ ...formData, name: e.target.value })}
-                                    className="w-full border border-gray-300 rounded-lg px-3 py-2 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
-                                />
-                            </div>
+                            {/* Edit/Create Modal (Product) */}
+                            {isModalOpen && (
+                                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+                                    <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+                                        <div className="p-6 border-b border-gray-100 flex justify-between items-center">
+                                            <h3 className="text-lg font-bold text-gray-800">
+                                                {editingProduct ? (lang === 'en' ? 'Edit Product' : '編輯商品') : (lang === 'en' ? 'New Product' : '新增商品')}
+                                            </h3>
+                                            <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-gray-600">
+                                                <X size={24} />
+                                            </button>
+                                        </div>
 
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">{lang === 'en' ? 'Category' : '分類'}</label>
-                                    <select
-                                        value={formData.category || formData.category_id || ''}
-                                        onChange={e => setFormData({ ...formData, category_id: e.target.value })}
-                                        className="w-full border border-gray-300 rounded-lg px-3 py-2 outline-none focus:border-blue-500"
-                                    >
-                                        {categories.map(c => (
-                                            <option key={c.id} value={c.id}>{c.name}</option>
-                                        ))}
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">{lang === 'en' ? 'Price' : '價格'}</label>
-                                    <div className="relative">
-                                        <span className="absolute left-3 top-2 text-gray-500">$</span>
-                                        <input
-                                            type="number"
-                                            value={formData.price || 0}
-                                            onChange={e => setFormData({ ...formData, price: Number(e.target.value) })}
-                                            className="w-full border border-gray-300 rounded-lg pl-6 pr-3 py-2 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
-                                        />
+                                        <div className="p-6 space-y-4">
+                                            {/* Image Preview */}
+                                            <div className="flex justify-center mb-4">
+                                                <div className="w-32 h-32 bg-gray-100 rounded-xl border-2 border-dashed border-gray-300 flex items-center justify-center relative overflow-hidden group cursor-pointer hover:border-blue-400 transition-colors">
+                                                    <input
+                                                        type="file"
+                                                        accept="image/*"
+                                                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                                                        onChange={async (e) => {
+                                                            const file = e.target.files?.[0];
+                                                            if (!file) return;
+
+                                                            setIsUploading(true);
+                                                            try {
+                                                                const url = await uploadImage(file);
+                                                                setFormData(prev => ({ ...prev, image: url }));
+                                                            } catch (err) {
+                                                                console.error(err);
+                                                                alert(lang === 'en' ? 'Upload failed' : '上傳失敗');
+                                                            } finally {
+                                                                setIsUploading(false);
+                                                            }
+                                                        }}
+                                                    />
+                                                    {formData.image ? (
+                                                        <img src={formData.image} className="w-full h-full object-cover" />
+                                                    ) : (
+                                                        <div className="text-center text-gray-400">
+                                                            {isUploading ? (
+                                                                <Loader2 className="mx-auto mb-1 animate-spin" />
+                                                            ) : (
+                                                                <ImageIcon className="mx-auto mb-1" />
+                                                            )}
+                                                            <span className="text-xs">{isUploading ? 'Uploading...' : 'Upload'}</span>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+
+                                            {formData.image && (
+                                                <div className="flex justify-center -mt-2 mb-4">
+                                                    <button
+                                                        onClick={() => setFormData(prev => ({ ...prev, image: '' }))}
+                                                        className="text-xs text-red-500 hover:text-red-700 hover:underline flex items-center gap-1"
+                                                    >
+                                                        <Trash2 size={12} />
+                                                        {lang === 'en' ? 'Remove Image' : '移除圖片'}
+                                                    </button>
+                                                </div>
+                                            )}
+
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 mb-1">{lang === 'en' ? 'Product Name (ZH)' : '商品名稱 (中文)'}</label>
+                                                <input
+                                                    type="text"
+                                                    value={formData.name || ''}
+                                                    onChange={e => setFormData({ ...formData, name: e.target.value })}
+                                                    className="w-full border border-gray-300 rounded-lg px-3 py-2 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                                                />
+                                            </div>
+
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div>
+                                                    <label className="block text-sm font-medium text-gray-700 mb-1">{lang === 'en' ? 'Category' : '分類'}</label>
+                                                    <select
+                                                        value={formData.category || formData.category_id || ''}
+                                                        onChange={e => setFormData({ ...formData, category_id: e.target.value })}
+                                                        className="w-full border border-gray-300 rounded-lg px-3 py-2 outline-none focus:border-blue-500"
+                                                    >
+                                                        {categories.map(c => (
+                                                            <option key={c.id} value={c.id}>{c.name}</option>
+                                                        ))}
+                                                    </select>
+                                                </div>
+                                                <div>
+                                                    <label className="block text-sm font-medium text-gray-700 mb-1">{lang === 'en' ? 'Price' : '價格'}</label>
+                                                    <div className="relative">
+                                                        <span className="absolute left-3 top-2 text-gray-500">$</span>
+                                                        <input
+                                                            type="number"
+                                                            value={formData.price || 0}
+                                                            onChange={e => setFormData({ ...formData, price: Number(e.target.value) })}
+                                                            className="w-full border border-gray-300 rounded-lg pl-6 pr-3 py-2 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                                                        />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="p-4 bg-gray-50 grid grid-cols-2 gap-3">
+                                            <button
+                                                onClick={() => setIsModalOpen(false)}
+                                                className="py-3 text-gray-600 font-bold hover:bg-gray-100 rounded-xl transition-colors"
+                                            >
+                                                {lang === 'en' ? 'Cancel' : '取消'}
+                                            </button>
+                                            <button
+                                                onClick={handleSave}
+                                                disabled={isUploading}
+                                                className={clsx(
+                                                    "py-3 font-bold rounded-xl transition-colors shadow-lg flex items-center justify-center gap-2",
+                                                    isUploading
+                                                        ? "bg-gray-300 text-gray-500 cursor-not-allowed shadow-none"
+                                                        : "bg-blue-600 text-white hover:bg-blue-700 shadow-blue-600/20"
+                                                )}
+                                            >
+                                                <Save size={18} />
+                                                {isUploading
+                                                    ? (lang === 'en' ? 'Uploading...' : '圖片上傳中...')
+                                                    : (lang === 'en' ? 'Save Changes' : '儲存變更')
+                                                }
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        </div>
-
-                        <div className="p-4 bg-gray-50 grid grid-cols-2 gap-3">
-                            <button
-                                onClick={() => setIsModalOpen(false)}
-                                className="py-3 text-gray-600 font-bold hover:bg-gray-100 rounded-xl transition-colors"
-                            >
-                                {lang === 'en' ? 'Cancel' : '取消'}
-                            </button>
-                            <button
-                                onClick={handleSave}
-                                disabled={isUploading}
-                                className={clsx(
-                                    "py-3 font-bold rounded-xl transition-colors shadow-lg flex items-center justify-center gap-2",
-                                    isUploading
-                                        ? "bg-gray-300 text-gray-500 cursor-not-allowed shadow-none"
-                                        : "bg-blue-600 text-white hover:bg-blue-700 shadow-blue-600/20"
-                                )}
-                            >
-                                <Save size={18} />
-                                {isUploading
-                                    ? (lang === 'en' ? 'Uploading...' : '圖片上傳中...')
-                                    : (lang === 'en' ? 'Save Changes' : '儲存變更')
-                                }
-                            </button>
-                        </div>
+                            )}
+                            {isModifierModalOpen && (
+                                <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-sm animate-in fade-in">
+                                    <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden scale-100 animate-in zoom-in-95">
+                                        <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+                                            <h3 className="font-bold text-xl text-gray-800">{editingModifier ? (lang === 'en' ? 'Edit Modifier' : '編輯配料') : (lang === 'en' ? 'New Modifier' : '新增配料')}</h3>
+                                            <button onClick={() => setIsModifierModalOpen(false)} className="p-1 hover:bg-gray-200 rounded-full transition-colors">
+                                                <X size={20} className="text-gray-500" />
+                                            </button>
+                                        </div>
+                                        <div className="p-6 space-y-4">
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 mb-1">{lang === 'en' ? 'Name (ZH)' : '名稱 (中文)'}</label>
+                                                <input
+                                                    type="text"
+                                                    value={modifierForm.name || ''}
+                                                    onChange={e => setModifierForm({ ...modifierForm, name: e.target.value })}
+                                                    className="w-full border border-gray-300 rounded-lg px-3 py-2 outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20"
+                                                    placeholder="例如：皮蛋"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 mb-1">{lang === 'en' ? 'Name (EN)' : '名稱 (英文)'}</label>
+                                                <input
+                                                    type="text"
+                                                    value={modifierForm.nameEn || ''}
+                                                    onChange={e => setModifierForm({ ...modifierForm, nameEn: e.target.value })}
+                                                    className="w-full border border-gray-300 rounded-lg px-3 py-2 outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20"
+                                                    placeholder="e.g. Century Egg"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 mb-1">{lang === 'en' ? 'Price' : '價格'}</label>
+                                                <input
+                                                    type="number"
+                                                    value={modifierForm.price}
+                                                    onChange={e => setModifierForm({ ...modifierForm, price: parseInt(e.target.value) || 0 })}
+                                                    className="w-full border border-gray-300 rounded-lg px-3 py-2 outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20"
+                                                />
+                                            </div>
+                                            <div className="flex gap-4">
+                                                <div className="flex-1">
+                                                    <label className="block text-sm font-medium text-gray-700 mb-1">{lang === 'en' ? 'Type' : '類型'}</label>
+                                                    <select
+                                                        value={modifierForm.category || 'addon'}
+                                                        onChange={e => setModifierForm({ ...modifierForm, category: e.target.value as any })}
+                                                        className="w-full border border-gray-300 rounded-lg px-3 py-2 outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20"
+                                                    >
+                                                        <option value="addon">{lang === 'en' ? 'Add-on' : '加購配料'}</option>
+                                                        <option value="option">{lang === 'en' ? 'Option (Sugar/Ice)' : '選項 (甜度/客製)'}</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="p-4 border-t border-gray-100 bg-gray-50 flex gap-3">
+                                            <button
+                                                onClick={() => setIsModifierModalOpen(false)}
+                                                className="flex-1 py-3 bg-white border border-gray-300 text-gray-700 font-bold rounded-xl hover:bg-gray-50 transition-colors"
+                                            >
+                                                {lang === 'en' ? 'Cancel' : '取消'}
+                                            </button>
+                                            <button
+                                                onClick={handleSaveModifier}
+                                                className="flex-1 py-3 bg-purple-600 text-white font-bold hover:bg-purple-700 rounded-xl transition-colors shadow-lg shadow-purple-600/20"
+                                            >
+                                                {lang === 'en' ? 'Save' : '儲存'}
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
                     </div>
-                </div>
-            )}
-        </div>
-    );
+                    );
 }

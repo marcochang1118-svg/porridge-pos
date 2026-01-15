@@ -2,7 +2,8 @@
 
 import { X } from 'lucide-react';
 import { clsx } from 'clsx';
-import { MODIFIERS } from '@/lib/mockData';
+// import { MODIFIERS } from '@/lib/mockData'; // Removed
+import { Modifier } from '@/lib/services';
 
 // Translations
 const MODAL_TEXT = {
@@ -28,6 +29,7 @@ type ModifierModalProps = {
     onConfirm: () => void;
     lang?: 'zh' | 'en'; // Default to 'zh' if not provided
     productId?: string;
+    modifiers: Modifier[]; // Added prop
 };
 
 export default function ModifierModal({
@@ -40,6 +42,7 @@ export default function ModifierModal({
     onConfirm,
     lang = 'zh',
     productId,
+    modifiers, // Added prop
 }: ModifierModalProps) {
     if (!isOpen) return null;
 
@@ -47,13 +50,13 @@ export default function ModifierModal({
 
     // Calculate Total Price
     const modifiersTotal = selectedModifiers.reduce((sum, modId) => {
-        const mod = MODIFIERS.find((m: any) => m.id === modId);
+        const mod = modifiers.find((m) => m.id === modId);
         return sum + (mod ? mod.price : 0);
     }, 0);
 
     // Filter selected modifiers to only add-ons to establish "order"
     const selectedAddons = selectedModifiers.filter(id => {
-        const m = MODIFIERS.find((mod: any) => mod.id === id);
+        const m = modifiers.find((mod) => mod.id === id);
         return m?.category === 'addon';
     });
 
@@ -83,13 +86,13 @@ export default function ModifierModal({
                 {/* Modifiers Grid */}
                 <div className="flex-1 overflow-y-auto p-6 space-y-8">
                     {/* Add-ons Section */}
-                    {MODIFIERS.some((m: any) => m.category === 'addon') && (
+                    {modifiers.some((m: any) => m.category === 'addon') && (
                         <div>
                             <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center">
                                 🔥 {lang === 'en' ? 'Special Add-ons (Extra $5 off from 2nd item)' : '超值加購 (第2項起，每項再折$5)'}
                             </h3>
                             <div className="grid grid-cols-2 gap-4">
-                                {MODIFIERS.filter((mod: any) => mod.category === 'addon').map((mod: any) => {
+                                {modifiers.filter((mod: any) => mod.category === 'addon').map((mod: any) => {
                                     const isSelected = selectedModifiers.includes(mod.id);
                                     const displayName = lang === 'en' ? (mod.nameEn || mod.name) : mod.name;
 
@@ -160,7 +163,7 @@ export default function ModifierModal({
                             🛠️ {lang === 'en' ? 'Custom Adjustments' : '客製化調整'}
                         </h3>
                         <div className="grid grid-cols-2 gap-4">
-                            {MODIFIERS
+                            {modifiers
                                 .filter((mod: any) => {
                                     if (mod.category === 'addon') return false;
                                     // Special Logic: 'No BBQ Sauce' (m12) only for Beef Porridge

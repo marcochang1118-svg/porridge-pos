@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { MODIFIERS } from '@/lib/mockData'; // Keep modifiers static for now or fetch too
-import { subscribeToProducts, subscribeToCategories, Product, Category } from '@/lib/services';
+// import { MODIFIERS } from '@/lib/mockData'; // Removed
+import { subscribeToProducts, subscribeToCategories, subscribeToModifiers, Product, Category, Modifier } from '@/lib/services';
 import { Trash2, ChevronDown, ChevronRight, Layers, List, Globe, TrendingUp, TrendingDown, DollarSign, Pencil, X } from 'lucide-react';
 import { clsx } from 'clsx';
 import { Reorder } from 'framer-motion';
@@ -437,24 +437,71 @@ export default function PosPage() {
   // Grouping State for Expansions
   const [expandedGroups, setExpandedGroups] = useState<string[]>([]);
 
-  // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(false);
   const [expenseModalType, setExpenseModalType] = useState<'cogs' | 'opex'>('cogs');
   const [editingExpenseId, setEditingExpenseId] = useState<string | null>(null);
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
+  const [pendingProduct, setPendingProduct] = useState<Product | null>(null); // For new items being added
   const [tempModifierIds, setTempModifierIds] = useState<string[]>([]);
+  const [modifiers, setModifiers] = useState<Modifier[]>([]); // Dynamic modifiers
 
-  // Add to cart
-  const addToCart = (product: any) => {
+  // Subscribe to modifiers
+  useEffect(() => {
+    const unsubscribe = subscribeToModifiers((data) => {
+      setModifiers(data);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  // Handle Product Click (Add to Cart or Customize)
+  const handleProductClick = (product: Product) => {
+    // Logic to determine if customization is needed
+    // For now, consistent with plan: click opens modal unless it's a "simple" item?
+    // User requested "Click -> Options -> Cart".
+    // Current logic defines 'isSide' based on category.
+    const isSide = product.category_id === 'cat_sides' || product.category_id === 'cat_drinks';
+
+    // If it's a side/drink, maybe just add directly? User asked about this.
+    // Let's stick to: If modifiers exist (any modifier), or we want to force check.
+    // For better UX: If it's a main dish (Porridge), Open Modal.
+    // If it's side/drink, Add Directly (unless they have modifiers?).
+    // Let's maintain existing implicit logic: Sides bypass modal.
+
+    if (isSide) {
+      addToCart(product);
+    } else {
+      setPendingProduct(product);
+      setTempModifierIds([]);
+      setEditingItemId(null); // Ensure we are not editing
+      setIsModalOpen(true);
+    }
+  };
+
+  // Add to cart (Internal)
+  const addToCart = (product: any, selectedModifierIds: string[] = []) => {
+    // Calculate initial price with modifiers
+    const modifiersPrice = selectedModifierIds.reduce((sum, modId) => {
+      const mod = modifiers.find(m => m.id === modId);
+      return sum + (mod ? mod.price : 0);
+    }, 0);
+
+    // Calculate Volume Discount (for Addons)
+    const selectedAddons = selectedModifierIds.filter(id => {
+      const m = modifiers.find(mod => mod.id === id);
+      return m?.category === 'addon'; // Check category strictly
+    });
+    const volumeDiscount = Math.max(0, (selectedAddons.length - 1) * 5);
+
+
     const newItem: CartItem = {
       internalId: Date.now() + Math.random().toString(), // Ensure uniqueness
       productId: product.id,
       name: product.name,
       nameEn: product.nameEn,
       basePrice: product.price,
-      modifierIds: [],
-      totalPrice: product.price,
+      modifierIds: selectedModifierIds,
+      totalPrice: product.price + modifiersPrice - volumeDiscount,
       type: product.type,
     };
 
@@ -507,19 +554,28 @@ export default function PosPage() {
   };
 
   const confirmModifiers = () => {
+    // Scenario 1: Adding New Item
+    if (pendingProduct) {
+      addToCart(pendingProduct, tempModifierIds);
+      setIsModalOpen(false);
+      setPendingProduct(null);
+      return;
+    }
+
+    // Scenario 2: Editing Existing Item
     if (!editingItemId) return;
 
     setCart(cart.map(item => {
       if (item.internalId === editingItemId) {
         // Recalculate price
         const modifiersPrice = tempModifierIds.reduce((sum, modId) => {
-          const mod = MODIFIERS.find(m => m.id === modId);
+          const mod = modifiers.find(m => m.id === modId);
           return sum + (mod ? mod.price : 0);
         }, 0);
 
         // Calculate Volume Discount (same as ModifierModal)
         const selectedAddons = tempModifierIds.filter(id => {
-          const m = MODIFIERS.find(mod => mod.id === id);
+          const m = modifiers.find(mod => mod.id === id);
           return m?.category === 'addon';
         });
         const volumeDiscount = Math.max(0, (selectedAddons.length - 1) * 5);
@@ -636,13 +692,14 @@ export default function PosPage() {
       <ModifierModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        productName={editingItemName}
-        basePrice={editingCartItem?.basePrice || 0}
+        productName={editingItemName || (pendingProduct ? (lang === 'en' ? pendingProduct.nameEn || pendingProduct.name : pendingProduct.name) : '')}
+        basePrice={editingCartItem?.basePrice || pendingProduct?.price || 0}
         selectedModifiers={tempModifierIds}
         onToggleModifier={toggleModifier}
         onConfirm={confirmModifiers}
         lang={lang}
-        productId={editingCartItem?.productId}
+        productId={editingCartItem?.productId || pendingProduct?.id}
+        modifiers={modifiers}
       />
 
       <AddExpenseModal
@@ -1236,7 +1293,7 @@ export default function PosPage() {
                     return (typeOrder[a.type] || 99) - (typeOrder[b.type] || 99);
                   })
                   .map((product: any) => (
-                    <ProductCard key={product.id} product={product} addToCart={addToCart} lang={lang} />
+                    <ProductCard key={product.id} product={product} addToCart={handleProductClick} lang={lang} />
                   ))}
               </div>
 
@@ -1250,7 +1307,7 @@ export default function PosPage() {
                     <div key={type} className="space-y-3">
                       <div className="grid grid-cols-3 lg:grid-cols-4 gap-4">
                         {items.map((product: any) => (
-                          <ProductCard key={product.id} product={product} addToCart={addToCart} lang={lang} />
+                          <ProductCard key={product.id} product={product} addToCart={handleProductClick} lang={lang} />
                         ))}
                       </div>
                       <div className="h-px bg-gray-200 w-full"></div>
