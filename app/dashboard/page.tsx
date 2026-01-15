@@ -755,802 +755,582 @@ export default function DashboardPage() {
               {lang === 'en' ? '中文' : 'EN'}
             </button>
           </div>
+        </div>
 
-          {/* Product Grid */}
-          <div className="flex-1 overflow-y-auto p-4 bg-gray-50 dark:bg-black">
-            {viewMode === 'dashboard' ? (
-              <div className="max-w-5xl mx-auto">
-                {dashboardTab === 'menu' ? (
-                  <MenuManager
-                    lang={lang}
-                    categories={categories}
-                    onUpdateCategories={setCategories}
-                  />
-                ) : (
-                  <div className="space-y-6">
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
-                      <h2 className="text-2xl font-bold text-gray-800 dark:text-white">
-                        {lang === 'en' ? 'Sales Report' : '營收報表'}
-                        <span className="text-base font-normal text-gray-500 ml-3 bg-gray-100 px-3 py-1 rounded-full">
-                          {lang === 'en'
-                            ? `${rangeStart.toLocaleDateString()} ~ ${rangeEnd.toLocaleDateString()}`
-                            : `${rangeStart.getFullYear()}/${rangeStart.getMonth() + 1}/${rangeStart.getDate()} ~ ${rangeEnd.getFullYear()}/${rangeEnd.getMonth() + 1}/${rangeEnd.getDate()}`
-                          }
-                        </span>
-                      </h2>
+        {/* Product Grid */}
+        <div className="flex-1 overflow-y-auto p-4 bg-gray-50 dark:bg-black">
+          {viewMode === 'dashboard' ? (
+            <div className="max-w-5xl mx-auto">
+              {dashboardTab === 'menu' ? (
+                <MenuManager
+                  lang={lang}
+                  categories={categories}
+                  onUpdateCategories={setCategories}
+                />
+              ) : (
+                <div className="space-y-6">
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
+                    <h2 className="text-2xl font-bold text-gray-800 dark:text-white">
+                      {lang === 'en' ? 'Sales Report' : '營收報表'}
+                      <span className="text-base font-normal text-gray-500 ml-3 bg-gray-100 px-3 py-1 rounded-full">
+                        {lang === 'en'
+                          ? `${rangeStart.toLocaleDateString()} ~ ${rangeEnd.toLocaleDateString()}`
+                          : `${rangeStart.getFullYear()}/${rangeStart.getMonth() + 1}/${rangeStart.getDate()} ~ ${rangeEnd.getFullYear()}/${rangeEnd.getMonth() + 1}/${rangeEnd.getDate()}`
+                        }
+                      </span>
+                    </h2>
 
-                      {/* Period Toggles & Date Picker */}
-                      <div className="relative flex flex-col gap-2 items-end">
-                        <div className="flex bg-white dark:bg-zinc-800 rounded-lg p-1 shadow-sm border border-gray-200 dark:border-zinc-700">
-                          {(['day', 'month', 'quarter', 'year', 'custom'] as const).map(p => (
-                            <button
-                              key={p}
-                              onClick={() => {
-                                setReportPeriod(p);
-                                if (p === 'custom') setIsDatePickerOpen(true);
-                              }}
-                              className={clsx(
-                                "px-4 py-1.5 rounded-md text-sm font-medium transition-all",
-                                reportPeriod === p ? "bg-purple-100 dark:bg-zinc-600 text-purple-700 dark:text-white shadow-sm" : "text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-zinc-700"
-                              )}
-                            >
-                              {lang === 'en'
-                                ? (p === 'day' ? 'Today' : p === 'month' ? 'Month' : p === 'quarter' ? 'Quarter' : p === 'year' ? 'Year' : 'Custom')
-                                : (p === 'day' ? '本日' : p === 'month' ? '本月' : p === 'quarter' ? '本季' : p === 'year' ? '本年' : '自選')}
+                    {/* Period Toggles & Date Picker */}
+                    <div className="relative flex flex-col gap-2 items-end">
+                      <div className="flex bg-white dark:bg-zinc-800 rounded-lg p-1 shadow-sm border border-gray-200 dark:border-zinc-700">
+                        {(['day', 'month', 'quarter', 'year', 'custom'] as const).map(p => (
+                          <button
+                            key={p}
+                            onClick={() => {
+                              setReportPeriod(p);
+                              if (p === 'custom') setIsDatePickerOpen(true);
+                            }}
+                            className={clsx(
+                              "px-4 py-1.5 rounded-md text-sm font-medium transition-all",
+                              reportPeriod === p ? "bg-purple-100 dark:bg-zinc-600 text-purple-700 dark:text-white shadow-sm" : "text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-zinc-700"
+                            )}
+                          >
+                            {lang === 'en'
+                              ? (p === 'day' ? 'Today' : p === 'month' ? 'Month' : p === 'quarter' ? 'Quarter' : p === 'year' ? 'Year' : 'Custom')
+                              : (p === 'day' ? '本日' : p === 'month' ? '本月' : p === 'quarter' ? '本季' : p === 'year' ? '本年' : '自選')}
+                          </button>
+                        ))}
+                      </div>
+
+                      {/* Custom Date Inputs (Absolute to prevent layout shift) */}
+                      {reportPeriod === 'custom' && isDatePickerOpen && (
+                        <div className="absolute top-10 right-0 z-30 flex flex-col gap-3 bg-white dark:bg-zinc-900 p-4 rounded-xl shadow-xl border border-gray-200 dark:border-zinc-700 animate-in fade-in zoom-in-95 origin-top-right w-64 md:w-72">
+                          <div className="flex justify-between items-center border-b pb-2 mb-1 dark:border-zinc-800">
+                            <span className="font-bold text-gray-700 dark:text-gray-200 text-sm">{lang === 'en' ? 'Select Range' : '選擇日期範圍'}</span>
+                            <button onClick={() => setIsDatePickerOpen(false)} className="p-1 hover:bg-gray-100 rounded-full">
+                              <X size={16} className="text-gray-400" />
                             </button>
-                          ))}
-                        </div>
-
-                        {/* Custom Date Inputs (Absolute to prevent layout shift) */}
-                        {reportPeriod === 'custom' && isDatePickerOpen && (
-                          <div className="absolute top-10 right-0 z-30 flex flex-col gap-3 bg-white dark:bg-zinc-900 p-4 rounded-xl shadow-xl border border-gray-200 dark:border-zinc-700 animate-in fade-in zoom-in-95 origin-top-right w-64 md:w-72">
-                            <div className="flex justify-between items-center border-b pb-2 mb-1 dark:border-zinc-800">
-                              <span className="font-bold text-gray-700 dark:text-gray-200 text-sm">{lang === 'en' ? 'Select Range' : '選擇日期範圍'}</span>
-                              <button onClick={() => setIsDatePickerOpen(false)} className="p-1 hover:bg-gray-100 rounded-full">
-                                <X size={16} className="text-gray-400" />
-                              </button>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <input
-                                type="date"
-                                value={customStart}
-                                onChange={(e) => setCustomStart(e.target.value)}
-                                className="flex-1 border border-gray-300 dark:border-zinc-700 rounded px-2 py-1.5 text-sm outline-none focus:border-purple-500 bg-gray-50 dark:bg-zinc-800 dark:text-white from-input"
-                              />
-                              <span className="text-gray-400">~</span>
-                              <input
-                                type="date"
-                                value={customEnd}
-                                onChange={(e) => {
-                                  setCustomEnd(e.target.value);
-                                  if (e.target.value) setIsDatePickerOpen(false);
-                                }}
-                                className="flex-1 border border-gray-300 dark:border-zinc-700 rounded px-2 py-1.5 text-sm outline-none focus:border-purple-500 bg-gray-50 dark:bg-zinc-800 dark:text-white to-input"
-                              />
-                            </div>
                           </div>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* P&L Key Metrics (Updated) */}
-                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                      {/* Revenue */}
-                      <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl shadow-sm border-l-4 border-l-blue-500 border-gray-100 dark:border-zinc-800">
-                        <p className="text-gray-500 font-medium mb-1 flex items-center gap-1">
-                          <TrendingUp size={16} className="text-blue-500" />
-                          {lang === 'en' ? 'Revenue' : '總營收 (Sales)'}
-                        </p>
-                        <p className="text-3xl font-bold text-blue-600">${totalRevenue}</p>
-                        <p className="text-sm text-gray-400 mt-1">{totalOrdersCount} {lang === 'en' ? 'orders' : '筆訂單'}</p>
-                      </div>
-
-                      {/* COGS */}
-                      <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl shadow-sm border-l-4 border-l-red-500 border-gray-100 dark:border-zinc-800">
-                        <p className="text-gray-500 font-medium mb-1 flex items-center gap-1">
-                          <TrendingDown size={16} className="text-red-500" />
-                          {lang === 'en' ? 'COGS' : '進貨成本 (COGS)'}
-                        </p>
-                        <p className="text-3xl font-bold text-red-600">-${totalCOGS}</p>
-                        <p className="text-sm text-gray-400 mt-1">{filteredExpenses.filter(e => e.type === 'cogs').length} {lang === 'en' ? 'entries' : '筆紀錄'}</p>
-                      </div>
-
-                      {/* OpEx */}
-                      <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl shadow-sm border-l-4 border-l-yellow-500 border-gray-100 dark:border-zinc-800">
-                        <p className="text-gray-500 font-medium mb-1 flex items-center gap-1">
-                          <DollarSign size={16} className="text-yellow-500" />
-                          {lang === 'en' ? 'Expenses' : '營業費用 (OpEx)'}
-                        </p>
-                        <p className="text-3xl font-bold text-yellow-600">-${totalOpEx}</p>
-                        <p className="text-sm text-gray-400 mt-1">{filteredExpenses.filter(e => e.type === 'opex').length} {lang === 'en' ? 'items' : '筆紀錄'}</p>
-                      </div>
-
-                      {/* Net Profit */}
-                      <div className={clsx(
-                        "p-6 rounded-2xl shadow-md border-l-4 border-gray-100 dark:border-zinc-800",
-                        netProfit >= 0 ? "bg-green-50 dark:bg-green-900/20 border-l-green-500" : "bg-red-50 dark:bg-red-900/20 border-l-red-500"
-                      )}>
-                        <p className="text-gray-600 font-bold mb-1 flex items-center gap-1">
-                          🎉 {lang === 'en' ? 'Net Profit' : '淨利 (Net Profit)'}
-                        </p>
-                        <p className={clsx("text-3xl font-extrabold break-all", netProfit >= 0 ? "text-green-700 dark:text-green-400" : "text-red-700 dark:text-red-400")}>
-                          ${netProfit.toLocaleString()}
-                        </p>
-                        <p className="text-sm opacity-60 mt-1 font-medium dark:text-gray-300">
-                          {lang === 'en' ? 'Margin' : '淨利率'}: {totalRevenue > 0 ? Math.round((netProfit / totalRevenue) * 100) : 0}%
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Profit Chart */}
-                    <div className="mb-6">
-                      <ProfitChart
-                        orders={filteredOrders}
-                        expenses={filteredExpenses}
-                        startDate={rangeStart}
-                        endDate={rangeEnd}
-                        period={reportPeriod}
-                        lang={lang}
-                      />
-                    </div>
-
-                    {/* Expense List (New) */}
-                    <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl shadow-sm border border-gray-200 dark:border-zinc-800">
-                      <h3 className="text-lg font-bold text-gray-800 dark:text-white mb-4 border-b pb-2 flex justify-between items-center dark:border-zinc-800">
-                        {lang === 'en' ? 'Expense History' : '支出紀錄明細'}
-                        <span className="text-sm font-normal text-gray-500">
-                          Total: -${totalExpenses}
-                        </span>
-                      </h3>
-                      <div className="space-y-3 max-h-60 overflow-y-auto pr-2">
-                        {filteredExpenses.length === 0 ? (
-                          <p className="text-gray-400 text-center py-4">{lang === 'en' ? 'No expenses recorded.' : '尚無支出紀錄'}</p>
-                        ) : (
-                          filteredExpenses
-                            .sort((a, b) => b.timestamp - a.timestamp)
-                            .map((expense) => (
-                              <div key={expense.id} className="flex items-center justify-between p-3 rounded-lg bg-gray-50 dark:bg-zinc-800/50 hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors">
-                                <div className="flex items-center gap-3">
-                                  <span className={clsx(
-                                    "px-2 py-1 rounded text-xs font-bold uppercase w-16 text-center",
-                                    expense.type === 'cogs' ? "bg-red-100 dark:bg-red-900/50 text-red-700 dark:text-red-300" : "bg-yellow-100 dark:bg-yellow-900/50 text-yellow-700 dark:text-yellow-300"
-                                  )}>
-                                    {expense.type === 'cogs' ? 'COGS' : 'OpEx'}
-                                  </span>
-                                  <div>
-                                    <p className="font-bold text-gray-800 dark:text-gray-200">{expense.name}</p>
-                                    <p className="text-xs text-gray-500">
-                                      {new Date(expense.timestamp).toLocaleString(lang === 'zh' ? 'zh-TW' : 'en-US', { hour12: false })}
-                                    </p>
-                                  </div>
-                                </div>
-                                <div className="flex items-center gap-4">
-                                  <span className="font-bold text-gray-700 dark:text-gray-300">-${expense.amount}</span>
-                                  <div className="flex items-center gap-2">
-                                    <button
-                                      onClick={() => openEditExpense(expense)}
-                                      className="p-1.5 rounded-full hover:bg-gray-200 dark:hover:bg-zinc-700 text-gray-500 transition-colors"
-                                    >
-                                      <Pencil size={18} />
-                                    </button>
-                                    <button
-                                      onClick={() => deleteExpense(expense.id)}
-                                      className="p-1.5 rounded-full hover:bg-red-100 dark:hover:bg-red-900/30 text-red-500 transition-colors"
-                                    >
-                                      <Trash2 size={18} />
-                                    </button>
-                                  </div>
-                                </div>
-                              </div>
-                            ))
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Product Breakdown */}
-                    <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl shadow-sm border border-gray-200 dark:border-zinc-800">
-                      <h3 className="text-lg font-bold text-gray-800 dark:text-white mb-4 border-b pb-2 dark:border-zinc-800">
-                        {lang === 'en' ? 'Product Sales' : '熱銷商品統計'}
-                      </h3>
-                      <div className="space-y-3">
-                        {Object.keys(productStats).length === 0 ? (
-                          <p className="text-gray-400 text-center py-4">{lang === 'en' ? 'No sales yet today.' : '尚無銷售資料'}</p>
-                        ) : (
-                          Object.entries(productStats)
-                            .sort(([, a], [, b]) => b - a)
-                            .map(([name, count]) => (
-                              <div key={name} className="flex items-center justify-between">
-                                <span className="text-gray-700 dark:text-gray-300 font-medium">{name}</span>
-                                <span className="bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-gray-300 px-3 py-1 rounded-full text-sm font-bold">x {count}</span>
-                              </div>
-                            ))
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Hourly Analysis (Peak Hours) */}
-                    <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl shadow-sm border border-gray-200 dark:border-zinc-800">
-                      <h3 className="text-lg font-bold text-gray-800 dark:text-white mb-6 border-b pb-2 dark:border-zinc-800">
-                        {lang === 'en' ? 'Hourly Sales (Peak Times)' : '熱銷時段分析'}
-                      </h3>
-
-                      {Object.keys(hourlyStats).length === 0 ? (
-                        <p className="text-gray-400 text-center py-4">{lang === 'en' ? 'No sales yet today.' : '尚無時段資料'}</p>
-                      ) : (
-                        <div className="space-y-6">
-                          {/* Chart & Details */}
-                          {Object.entries(hourlyStats)
-                            .sort(([hourA], [hourB]) => parseInt(hourA) - parseInt(hourB))
-                            .map(([hourStr, stats]) => {
-                              const hour = parseInt(hourStr);
-                              const listTime = `${hour}:00 - ${hour + 1}:00`;
-                              const percentage = (stats.revenue / maxHourlyRevenue) * 100;
-                              const topProducts = Object.entries(stats.products)
-                                .sort(([, a], [, b]) => b - a)
-                                .slice(0, 3); // Top 3
-
-                              return (
-                                <div key={hour} className="flex flex-col gap-2">
-                                  {/* Header row */}
-                                  <div className="flex justify-between items-end">
-                                    <span className="font-bold text-gray-700 dark:text-gray-300 w-32">{listTime}</span>
-                                    <div className="flex gap-4 text-sm">
-                                      <span className="text-blue-600 font-bold">${stats.revenue}</span>
-                                      <span className="text-gray-500">{stats.count} {lang === 'en' ? 'orders' : '單'}</span>
-                                    </div>
-                                  </div>
-
-                                  {/* Bar Chart */}
-                                  <div className="w-full bg-gray-100 rounded-full h-2.5 mb-1 overflow-hidden">
-                                    <div
-                                      className="bg-blue-500 h-2.5 rounded-full transition-all duration-500"
-                                      style={{ width: `${percentage}%` }}
-                                    ></div>
-                                  </div>
-
-                                  {/* Detailed Product Breakdown for this hour */}
-                                  <div className="pl-2 border-l-2 border-gray-200 ml-1">
-                                    <div className="flex flex-wrap gap-2 mt-1">
-                                      {topProducts.map(([pName, pCount]) => (
-                                        <span key={pName} className="text-xs bg-orange-50 text-orange-800 px-2 py-0.5 rounded border border-orange-100">
-                                          {pName} <span className="font-bold opacity-70">x{pCount}</span>
-                                        </span>
-                                      ))}
-                                    </div>
-                                  </div>
-                                </div>
-                              );
-                            })}
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="date"
+                              value={customStart}
+                              onChange={(e) => setCustomStart(e.target.value)}
+                              className="flex-1 border border-gray-300 dark:border-zinc-700 rounded px-2 py-1.5 text-sm outline-none focus:border-purple-500 bg-gray-50 dark:bg-zinc-800 dark:text-white from-input"
+                            />
+                            <span className="text-gray-400">~</span>
+                            <input
+                              type="date"
+                              value={customEnd}
+                              onChange={(e) => {
+                                setCustomEnd(e.target.value);
+                                if (e.target.value) setIsDatePickerOpen(false);
+                              }}
+                              className="flex-1 border border-gray-300 dark:border-zinc-700 rounded px-2 py-1.5 text-sm outline-none focus:border-purple-500 bg-gray-50 dark:bg-zinc-800 dark:text-white to-input"
+                            />
+                          </div>
                         </div>
                       )}
                     </div>
+                  </div>
 
-                    <div className="text-center pt-8">
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          if (window.confirm(lang === 'en' ? 'Clear all history?' : '確定要清除所有紀錄嗎？(無法復原)')) {
-                            // 1. Clear Local Storage
-                            localStorage.removeItem('dailyOrders');
-                            localStorage.removeItem('expenses');
+                  {/* P&L Key Metrics (Updated) */}
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                    {/* Revenue */}
+                    <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl shadow-sm border-l-4 border-l-blue-500 border-gray-100 dark:border-zinc-800">
+                      <p className="text-gray-500 font-medium mb-1 flex items-center gap-1">
+                        <TrendingUp size={16} className="text-blue-500" />
+                        {lang === 'en' ? 'Revenue' : '總營收 (Sales)'}
+                      </p>
+                      <p className="text-3xl font-bold text-blue-600">${totalRevenue}</p>
+                      <p className="text-sm text-gray-400 mt-1">{totalOrdersCount} {lang === 'en' ? 'orders' : '筆訂單'}</p>
+                    </div>
 
-                            // 2. Clear State
-                            setDailyOrders([]);
-                            setExpenses([]);
+                    {/* COGS */}
+                    <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl shadow-sm border-l-4 border-l-red-500 border-gray-100 dark:border-zinc-800">
+                      <p className="text-gray-500 font-medium mb-1 flex items-center gap-1">
+                        <TrendingDown size={16} className="text-red-500" />
+                        {lang === 'en' ? 'COGS' : '進貨成本 (COGS)'}
+                      </p>
+                      <p className="text-3xl font-bold text-red-600">-${totalCOGS}</p>
+                      <p className="text-sm text-gray-400 mt-1">{filteredExpenses.filter(e => e.type === 'cogs').length} {lang === 'en' ? 'entries' : '筆紀錄'}</p>
+                    </div>
 
-                            // 3. Force UI Update notification
-                            alert(lang === 'en' ? 'Data cleared successfully' : '資料已全部清除！');
-                          }
-                        }}
-                        className="px-4 py-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-colors text-sm font-medium"
-                      >
-                        {lang === 'en' ? 'Reset Data' : '清除所有資料'}
-                      </button>
+                    {/* OpEx */}
+                    <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl shadow-sm border-l-4 border-l-yellow-500 border-gray-100 dark:border-zinc-800">
+                      <p className="text-gray-500 font-medium mb-1 flex items-center gap-1">
+                        <DollarSign size={16} className="text-yellow-500" />
+                        {lang === 'en' ? 'Expenses' : '營業費用 (OpEx)'}
+                      </p>
+                      <p className="text-3xl font-bold text-yellow-600">-${totalOpEx}</p>
+                      <p className="text-sm text-gray-400 mt-1">{filteredExpenses.filter(e => e.type === 'opex').length} {lang === 'en' ? 'items' : '筆紀錄'}</p>
+                    </div>
 
-
-
-                      <button
-                        type="button"
-                        disabled={isGenerating}
-                        onClick={async () => {
-                          if (!confirm(lang === 'en' ? 'Seed Firestore Database?' : '確定要上傳初始資料到 Firestore 嗎？(會覆寫現有 Cloud 資料)')) return;
-                          setIsGenerating(true);
-                          const success = await seedDatabase();
-                          setIsGenerating(false);
-                          if (success) alert(lang === 'en' ? 'Database seeded!' : '資料庫初始化成功！');
-                          else alert(lang === 'en' ? 'Seeding failed.' : '初始化失敗，請檢查 Console');
-                        }}
-                        className="text-sm hover:underline ml-4 text-purple-500 hover:text-purple-700"
-                      >
-                        {isGenerating ? 'Seeding...' : 'Initializing DB (Seed)'}
-                      </button>
-
-                      <button
-                        type="button"
-                        disabled={isGenerating}
-                        onClick={async () => {
-                          if (!confirm(lang === 'en' ? 'Generate smart profit data?' : '確定要生成「獲利模式」測試資料嗎？\n(這會模擬真實經營：成本約佔營收 35%，並產生每月固定開銷)')) return;
-
-                          setIsGenerating(true);
-
-                          // Use setTimeout to allow UI to render the disabled state
-                          setTimeout(() => {
-                            const mockOrders: Order[] = [];
-                            const mockExpenses: Expense[] = [];
-                            const now = new Date();
-
-                            // Iterate through last 12 months (approx 365 days)
-                            for (let d = 365; d >= 0; d--) {
-                              const currentDate = new Date(now);
-                              currentDate.setDate(currentDate.getDate() - d);
-                              const dateStr = currentDate.toLocaleDateString();
-                              const dayOfMonth = currentDate.getDate();
-
-                              // 1. Generate Daily Orders (Revenue)
-                              // Busy days: Weekend (Fri, Sat, Sun)
-                              const isWeekend = [0, 5, 6].includes(currentDate.getDay());
-                              const dailyOrderCount = isWeekend ? Math.floor(Math.random() * 8) + 5 : Math.floor(Math.random() * 5) + 2; // 5-12 orders or 2-6 orders
-
-                              let dailyRevenue = 0;
-                              const dailyItems: CartItem[] = [];
-
-                              for (let i = 0; i < dailyOrderCount; i++) {
-                                const itemCount = Math.floor(Math.random() * 3) + 1;
-                                const items: CartItem[] = [];
-                                let orderTotal = 0;
-
-                                for (let j = 0; j < itemCount; j++) {
-                                  if (products.length === 0) break;
-                                  const product = products[Math.floor(Math.random() * products.length)];
-                                  items.push({
-                                    internalId: Math.random().toString().slice(2, 8),
-                                    productId: product.id,
-                                    name: product.name,
-                                    nameEn: product.nameEn,
-                                    basePrice: product.price,
-                                    modifierIds: [],
-                                    totalPrice: product.price,
-                                    type: product.type
-                                  });
-                                  orderTotal += product.price;
-                                }
-
-                                mockOrders.push({
-                                  id: Math.random().toString().slice(2, 8),
-                                  items,
-                                  total: orderTotal,
-                                  date: dateStr,
-                                  timestamp: currentDate.getTime() + Math.random() * 10000,
-                                  paymentMethod: Math.random() > 0.4 ? 'cash' : 'linepay'
-                                });
-
-                                dailyRevenue += orderTotal;
-                              }
-
-                              // 2. Generate Expenses (Cost) based on Revenue (Smart Logic)
-                              if (dailyRevenue > 0) {
-                                // Ingredients Cost: approx 30-40% of revenue
-                                const costRatio = 0.3 + (Math.random() * 0.1);
-                                const costAmount = Math.floor(dailyRevenue * costRatio);
-
-                                mockExpenses.push({
-                                  id: Math.random().toString().slice(2, 8),
-                                  type: 'cogs',
-                                  name: `本日食材採購 (${dateStr})`,
-                                  amount: costAmount,
-                                  date: dateStr,
-                                  timestamp: currentDate.getTime()
-                                });
-                              }
-
-                              // 3. Monthly Fixed Costs (Rent & Utilities)
-                              if (dayOfMonth === 1) {
-                                mockExpenses.push({
-                                  id: Math.random().toString().slice(2, 8),
-                                  type: 'opex',
-                                  name: '店面租金',
-                                  amount: 15000,
-                                  date: dateStr,
-                                  timestamp: currentDate.getTime()
-                                });
-                              }
-                              if (dayOfMonth === 15) {
-                                mockExpenses.push({
-                                  id: Math.random().toString().slice(2, 8),
-                                  type: 'opex',
-                                  name: '水電瓦斯費',
-                                  amount: 3500,
-                                  date: dateStr,
-                                  timestamp: currentDate.getTime()
-                                });
-                              }
-                            }
-
-                            // Update State & LocalStorage
-                            const combinedOrders = [...dailyOrders, ...mockOrders];
-                            const combinedExpenses = [...expenses, ...mockExpenses];
-
-                            setDailyOrders(combinedOrders);
-                            setExpenses(combinedExpenses);
-
-                            try {
-                              localStorage.setItem('dailyOrders', JSON.stringify(combinedOrders));
-                              localStorage.setItem('expenses', JSON.stringify(combinedExpenses));
-                              alert(lang === 'en'
-                                ? 'Success! Smart Profit Data Generated.'
-                                : '成功！已生成「獲利模式」資料 📈\n\n- 訂單：隨機分佈 (週末較多)\n- 成本：自動設為營收的 30%~40%\n- 支出：每月固定租金/水電');
-                            } catch (e) {
-                              alert('Storage Quota Exceeded!');
-                              console.error(e);
-                            } finally {
-                              setIsGenerating(false);
-                            }
-                          }, 50); // Small delay to allow UI to update
-                        }}
-                        className={clsx(
-                          "text-sm hover:underline ml-4",
-                          isGenerating ? "text-gray-400 cursor-not-allowed" : "text-blue-500 hover:text-blue-700"
-                        )}
-                      >
-                        {isGenerating
-                          ? (lang === 'en' ? 'Generating...' : '生成中...')
-                          : (lang === 'en' ? 'Generate Profit Data' : '生成獲利測試資料')
-                        }
-                      </button>
+                    {/* Net Profit */}
+                    <div className={clsx(
+                      "p-6 rounded-2xl shadow-md border-l-4 border-gray-100 dark:border-zinc-800",
+                      netProfit >= 0 ? "bg-green-50 dark:bg-green-900/20 border-l-green-500" : "bg-red-50 dark:bg-red-900/20 border-l-red-500"
+                    )}>
+                      <p className="text-gray-600 font-bold mb-1 flex items-center gap-1">
+                        🎉 {lang === 'en' ? 'Net Profit' : '淨利 (Net Profit)'}
+                      </p>
+                      <p className={clsx("text-3xl font-extrabold break-all", netProfit >= 0 ? "text-green-700 dark:text-green-400" : "text-red-700 dark:text-red-400")}>
+                        ${netProfit.toLocaleString()}
+                      </p>
+                      <p className="text-sm opacity-60 mt-1 font-medium dark:text-gray-300">
+                        {lang === 'en' ? 'Margin' : '淨利率'}: {totalRevenue > 0 ? Math.round((netProfit / totalRevenue) * 100) : 0}%
+                      </p>
                     </div>
                   </div>
 
-                )}
-              </div>
-            ) : (
-              <>
-                {/* Mobile View: Single Grid (Sorted) */}
-                <div className="grid grid-cols-2 gap-4 md:hidden">
-                  {products
-                    .filter((p) => p.category_id === activeCategory)
-                    .sort((a, b) => {
-                      const typeOrder: Record<string, number> = { meat: 1, seafood: 2, cheese: 3, special: 4, side: 5, addon: 6, drink: 7 };
-                      return (typeOrder[a.type] || 99) - (typeOrder[b.type] || 99);
-                    })
-                    .map((product) => (
-                      <ProductCard key={product.id} product={product} addToCart={addToCart} lang={lang} />
-                    ))}
-                </div>
+                  {/* Profit Chart */}
+                  <div className="mb-6">
+                    <ProfitChart
+                      orders={filteredOrders}
+                      expenses={filteredExpenses}
+                      startDate={rangeStart}
+                      endDate={rangeEnd}
+                      period={reportPeriod}
+                      lang={lang}
+                    />
+                  </div>
 
-                {/* Tablet/Desktop View: Separated Rows by Type */}
-                <div className="hidden md:block space-y-8">
-                  {['meat', 'seafood', 'cheese', 'special', 'side', 'addon', 'drink'].map((type) => {
-                    const items = products.filter(p => p.category_id === activeCategory && p.type === type);
-                    if (items.length === 0) return null;
+                  {/* Expense List (New) */}
+                  <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl shadow-sm border border-gray-200 dark:border-zinc-800">
+                    <h3 className="text-lg font-bold text-gray-800 dark:text-white mb-4 border-b pb-2 flex justify-between items-center dark:border-zinc-800">
+                      {lang === 'en' ? 'Expense History' : '支出紀錄明細'}
+                      <span className="text-sm font-normal text-gray-500">
+                        Total: -${totalExpenses}
+                      </span>
+                    </h3>
+                    <div className="space-y-3 max-h-60 overflow-y-auto pr-2">
+                      {filteredExpenses.length === 0 ? (
+                        <p className="text-gray-400 text-center py-4">{lang === 'en' ? 'No expenses recorded.' : '尚無支出紀錄'}</p>
+                      ) : (
+                        filteredExpenses
+                          .sort((a, b) => b.timestamp - a.timestamp)
+                          .map((expense) => (
+                            <div key={expense.id} className="flex items-center justify-between p-3 rounded-lg bg-gray-50 dark:bg-zinc-800/50 hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors">
+                              <div className="flex items-center gap-3">
+                                <span className={clsx(
+                                  "px-2 py-1 rounded text-xs font-bold uppercase w-16 text-center",
+                                  expense.type === 'cogs' ? "bg-red-100 dark:bg-red-900/50 text-red-700 dark:text-red-300" : "bg-yellow-100 dark:bg-yellow-900/50 text-yellow-700 dark:text-yellow-300"
+                                )}>
+                                  {expense.type === 'cogs' ? 'COGS' : 'OpEx'}
+                                </span>
+                                <div>
+                                  <p className="font-bold text-gray-800 dark:text-gray-200">{expense.name}</p>
+                                  <p className="text-xs text-gray-500">
+                                    {new Date(expense.timestamp).toLocaleString(lang === 'zh' ? 'zh-TW' : 'en-US', { hour12: false })}
+                                  </p>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-4">
+                                <span className="font-bold text-gray-700 dark:text-gray-300">-${expense.amount}</span>
+                                <div className="flex items-center gap-2">
+                                  <button
+                                    onClick={() => openEditExpense(expense)}
+                                    className="p-1.5 rounded-full hover:bg-gray-200 dark:hover:bg-zinc-700 text-gray-500 transition-colors"
+                                  >
+                                    <Pencil size={18} />
+                                  </button>
+                                  <button
+                                    onClick={() => deleteExpense(expense.id)}
+                                    className="p-1.5 rounded-full hover:bg-red-100 dark:hover:bg-red-900/30 text-red-500 transition-colors"
+                                  >
+                                    <Trash2 size={18} />
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          ))
+                      )}
+                    </div>
+                  </div>
 
-                    return (
-                      <div key={type} className="space-y-3">
-                        <div className="grid grid-cols-3 lg:grid-cols-4 gap-4">
-                          {items.map((product: any) => (
-                            <ProductCard key={product.id} product={product} addToCart={addToCart} lang={lang} />
-                          ))}
-                        </div>
-                        <div className="h-px bg-gray-200 w-full"></div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </>
-            )}
-          </div>
-        </div>
+                  {/* Product Breakdown */}
+                  <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl shadow-sm border border-gray-200 dark:border-zinc-800">
+                    <h3 className="text-lg font-bold text-gray-800 dark:text-white mb-4 border-b pb-2 dark:border-zinc-800">
+                      {lang === 'en' ? 'Product Sales' : '熱銷商品統計'}
+                    </h3>
+                    <div className="space-y-3">
+                      {Object.keys(productStats).length === 0 ? (
+                        <p className="text-gray-400 text-center py-4">{lang === 'en' ? 'No sales yet today.' : '尚無銷售資料'}</p>
+                      ) : (
+                        Object.entries(productStats)
+                          .sort(([, a], [, b]) => b - a)
+                          .map(([name, count]) => (
+                            <div key={name} className="flex items-center justify-between">
+                              <span className="text-gray-700 dark:text-gray-300 font-medium">{name}</span>
+                              <span className="bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-gray-300 px-3 py-1 rounded-full text-sm font-bold">x {count}</span>
+                            </div>
+                          ))
+                      )}
+                    </div>
+                  </div>
 
-        {/* RIGHT: Cart */}
-        <div
-          className="flex flex-col bg-gray-50 dark:bg-zinc-900 transition-all duration-300 w-full md:w-[40%] lg:w-[35%] md:h-full border-t md:border-t-0 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] md:shadow-none border-gray-200 dark:border-zinc-800"
-          style={{
-            height: viewMode === 'dashboard' ? '0px' : (isMobile ? `${mobileCartRatio}%` : '100%'),
-            display: viewMode === 'dashboard' ? 'none' : 'flex'
-          }}
-        >
-          {/* Mobile Drag Handle */}
-          <div
-            className="h-6 w-full bg-white dark:bg-zinc-900 border-t border-gray-200 dark:border-zinc-800 flex items-center justify-center cursor-grab md:hidden flex-shrink-0 touch-none hover:bg-gray-50 dark:hover:bg-zinc-800 active:bg-gray-100 dark:active:bg-zinc-700 transition-colors"
-            onTouchStart={handleTouchStart}
-            onTouchMove={handleTouchMove}
-            onMouseDown={handleMouseDown}
-          >
-            <div className="w-12 h-1.5 bg-gray-300 rounded-full" />
-          </div>
+                  {/* Hourly Analysis (Peak Hours) */}
+                  <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl shadow-sm border border-gray-200 dark:border-zinc-800">
+                    <h3 className="text-lg font-bold text-gray-800 dark:text-white mb-6 border-b pb-2 dark:border-zinc-800">
+                      {lang === 'en' ? 'Hourly Sales (Peak Times)' : '熱銷時段分析'}
+                    </h3>
 
-          {/* Cart Header */}
-          <div className="flex h-16 items-center justify-between border-b border-gray-200 dark:border-zinc-800 px-4 shadow-sm bg-white dark:bg-zinc-900 flex-shrink-0">
-            <div className="flex items-center gap-2">
-              <h2 className="text-xl font-bold text-gray-800 dark:text-white">{t.cartTitle}</h2>
-              <span className="rounded-full bg-blue-100 px-3 py-1 text-sm font-bold text-blue-800">
-                {cart.length} {t.items}
-              </span>
-            </div>
-
-            {/* View Toggle */}
-            <button
-              onClick={() => setIsGroupingEnabled(!isGroupingEnabled)}
-              className="flex items-center gap-1 rounded-md bg-gray-100 dark:bg-zinc-800 px-3 py-1.5 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-zinc-700 transition-colors"
-            >
-              {isGroupingEnabled ? <Layers size={16} /> : <List size={16} />}
-              <span>{isGroupingEnabled ? t.grouping : t.noGrouping}</span>
-            </button>
-          </div>
-
-          {/* Cart Items List */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-3">
-            {cart.length === 0 ? (
-              <div className="flex h-full flex-col items-center justify-center text-gray-400 opacity-50">
-                <span className="text-6xl">🛒</span>
-                <p className="mt-4 text-lg">{t.emptyCartTitle}</p>
-              </div>
-            ) : (
-              // RENDER LOGIC
-              isGroupingEnabled ? (
-                // --- IS GROUPED MODE ---
-                uniqueProductIds.map((productId) => {
-                  const items = groupedCart[productId];
-                  const firstItem = items[0];
-                  const count = items.length;
-                  const isExpanded = expandedGroups.includes(productId);
-
-                  // Color map
-                  let groupColor = 'border-gray-100 dark:border-zinc-700 hover:border-blue-300 dark:hover:border-blue-700';
-                  let bgColor = 'bg-white dark:bg-zinc-800';
-                  if (firstItem.type === 'meat') { groupColor = 'border-red-100 dark:border-red-900/50 hover:border-red-300 dark:hover:border-red-700 text-red-900 dark:text-red-200'; bgColor = 'bg-red-50 dark:bg-red-900/20'; }
-                  if (firstItem.type === 'seafood') { groupColor = 'border-blue-100 dark:border-blue-900/50 hover:border-blue-300 dark:hover:border-blue-700 text-blue-900 dark:text-blue-200'; bgColor = 'bg-blue-50 dark:bg-blue-900/20'; }
-                  if (firstItem.type === 'cheese') { groupColor = 'border-yellow-100 dark:border-yellow-900/50 hover:border-yellow-300 dark:hover:border-yellow-700 text-yellow-900 dark:text-yellow-200'; bgColor = 'bg-yellow-50 dark:bg-yellow-900/20'; }
-                  if (firstItem.type === 'special') { groupColor = 'border-purple-100 dark:border-purple-900/50 hover:border-purple-300 dark:hover:border-purple-700 text-purple-900 dark:text-purple-200'; bgColor = 'bg-purple-50 dark:bg-purple-900/20'; }
-
-                  const displayName = lang === 'en' ? (firstItem.nameEn || firstItem.name) : firstItem.name;
-                  const product = products.find(p => p.id === firstItem.productId);
-                  const isSide = product?.category_id === 'cat_sides' || product?.category_id === 'cat_drinks' || false;
-
-                  // Single item render (Standard)
-                  if (count === 1) {
-                    const item = firstItem;
-                    const product = products.find(p => p.id === item.productId);
-                    const isSide = product?.category_id === 'cat_sides' || product?.category_id === 'cat_drinks' || false;
-
-                    return (
-                      <div
-                        key={item.internalId}
-                        onClick={isSide ? undefined : () => openModifierModal(item)}
-                        className={clsx(
-                          "group relative flex items-center p-2 shadow-sm border-2 transition-all",
-                          !isSide && "cursor-pointer",
-                          bgColor, groupColor
-                        )}
-                      >
-                        {/* Zone 1: Expansion Icon / Spacer (Fixed width w-6) */}
-                        <div className="w-6 flex-shrink-0 flex items-center justify-center">
-                          {/* Empty for single item List View */}
-                        </div>
-
-                        {/* Zone 2: Product Name (Flex Fill) */}
-                        <div className="flex-1 min-w-0 pr-2">
-                          <h3 className="text-[15px] font-bold leading-tight truncate">{displayName}</h3>
-                          {item.modifierIds.length > 0 && (
-                            <p className="text-sm opacity-80 mt-1 truncate">
-                              {item.modifierIds.map(mid => {
-                                const m = modifiers.find(mod => mod.id === mid);
-                                return m ? (lang === 'en' ? (m.nameEn || m.name) : m.name) : null;
-                              }).filter(Boolean).join(', ')}
-                            </p>
-                          )}
-                        </div>
-
-                        {/* Zone 3: Right Cluster (Fixed Alignments) */}
-                        <div className="flex items-center gap-1 flex-shrink-0">
-                          {/* Quantity Badge (Fixed width) */}
-                          <div className="w-[28px] flex justify-center">
-                            {/* Hidden spacer or invisible count to maintain grid structure if needed, or just empty */}
-                          </div>
-
-                          {/* Status Badge (Fixed width w-[48px]) */}
-                          <div className="w-[48px] flex justify-center">
-                            {!isSide && (
-                              <span className="inline-flex items-center rounded-md bg-blue-50 px-1.5 py-0.5 text-[10px] font-bold text-blue-600 ring-1 ring-inset ring-blue-500/20 uppercase tracking-wider">
-                                {t.canCustomize}
-                              </span>
-                            )}
-                          </div>
-
-                          {/* Price (Fixed width w-[50px], Right Aligned) */}
-                          <div className="w-[50px] text-right">
-                            <p className="text-md font-medium">${item.totalPrice}</p>
-                          </div>
-
-                          {/* Action Button (Fixed width w-[32px] for click target) */}
-                          <div className="w-[32px] flex justify-end">
-                            <button
-                              onClick={(e) => { e.stopPropagation(); removeFromCart(item.internalId); }}
-                              className={clsx(
-                                "flex-shrink-0 rounded-full p-2 transition-colors",
-                                "text-gray-400 hover:text-red-600 hover:bg-black/5 dark:hover:bg-white/10 active:bg-red-100 dark:active:bg-red-900/30"
-                              )}
-                            >
-                              <Trash2 size={24} />
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  }
-
-                  // Multiple items render (Group)
-                  const isNoCustom = isSide;
-
-                  return (
-                    <div key={productId} className="rounded-lg shadow-sm overflow-hidden border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800">
-                      {/* Group Header */}
-                      <div
-                        onClick={() => !isNoCustom && toggleGroup(productId)}
-                        className={clsx(
-                          "flex items-center p-2 transition-colors",
-                          !isNoCustom && "cursor-pointer",
-                          bgColor
-                        )}
-                      >
-                        {/* Zone 1: Expansion Icon / Spacer (Fixed width w-6) */}
-                        <div className="w-6 flex-shrink-0 flex items-center justify-center">
-                          {!isNoCustom ? (
-                            isExpanded ? <ChevronDown size={20} /> : <ChevronRight size={20} />
-                          ) : (
-                            // Spacer
-                            <div className="w-[20px]" />
-                          )}
-                        </div>
-
-                        {/* Zone 2: Product Name (Flex Fill) */}
-                        <div className="flex-1 min-w-0 pr-2">
-                          <h3 className={clsx(
-                            "text-[15px] font-bold leading-tight truncate",
-                            groupColor.split(' ').find(c => c.startsWith('text-')) || 'text-gray-800 dark:text-gray-200'
-                          )}>
-                            {displayName}
-                          </h3>
-                        </div>
-
-                        {/* Zone 3: Right Cluster (Fixed Alignments) */}
-                        <div className="flex items-center gap-1 flex-shrink-0">
-                          {/* Quantity Badge (Fixed width w-[28px]) */}
-                          <div className="w-[28px] flex justify-center">
-                            <span className="flex-shrink-0 w-8 text-center rounded-full bg-black/80 py-0.5 text-[10px] text-white">x{count}</span>
-                          </div>
-
-                          {/* Status Badge (Fixed width w-[48px]) */}
-                          <div className="w-[48px] flex justify-center">
-                            {!isSide && (
-                              <span className="inline-flex items-center rounded-md bg-blue-50 px-1.5 py-0.5 text-[10px] font-bold text-blue-600 ring-1 ring-inset ring-blue-500/20 uppercase tracking-wider">
-                                {t.canCustomize}
-                              </span>
-                            )}
-                          </div>
-
-                          {/* Price (Fixed width w-[50px], Right Aligned) */}
-                          <div className="w-[50px] text-right">
-                            <p className="font-bold text-gray-700 dark:text-white">${items.reduce((sum, i) => sum + i.totalPrice, 0)}</p>
-                          </div>
-
-                          {/* Action Button (Fixed width w-[32px] for click target) */}
-                          <div className="w-[32px] flex justify-end">
-                            {isNoCustom ? (
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  removeFromCart(items[items.length - 1].internalId);
-                                }}
-                                className="rounded-full p-2 text-gray-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors"
-                              >
-                                <Trash2 size={24} />
-                              </button>
-                            ) : (
-                              // Spacer to reserve space for the delete button seen in single items
-                              <div className="w-[32px]" />
-                            )}
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Expanded Items */}
-                      {isExpanded && (
-                        <div className="border-t border-gray-100 dark:border-zinc-700 bg-gray-50/50 dark:bg-zinc-800/50 p-2 space-y-2">
-                          {items.map((item, idx) => {
-                            const product = products.find(p => p.id === item.productId);
-                            const isSide = product?.category_id === 'cat_sides' || product?.category_id === 'cat_drinks' || false;
-                            const displayName = lang === 'en' ? (item.nameEn || item.name) : item.name;
+                    {Object.keys(hourlyStats).length === 0 ? (
+                      <p className="text-gray-400 text-center py-4">{lang === 'en' ? 'No sales yet today.' : '尚無時段資料'}</p>
+                    ) : (
+                      <div className="space-y-6">
+                        {/* Chart & Details */}
+                        {Object.entries(hourlyStats)
+                          .sort(([hourA], [hourB]) => parseInt(hourA) - parseInt(hourB))
+                          .map(([hourStr, stats]) => {
+                            const hour = parseInt(hourStr);
+                            const listTime = `${hour}:00 - ${hour + 1}:00`;
+                            const percentage = (stats.revenue / maxHourlyRevenue) * 100;
+                            const topProducts = Object.entries(stats.products)
+                              .sort(([, a], [, b]) => b - a)
+                              .slice(0, 3); // Top 3
 
                             return (
-                              <div
-                                key={item.internalId}
-                                onClick={isSide ? undefined : () => openModifierModal(item)}
-                                className={clsx(
-                                  "flex items-center justify-between rounded-r-md bg-white/50 dark:bg-zinc-700/30 p-3 shadow-none border-l-[4px] border-gray-100 dark:border-zinc-700 hover:bg-white dark:hover:bg-zinc-700 ml-6 transition-all",
-                                  !isSide && "cursor-pointer",
-                                  !isSide && groupColor.replace('text-', 'border-').split(' ')[0] // Apply theme color to left border
-                                )}
-                              >
-                                <div className="flex-1 min-w-0 pr-2">
-                                  <div className="flex items-center gap-2">
-                                    <span className={clsx("font-serif font-bold text-lg opacity-40 w-8 text-center flex-shrink-0")}>{toRoman(idx + 1)}.</span>
-                                    {!isSide ? (
-                                      <span className={clsx("font-medium text-md", item.modifierIds.length > 0 ? "text-gray-800 dark:text-gray-200" : "text-gray-500 dark:text-gray-400")}>
-                                        {item.modifierIds.length > 0 ? t.customization : displayName}
-                                      </span>
-                                    ) : (
-                                      <span className="text-gray-500 font-medium">{lang === 'en' ? 'Standard' : '標準'} (500cc)</span>
-                                    )}
+                              <div key={hour} className="flex flex-col gap-2">
+                                {/* Header row */}
+                                <div className="flex justify-between items-end">
+                                  <span className="font-bold text-gray-700 dark:text-gray-300 w-32">{listTime}</span>
+                                  <div className="flex gap-4 text-sm">
+                                    <span className="text-blue-600 font-bold">${stats.revenue}</span>
+                                    <span className="text-gray-500">{stats.count} {lang === 'en' ? 'orders' : '單'}</span>
                                   </div>
-                                  {!isSide ? (
-                                    item.modifierIds.length > 0 && (
-                                      <p className="text-xs text-gray-400 mt-1">
-                                        + {item.modifierIds.map(mid => {
-                                          const m = modifiers.find(mod => mod.id === mid);
-                                          return m ? (lang === 'en' ? (m.nameEn || m.name) : m.name) : mid;
-                                        }).join(', ')}
-                                      </p>
-                                    )
-                                  ) : (
-                                    <p className="text-sm text-gray-400 mt-1 pl-[42px]">{lang === 'en' ? 'No Add-ons' : '無客製化'}</p>
-                                  )}
-
                                 </div>
-                                <div className="flex items-center gap-3 flex-shrink-0">
-                                  <span className="text-sm font-medium">${item.totalPrice}</span>
-                                  <button
-                                    onClick={(e) => { e.stopPropagation(); removeFromCart(item.internalId); }}
-                                    className="rounded-full p-2 text-gray-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors"
-                                  >
-                                    <Trash2 size={24} />
-                                  </button>
+
+                                {/* Bar Chart */}
+                                <div className="w-full bg-gray-100 rounded-full h-2.5 mb-1 overflow-hidden">
+                                  <div
+                                    className="bg-blue-500 h-2.5 rounded-full transition-all duration-500"
+                                    style={{ width: `${percentage}%` }}
+                                  ></div>
+                                </div>
+
+                                {/* Detailed Product Breakdown for this hour */}
+                                <div className="pl-2 border-l-2 border-gray-200 ml-1">
+                                  <div className="flex flex-wrap gap-2 mt-1">
+                                    {topProducts.map(([pName, pCount]) => (
+                                      <span key={pName} className="text-xs bg-orange-50 text-orange-800 px-2 py-0.5 rounded border border-orange-100">
+                                        {pName} <span className="font-bold opacity-70">x{pCount}</span>
+                                      </span>
+                                    ))}
+                                  </div>
                                 </div>
                               </div>
                             );
                           })}
-                        </div>
-                      )
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="text-center pt-8">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        if (window.confirm(lang === 'en' ? 'Clear all history?' : '確定要清除所有紀錄嗎？(無法復原)')) {
+                          // 1. Clear Local Storage
+                          localStorage.removeItem('dailyOrders');
+                          localStorage.removeItem('expenses');
+
+                          // 2. Clear State
+                          setDailyOrders([]);
+                          setExpenses([]);
+
+                          // 3. Force UI Update notification
+                          alert(lang === 'en' ? 'Data cleared successfully' : '資料已全部清除！');
+                        }
+                      }}
+                      className="px-4 py-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-colors text-sm font-medium"
+                    >
+                      {lang === 'en' ? 'Reset Data' : '清除所有資料'}
+                    </button>
+
+
+
+                    <button
+                      type="button"
+                      disabled={isGenerating}
+                      onClick={async () => {
+                        if (!confirm(lang === 'en' ? 'Seed Firestore Database?' : '確定要上傳初始資料到 Firestore 嗎？(會覆寫現有 Cloud 資料)')) return;
+                        setIsGenerating(true);
+                        const success = await seedDatabase();
+                        setIsGenerating(false);
+                        if (success) alert(lang === 'en' ? 'Database seeded!' : '資料庫初始化成功！');
+                        else alert(lang === 'en' ? 'Seeding failed.' : '初始化失敗，請檢查 Console');
+                      }}
+                      className="text-sm hover:underline ml-4 text-purple-500 hover:text-purple-700"
+                    >
+                      {isGenerating ? 'Seeding...' : 'Initializing DB (Seed)'}
+                    </button>
+
+                    <button
+                      type="button"
+                      disabled={isGenerating}
+                      onClick={async () => {
+                        if (!confirm(lang === 'en' ? 'Generate smart profit data?' : '確定要生成「獲利模式」測試資料嗎？\n(這會模擬真實經營：成本約佔營收 35%，並產生每月固定開銷)')) return;
+
+                        setIsGenerating(true);
+
+                        // Use setTimeout to allow UI to render the disabled state
+                        setTimeout(() => {
+                          const mockOrders: Order[] = [];
+                          const mockExpenses: Expense[] = [];
+                          const now = new Date();
+
+                          // Iterate through last 12 months (approx 365 days)
+                          for (let d = 365; d >= 0; d--) {
+                            const currentDate = new Date(now);
+                            currentDate.setDate(currentDate.getDate() - d);
+                            const dateStr = currentDate.toLocaleDateString();
+                            const dayOfMonth = currentDate.getDate();
+
+                            // 1. Generate Daily Orders (Revenue)
+                            // Busy days: Weekend (Fri, Sat, Sun)
+                            const isWeekend = [0, 5, 6].includes(currentDate.getDay());
+                            const dailyOrderCount = isWeekend ? Math.floor(Math.random() * 8) + 5 : Math.floor(Math.random() * 5) + 2; // 5-12 orders or 2-6 orders
+
+                            let dailyRevenue = 0;
+                            const dailyItems: CartItem[] = [];
+
+                            for (let i = 0; i < dailyOrderCount; i++) {
+                              const itemCount = Math.floor(Math.random() * 3) + 1;
+                              const items: CartItem[] = [];
+                              let orderTotal = 0;
+
+                              for (let j = 0; j < itemCount; j++) {
+                                if (products.length === 0) break;
+                                const product = products[Math.floor(Math.random() * products.length)];
+                                items.push({
+                                  internalId: Math.random().toString().slice(2, 8),
+                                  productId: product.id,
+                                  name: product.name,
+                                  nameEn: product.nameEn,
+                                  basePrice: product.price,
+                                  modifierIds: [],
+                                  totalPrice: product.price,
+                                  type: product.type
+                                });
+                                orderTotal += product.price;
+                              }
+
+                              mockOrders.push({
+                                id: Math.random().toString().slice(2, 8),
+                                items,
+                                total: orderTotal,
+                                date: dateStr,
+                                timestamp: currentDate.getTime() + Math.random() * 10000,
+                                paymentMethod: Math.random() > 0.4 ? 'cash' : 'linepay'
+                              });
+
+                              dailyRevenue += orderTotal;
+                            }
+
+                            // 2. Generate Expenses (Cost) based on Revenue (Smart Logic)
+                            if (dailyRevenue > 0) {
+                              // Ingredients Cost: approx 30-40% of revenue
+                              const costRatio = 0.3 + (Math.random() * 0.1);
+                              const costAmount = Math.floor(dailyRevenue * costRatio);
+
+                              mockExpenses.push({
+                                id: Math.random().toString().slice(2, 8),
+                                type: 'cogs',
+                                name: `本日食材採購 (${dateStr})`,
+                                amount: costAmount,
+                                date: dateStr,
+                                timestamp: currentDate.getTime()
+                              });
+                            }
+
+                            // 3. Monthly Fixed Costs (Rent & Utilities)
+                            if (dayOfMonth === 1) {
+                              mockExpenses.push({
+                                id: Math.random().toString().slice(2, 8),
+                                type: 'opex',
+                                name: '店面租金',
+                                amount: 15000,
+                                date: dateStr,
+                                timestamp: currentDate.getTime()
+                              });
+                            }
+                            if (dayOfMonth === 15) {
+                              mockExpenses.push({
+                                id: Math.random().toString().slice(2, 8),
+                                type: 'opex',
+                                name: '水電瓦斯費',
+                                amount: 3500,
+                                date: dateStr,
+                                timestamp: currentDate.getTime()
+                              });
+                            }
+                          }
+
+                          // Update State & LocalStorage
+                          const combinedOrders = [...dailyOrders, ...mockOrders];
+                          const combinedExpenses = [...expenses, ...mockExpenses];
+
+                          setDailyOrders(combinedOrders);
+                          setExpenses(combinedExpenses);
+
+                          try {
+                            localStorage.setItem('dailyOrders', JSON.stringify(combinedOrders));
+                            localStorage.setItem('expenses', JSON.stringify(combinedExpenses));
+                            alert(lang === 'en'
+                              ? 'Success! Smart Profit Data Generated.'
+                              : '成功！已生成「獲利模式」資料 📈\n\n- 訂單：隨機分佈 (週末較多)\n- 成本：自動設為營收的 30%~40%\n- 支出：每月固定租金/水電');
+                          } catch (e) {
+                            alert('Storage Quota Exceeded!');
+                            console.error(e);
+                          } finally {
+                            setIsGenerating(false);
+                          }
+                        }, 50); // Small delay to allow UI to update
+                      }}
+                      className={clsx(
+                        "text-sm hover:underline ml-4",
+                        isGenerating ? "text-gray-400 cursor-not-allowed" : "text-blue-500 hover:text-blue-700"
+                      )}
+                    >
+                      {isGenerating
+                        ? (lang === 'en' ? 'Generating...' : '生成中...')
+                        : (lang === 'en' ? 'Generate Profit Data' : '生成獲利測試資料')
                       }
+                    </button>
+                  </div>
+                </div>
+
+              )}
+            </div>
+          ) : (
+            <>
+              {/* Mobile View: Single Grid (Sorted) */}
+              <div className="grid grid-cols-2 gap-4 md:hidden">
+                {products
+                  .filter((p) => p.category_id === activeCategory)
+                  .sort((a, b) => {
+                    const typeOrder: Record<string, number> = { meat: 1, seafood: 2, cheese: 3, special: 4, side: 5, addon: 6, drink: 7 };
+                    return (typeOrder[a.type] || 99) - (typeOrder[b.type] || 99);
+                  })
+                  .map((product) => (
+                    <ProductCard key={product.id} product={product} addToCart={addToCart} lang={lang} />
+                  ))}
+              </div>
+
+              {/* Tablet/Desktop View: Separated Rows by Type */}
+              <div className="hidden md:block space-y-8">
+                {['meat', 'seafood', 'cheese', 'special', 'side', 'addon', 'drink'].map((type) => {
+                  const items = products.filter(p => p.category_id === activeCategory && p.type === type);
+                  if (items.length === 0) return null;
+
+                  return (
+                    <div key={type} className="space-y-3">
+                      <div className="grid grid-cols-3 lg:grid-cols-4 gap-4">
+                        {items.map((product: any) => (
+                          <ProductCard key={product.id} product={product} addToCart={addToCart} lang={lang} />
+                        ))}
+                      </div>
+                      <div className="h-px bg-gray-200 w-full"></div>
                     </div>
                   );
-                })
-              ) : (
-                // --- NOT GROUPED MODE (FLAT LIST) ---
-                cart.map((item) => {
-                  // Color map
-                  let cartItemColor = 'bg-white dark:bg-zinc-800 border-gray-100 dark:border-zinc-700 hover:border-blue-300 dark:hover:border-blue-700';
-                  if (item.type === 'meat') cartItemColor = 'bg-red-50 dark:bg-red-900/20 border-red-100 dark:border-red-900/50 hover:border-red-300 dark:hover:border-red-700 text-red-900 dark:text-red-200';
-                  if (item.type === 'seafood') cartItemColor = 'bg-blue-50 dark:bg-blue-900/20 border-blue-100 dark:border-blue-900/50 hover:border-blue-300 dark:hover:border-blue-700 text-blue-900 dark:text-blue-200';
-                  if (item.type === 'cheese') cartItemColor = 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-100 dark:border-yellow-900/50 hover:border-yellow-300 dark:hover:border-yellow-700 text-yellow-900 dark:text-yellow-200';
-                  if (item.type === 'special') cartItemColor = 'bg-purple-50 dark:bg-purple-900/20 border-purple-100 dark:border-purple-900/50 hover:border-purple-300 dark:hover:border-purple-700 text-purple-900 dark:text-purple-200';
+                })}
+              </div>
+            </>
+          )}
+        </div>
+      </div>
 
-                  // Logic for numbering (#I, #II) same as flat approach
-                  const sameProductItems = cart.filter(c => c.productId === item.productId);
-                  const myIndex = sameProductItems.findIndex(c => c.internalId === item.internalId);
-                  const showIndex = sameProductItems.length > 1;
+      {/* RIGHT: Cart */}
+      <div
+        className="flex flex-col bg-gray-50 dark:bg-zinc-900 transition-all duration-300 w-full md:w-[40%] lg:w-[35%] md:h-full border-t md:border-t-0 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] md:shadow-none border-gray-200 dark:border-zinc-800"
+        style={{
+          height: viewMode === 'dashboard' ? '0px' : (isMobile ? `${mobileCartRatio}%` : '100%'),
+          display: viewMode === 'dashboard' ? 'none' : 'flex'
+        }}
+      >
+        {/* Mobile Drag Handle */}
+        <div
+          className="h-6 w-full bg-white dark:bg-zinc-900 border-t border-gray-200 dark:border-zinc-800 flex items-center justify-center cursor-grab md:hidden flex-shrink-0 touch-none hover:bg-gray-50 dark:hover:bg-zinc-800 active:bg-gray-100 dark:active:bg-zinc-700 transition-colors"
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onMouseDown={handleMouseDown}
+        >
+          <div className="w-12 h-1.5 bg-gray-300 rounded-full" />
+        </div>
 
-                  const displayName = lang === 'en' ? (item.nameEn || item.name) : item.name;
+        {/* Cart Header */}
+        <div className="flex h-16 items-center justify-between border-b border-gray-200 dark:border-zinc-800 px-4 shadow-sm bg-white dark:bg-zinc-900 flex-shrink-0">
+          <div className="flex items-center gap-2">
+            <h2 className="text-xl font-bold text-gray-800 dark:text-white">{t.cartTitle}</h2>
+            <span className="rounded-full bg-blue-100 px-3 py-1 text-sm font-bold text-blue-800">
+              {cart.length} {t.items}
+            </span>
+          </div>
+
+          {/* View Toggle */}
+          <button
+            onClick={() => setIsGroupingEnabled(!isGroupingEnabled)}
+            className="flex items-center gap-1 rounded-md bg-gray-100 dark:bg-zinc-800 px-3 py-1.5 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-zinc-700 transition-colors"
+          >
+            {isGroupingEnabled ? <Layers size={16} /> : <List size={16} />}
+            <span>{isGroupingEnabled ? t.grouping : t.noGrouping}</span>
+          </button>
+        </div>
+
+        {/* Cart Items List */}
+        <div className="flex-1 overflow-y-auto p-4 space-y-3">
+          {cart.length === 0 ? (
+            <div className="flex h-full flex-col items-center justify-center text-gray-400 opacity-50">
+              <span className="text-6xl">🛒</span>
+              <p className="mt-4 text-lg">{t.emptyCartTitle}</p>
+            </div>
+          ) : (
+            // RENDER LOGIC
+            isGroupingEnabled ? (
+              // --- IS GROUPED MODE ---
+              uniqueProductIds.map((productId) => {
+                const items = groupedCart[productId];
+                const firstItem = items[0];
+                const count = items.length;
+                const isExpanded = expandedGroups.includes(productId);
+
+                // Color map
+                let groupColor = 'border-gray-100 dark:border-zinc-700 hover:border-blue-300 dark:hover:border-blue-700';
+                let bgColor = 'bg-white dark:bg-zinc-800';
+                if (firstItem.type === 'meat') { groupColor = 'border-red-100 dark:border-red-900/50 hover:border-red-300 dark:hover:border-red-700 text-red-900 dark:text-red-200'; bgColor = 'bg-red-50 dark:bg-red-900/20'; }
+                if (firstItem.type === 'seafood') { groupColor = 'border-blue-100 dark:border-blue-900/50 hover:border-blue-300 dark:hover:border-blue-700 text-blue-900 dark:text-blue-200'; bgColor = 'bg-blue-50 dark:bg-blue-900/20'; }
+                if (firstItem.type === 'cheese') { groupColor = 'border-yellow-100 dark:border-yellow-900/50 hover:border-yellow-300 dark:hover:border-yellow-700 text-yellow-900 dark:text-yellow-200'; bgColor = 'bg-yellow-50 dark:bg-yellow-900/20'; }
+                if (firstItem.type === 'special') { groupColor = 'border-purple-100 dark:border-purple-900/50 hover:border-purple-300 dark:hover:border-purple-700 text-purple-900 dark:text-purple-200'; bgColor = 'bg-purple-50 dark:bg-purple-900/20'; }
+
+                const displayName = lang === 'en' ? (firstItem.nameEn || firstItem.name) : firstItem.name;
+                const product = products.find(p => p.id === firstItem.productId);
+                const isSide = product?.category_id === 'cat_sides' || product?.category_id === 'cat_drinks' || false;
+
+                // Single item render (Standard)
+                if (count === 1) {
+                  const item = firstItem;
                   const product = products.find(p => p.id === item.productId);
                   const isSide = product?.category_id === 'cat_sides' || product?.category_id === 'cat_drinks' || false;
 
                   return (
                     <div
                       key={item.internalId}
-                      onClick={() => openModifierModal(item)}
+                      onClick={isSide ? undefined : () => openModifierModal(item)}
                       className={clsx(
                         "group relative flex items-center p-2 shadow-sm border-2 transition-all",
-                        "cursor-pointer", // Always cursor-pointer in flat list as individual items are editable
-                        cartItemColor
+                        !isSide && "cursor-pointer",
+                        bgColor, groupColor
                       )}
                     >
                       {/* Zone 1: Expansion Icon / Spacer (Fixed width w-6) */}
                       <div className="w-6 flex-shrink-0 flex items-center justify-center">
-                        {/* Empty in Flat List */}
+                        {/* Empty for single item List View */}
                       </div>
 
-                      {/* Zone 2: Product Name & Modifiers (Flex Fill) */}
+                      {/* Zone 2: Product Name (Flex Fill) */}
                       <div className="flex-1 min-w-0 pr-2">
                         <h3 className="text-[15px] font-bold leading-tight truncate">{displayName}</h3>
                         {item.modifierIds.length > 0 && (
@@ -1565,39 +1345,29 @@ export default function DashboardPage() {
 
                       {/* Zone 3: Right Cluster (Fixed Alignments) */}
                       <div className="flex items-center gap-1 flex-shrink-0">
-                        {/* Sub-Zone 3.1: Index / Spacer (Fixed width w-[28px]) */}
+                        {/* Quantity Badge (Fixed width) */}
                         <div className="w-[28px] flex justify-center">
-                          {showIndex ? (
-                            <span className="flex-shrink-0 w-[28px] text-center rounded-md bg-black/5 py-0.5 text-[10px] font-bold opacity-80 font-serif">
-                              {toRoman(myIndex + 1)}
-                            </span>
-                          ) : (
-                            // Explicit w-[28px] spacer when no index, to prevent jitter
-                            <div className="w-[28px]" />
-                          )}
+                          {/* Hidden spacer or invisible count to maintain grid structure if needed, or just empty */}
                         </div>
 
-                        {/* Sub-Zone 3.2: Status Badge (Fixed width w-[48px]) */}
+                        {/* Status Badge (Fixed width w-[48px]) */}
                         <div className="w-[48px] flex justify-center">
                           {!isSide && (
-                            <span className="inline-flex items-center rounded-md bg-blue-50 px-1.5 py-0.5 text-[10px] font-bold text-blue-600 ring-1 ring-inset ring-blue-500/20 uppercase tracking-wider whitespace-nowrap">
+                            <span className="inline-flex items-center rounded-md bg-blue-50 px-1.5 py-0.5 text-[10px] font-bold text-blue-600 ring-1 ring-inset ring-blue-500/20 uppercase tracking-wider">
                               {t.canCustomize}
                             </span>
                           )}
                         </div>
 
-                        {/* Sub-Zone 3.3: Price (Fixed width w-[50px], Right Aligned) */}
+                        {/* Price (Fixed width w-[50px], Right Aligned) */}
                         <div className="w-[50px] text-right">
                           <p className="text-md font-medium">${item.totalPrice}</p>
                         </div>
 
-                        {/* Sub-Zone 3.4: Action Button (Fixed width w-[32px]) */}
+                        {/* Action Button (Fixed width w-[32px] for click target) */}
                         <div className="w-[32px] flex justify-end">
                           <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              removeFromCart(item.internalId);
-                            }}
+                            onClick={(e) => { e.stopPropagation(); removeFromCart(item.internalId); }}
                             className={clsx(
                               "flex-shrink-0 rounded-full p-2 transition-colors",
                               "text-gray-400 hover:text-red-600 hover:bg-black/5 dark:hover:bg-white/10 active:bg-red-100 dark:active:bg-red-900/30"
@@ -1609,29 +1379,259 @@ export default function DashboardPage() {
                       </div>
                     </div>
                   );
-                })
-              )
-            )}
+                }
+
+                // Multiple items render (Group)
+                const isNoCustom = isSide;
+
+                return (
+                  <div key={productId} className="rounded-lg shadow-sm overflow-hidden border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800">
+                    {/* Group Header */}
+                    <div
+                      onClick={() => !isNoCustom && toggleGroup(productId)}
+                      className={clsx(
+                        "flex items-center p-2 transition-colors",
+                        !isNoCustom && "cursor-pointer",
+                        bgColor
+                      )}
+                    >
+                      {/* Zone 1: Expansion Icon / Spacer (Fixed width w-6) */}
+                      <div className="w-6 flex-shrink-0 flex items-center justify-center">
+                        {!isNoCustom ? (
+                          isExpanded ? <ChevronDown size={20} /> : <ChevronRight size={20} />
+                        ) : (
+                          // Spacer
+                          <div className="w-[20px]" />
+                        )}
+                      </div>
+
+                      {/* Zone 2: Product Name (Flex Fill) */}
+                      <div className="flex-1 min-w-0 pr-2">
+                        <h3 className={clsx(
+                          "text-[15px] font-bold leading-tight truncate",
+                          groupColor.split(' ').find(c => c.startsWith('text-')) || 'text-gray-800 dark:text-gray-200'
+                        )}>
+                          {displayName}
+                        </h3>
+                      </div>
+
+                      {/* Zone 3: Right Cluster (Fixed Alignments) */}
+                      <div className="flex items-center gap-1 flex-shrink-0">
+                        {/* Quantity Badge (Fixed width w-[28px]) */}
+                        <div className="w-[28px] flex justify-center">
+                          <span className="flex-shrink-0 w-8 text-center rounded-full bg-black/80 py-0.5 text-[10px] text-white">x{count}</span>
+                        </div>
+
+                        {/* Status Badge (Fixed width w-[48px]) */}
+                        <div className="w-[48px] flex justify-center">
+                          {!isSide && (
+                            <span className="inline-flex items-center rounded-md bg-blue-50 px-1.5 py-0.5 text-[10px] font-bold text-blue-600 ring-1 ring-inset ring-blue-500/20 uppercase tracking-wider">
+                              {t.canCustomize}
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Price (Fixed width w-[50px], Right Aligned) */}
+                        <div className="w-[50px] text-right">
+                          <p className="font-bold text-gray-700 dark:text-white">${items.reduce((sum, i) => sum + i.totalPrice, 0)}</p>
+                        </div>
+
+                        {/* Action Button (Fixed width w-[32px] for click target) */}
+                        <div className="w-[32px] flex justify-end">
+                          {isNoCustom ? (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                removeFromCart(items[items.length - 1].internalId);
+                              }}
+                              className="rounded-full p-2 text-gray-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors"
+                            >
+                              <Trash2 size={24} />
+                            </button>
+                          ) : (
+                            // Spacer to reserve space for the delete button seen in single items
+                            <div className="w-[32px]" />
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Expanded Items */}
+                    {isExpanded && (
+                      <div className="border-t border-gray-100 dark:border-zinc-700 bg-gray-50/50 dark:bg-zinc-800/50 p-2 space-y-2">
+                        {items.map((item, idx) => {
+                          const product = products.find(p => p.id === item.productId);
+                          const isSide = product?.category_id === 'cat_sides' || product?.category_id === 'cat_drinks' || false;
+                          const displayName = lang === 'en' ? (item.nameEn || item.name) : item.name;
+
+                          return (
+                            <div
+                              key={item.internalId}
+                              onClick={isSide ? undefined : () => openModifierModal(item)}
+                              className={clsx(
+                                "flex items-center justify-between rounded-r-md bg-white/50 dark:bg-zinc-700/30 p-3 shadow-none border-l-[4px] border-gray-100 dark:border-zinc-700 hover:bg-white dark:hover:bg-zinc-700 ml-6 transition-all",
+                                !isSide && "cursor-pointer",
+                                !isSide && groupColor.replace('text-', 'border-').split(' ')[0] // Apply theme color to left border
+                              )}
+                            >
+                              <div className="flex-1 min-w-0 pr-2">
+                                <div className="flex items-center gap-2">
+                                  <span className={clsx("font-serif font-bold text-lg opacity-40 w-8 text-center flex-shrink-0")}>{toRoman(idx + 1)}.</span>
+                                  {!isSide ? (
+                                    <span className={clsx("font-medium text-md", item.modifierIds.length > 0 ? "text-gray-800 dark:text-gray-200" : "text-gray-500 dark:text-gray-400")}>
+                                      {item.modifierIds.length > 0 ? t.customization : displayName}
+                                    </span>
+                                  ) : (
+                                    <span className="text-gray-500 font-medium">{lang === 'en' ? 'Standard' : '標準'} (500cc)</span>
+                                  )}
+                                </div>
+                                {!isSide ? (
+                                  item.modifierIds.length > 0 && (
+                                    <p className="text-xs text-gray-400 mt-1">
+                                      + {item.modifierIds.map(mid => {
+                                        const m = modifiers.find(mod => mod.id === mid);
+                                        return m ? (lang === 'en' ? (m.nameEn || m.name) : m.name) : mid;
+                                      }).join(', ')}
+                                    </p>
+                                  )
+                                ) : (
+                                  <p className="text-sm text-gray-400 mt-1 pl-[42px]">{lang === 'en' ? 'No Add-ons' : '無客製化'}</p>
+                                )}
+
+                              </div>
+                              <div className="flex items-center gap-3 flex-shrink-0">
+                                <span className="text-sm font-medium">${item.totalPrice}</span>
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); removeFromCart(item.internalId); }}
+                                  className="rounded-full p-2 text-gray-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors"
+                                >
+                                  <Trash2 size={24} />
+                                </button>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )
+                    }
+                  </div>
+                );
+              })
+            ) : (
+              // --- NOT GROUPED MODE (FLAT LIST) ---
+              cart.map((item) => {
+                // Color map
+                let cartItemColor = 'bg-white dark:bg-zinc-800 border-gray-100 dark:border-zinc-700 hover:border-blue-300 dark:hover:border-blue-700';
+                if (item.type === 'meat') cartItemColor = 'bg-red-50 dark:bg-red-900/20 border-red-100 dark:border-red-900/50 hover:border-red-300 dark:hover:border-red-700 text-red-900 dark:text-red-200';
+                if (item.type === 'seafood') cartItemColor = 'bg-blue-50 dark:bg-blue-900/20 border-blue-100 dark:border-blue-900/50 hover:border-blue-300 dark:hover:border-blue-700 text-blue-900 dark:text-blue-200';
+                if (item.type === 'cheese') cartItemColor = 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-100 dark:border-yellow-900/50 hover:border-yellow-300 dark:hover:border-yellow-700 text-yellow-900 dark:text-yellow-200';
+                if (item.type === 'special') cartItemColor = 'bg-purple-50 dark:bg-purple-900/20 border-purple-100 dark:border-purple-900/50 hover:border-purple-300 dark:hover:border-purple-700 text-purple-900 dark:text-purple-200';
+
+                // Logic for numbering (#I, #II) same as flat approach
+                const sameProductItems = cart.filter(c => c.productId === item.productId);
+                const myIndex = sameProductItems.findIndex(c => c.internalId === item.internalId);
+                const showIndex = sameProductItems.length > 1;
+
+                const displayName = lang === 'en' ? (item.nameEn || item.name) : item.name;
+                const product = products.find(p => p.id === item.productId);
+                const isSide = product?.category_id === 'cat_sides' || product?.category_id === 'cat_drinks' || false;
+
+                return (
+                  <div
+                    key={item.internalId}
+                    onClick={() => openModifierModal(item)}
+                    className={clsx(
+                      "group relative flex items-center p-2 shadow-sm border-2 transition-all",
+                      "cursor-pointer", // Always cursor-pointer in flat list as individual items are editable
+                      cartItemColor
+                    )}
+                  >
+                    {/* Zone 1: Expansion Icon / Spacer (Fixed width w-6) */}
+                    <div className="w-6 flex-shrink-0 flex items-center justify-center">
+                      {/* Empty in Flat List */}
+                    </div>
+
+                    {/* Zone 2: Product Name & Modifiers (Flex Fill) */}
+                    <div className="flex-1 min-w-0 pr-2">
+                      <h3 className="text-[15px] font-bold leading-tight truncate">{displayName}</h3>
+                      {item.modifierIds.length > 0 && (
+                        <p className="text-sm opacity-80 mt-1 truncate">
+                          {item.modifierIds.map(mid => {
+                            const m = modifiers.find(mod => mod.id === mid);
+                            return m ? (lang === 'en' ? (m.nameEn || m.name) : m.name) : null;
+                          }).filter(Boolean).join(', ')}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Zone 3: Right Cluster (Fixed Alignments) */}
+                    <div className="flex items-center gap-1 flex-shrink-0">
+                      {/* Sub-Zone 3.1: Index / Spacer (Fixed width w-[28px]) */}
+                      <div className="w-[28px] flex justify-center">
+                        {showIndex ? (
+                          <span className="flex-shrink-0 w-[28px] text-center rounded-md bg-black/5 py-0.5 text-[10px] font-bold opacity-80 font-serif">
+                            {toRoman(myIndex + 1)}
+                          </span>
+                        ) : (
+                          // Explicit w-[28px] spacer when no index, to prevent jitter
+                          <div className="w-[28px]" />
+                        )}
+                      </div>
+
+                      {/* Sub-Zone 3.2: Status Badge (Fixed width w-[48px]) */}
+                      <div className="w-[48px] flex justify-center">
+                        {!isSide && (
+                          <span className="inline-flex items-center rounded-md bg-blue-50 px-1.5 py-0.5 text-[10px] font-bold text-blue-600 ring-1 ring-inset ring-blue-500/20 uppercase tracking-wider whitespace-nowrap">
+                            {t.canCustomize}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Sub-Zone 3.3: Price (Fixed width w-[50px], Right Aligned) */}
+                      <div className="w-[50px] text-right">
+                        <p className="text-md font-medium">${item.totalPrice}</p>
+                      </div>
+
+                      {/* Sub-Zone 3.4: Action Button (Fixed width w-[32px]) */}
+                      <div className="w-[32px] flex justify-end">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            removeFromCart(item.internalId);
+                          }}
+                          className={clsx(
+                            "flex-shrink-0 rounded-full p-2 transition-colors",
+                            "text-gray-400 hover:text-red-600 hover:bg-black/5 dark:hover:bg-white/10 active:bg-red-100 dark:active:bg-red-900/30"
+                          )}
+                        >
+                          <Trash2 size={24} />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })
+            )
+          )}
+        </div>
+
+        {/* Cart Footer / Checkout */}
+        <div className="border-t border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] flex-shrink-0 flex items-center gap-3">
+          <div className="flex flex-col items-start w-24 flex-shrink-0">
+            <span className="text-sm text-gray-500 font-medium">{t.total}</span>
+            <span className="text-2xl font-bold text-blue-600 truncate w-full">${cartTotal}</span>
           </div>
 
-          {/* Cart Footer / Checkout */}
-          <div className="border-t border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] flex-shrink-0 flex items-center gap-3">
-            <div className="flex flex-col items-start w-24 flex-shrink-0">
-              <span className="text-sm text-gray-500 font-medium">{t.total}</span>
-              <span className="text-2xl font-bold text-blue-600 truncate w-full">${cartTotal}</span>
-            </div>
-
-            <button
-              onClick={openCheckoutModal}
-              className="flex-1 rounded-xl bg-blue-600 py-3 text-xl font-bold text-white shadow-lg transition-all hover:bg-blue-700 active:scale-95 disabled:bg-gray-300 disabled:cursor-not-allowed"
-              disabled={cart.length === 0}
-            >
-              {t.checkout}
-            </button>
-          </div>
+          <button
+            onClick={openCheckoutModal}
+            className="flex-1 rounded-xl bg-blue-600 py-3 text-xl font-bold text-white shadow-lg transition-all hover:bg-blue-700 active:scale-95 disabled:bg-gray-300 disabled:cursor-not-allowed"
+            disabled={cart.length === 0}
+          >
+            {t.checkout}
+          </button>
         </div>
 
       </div>
-    </div>
+    </div >
   );
 }
