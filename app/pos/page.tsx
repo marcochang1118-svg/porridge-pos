@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-// import { MODIFIERS } from '@/lib/mockData'; // Removed
+// import { modifiers } from '@/lib/mockData'; // Removed
 import { subscribeToProducts, subscribeToCategories, subscribeToModifiers, Product, Category, Modifier } from '@/lib/services';
 import { Trash2, ChevronDown, ChevronRight, Layers, List, Globe, TrendingUp, TrendingDown, DollarSign, Pencil, X } from 'lucide-react';
 import { clsx } from 'clsx';
@@ -1413,7 +1413,7 @@ export default function PosPage() {
                         {item.modifierIds.length > 0 && (
                           <p className="text-sm opacity-80 mt-1 truncate">
                             {item.modifierIds.map(mid => {
-                              const m = MODIFIERS.find(mod => mod.id === mid);
+                              const m = modifiers.find(mod => mod.id === mid);
                               return m ? (lang === 'en' ? (m.nameEn || m.name) : m.name) : null;
                             }).filter(Boolean).join(', ')}
                           </p>
@@ -1566,7 +1566,7 @@ export default function PosPage() {
                                   item.modifierIds.length > 0 ? (
                                     <p className="text-sm text-blue-600 mt-1 truncate pl-[42px]">
                                       {item.modifierIds.map(mid => {
-                                        const m = MODIFIERS.find(mod => mod.id === mid);
+                                        const m = modifiers.find(mod => mod.id === mid);
                                         return m ? (lang === 'en' ? (m.nameEn || m.name) : m.name) : '';
                                       }).join(', ')}
                                     </p>
@@ -1636,7 +1636,7 @@ export default function PosPage() {
                       {item.modifierIds.length > 0 && (
                         <p className="text-sm opacity-80 mt-1 truncate">
                           {item.modifierIds.map(mid => {
-                            const m = MODIFIERS.find(mod => mod.id === mid);
+                            const m = modifiers.find(mod => mod.id === mid);
                             return m ? (lang === 'en' ? (m.nameEn || m.name) : m.name) : null;
                           }).filter(Boolean).join(', ')}
                         </p>

@@ -1,8 +1,9 @@
 'use client';
+// Rebuild force 1
 
 import { useState, useRef, useEffect } from 'react';
-import { MODIFIERS } from '@/lib/mockData';
-import { subscribeToCategories, subscribeToProducts, Category, Product } from '@/lib/services'; // Only need categories here for tabs, MenuManager handles its own data? Actually MenuManager needs products too.
+// import { modifiers } from '@/lib/mockData'; // Removed
+import { subscribeToCategories, subscribeToProducts, subscribeToModifiers, Category, Product, Modifier } from '@/lib/services';
 // Ideally MenuManager should fetch its own data or we pass it down. 
 // Current design passes categories down. Let's subscribe here.
 import { Trash2, ChevronDown, ChevronRight, Layers, List, Globe, TrendingUp, TrendingDown, DollarSign, Pencil, X } from 'lucide-react';
@@ -422,6 +423,15 @@ export default function DashboardPage() {
   const [editingExpenseId, setEditingExpenseId] = useState<string | null>(null);
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
   const [tempModifierIds, setTempModifierIds] = useState<string[]>([]);
+  const [modifiers, setModifiers] = useState<Modifier[]>([]);
+
+  // Subscribe to data
+  useEffect(() => {
+    const unsubMods = subscribeToModifiers(setModifiers);
+    return () => {
+      unsubMods();
+    };
+  }, []);
 
   // Add to cart
   const addToCart = (product: any) => {
@@ -491,13 +501,13 @@ export default function DashboardPage() {
       if (item.internalId === editingItemId) {
         // Recalculate price
         const modifiersPrice = tempModifierIds.reduce((sum, modId) => {
-          const mod = MODIFIERS.find(m => m.id === modId);
+          const mod = modifiers.find(m => m.id === modId);
           return sum + (mod ? mod.price : 0);
         }, 0);
 
         // Calculate Volume Discount (same as ModifierModal)
         const selectedAddons = tempModifierIds.filter(id => {
-          const m = MODIFIERS.find(mod => mod.id === id);
+          const m = modifiers.find(mod => mod.id === id);
           return m?.category === 'addon';
         });
         const volumeDiscount = Math.max(0, (selectedAddons.length - 1) * 5);
@@ -613,6 +623,7 @@ export default function DashboardPage() {
         onToggleModifier={toggleModifier}
         onConfirm={confirmModifiers}
         lang={lang}
+        modifiers={modifiers}
       />
 
       <AddExpenseModal
@@ -1090,7 +1101,8 @@ export default function DashboardPage() {
                               let orderTotal = 0;
 
                               for (let j = 0; j < itemCount; j++) {
-                                const product = PRODUCTS[Math.floor(Math.random() * PRODUCTS.length)];
+                                if (products.length === 0) break;
+                                const product = products[Math.floor(Math.random() * products.length)];
                                 items.push({
                                   internalId: Math.random().toString().slice(2, 8),
                                   productId: product.id,
@@ -1322,7 +1334,7 @@ export default function DashboardPage() {
                         {item.modifierIds.length > 0 && (
                           <p className="text-sm opacity-80 mt-1 truncate">
                             {item.modifierIds.map(mid => {
-                              const m = MODIFIERS.find(mod => mod.id === mid);
+                              const m = modifiers.find(mod => mod.id === mid);
                               return m ? (lang === 'en' ? (m.nameEn || m.name) : m.name) : null;
                             }).filter(Boolean).join(', ')}
                           </p>
@@ -1472,15 +1484,13 @@ export default function DashboardPage() {
                                   )}
                                 </div>
                                 {!isSide ? (
-                                  item.modifierIds.length > 0 ? (
-                                    <p className="text-sm text-blue-600 mt-1 truncate pl-[42px]">
-                                      {item.modifierIds.map(mid => {
-                                        const m = MODIFIERS.find(mod => mod.id === mid);
-                                        return m ? (lang === 'en' ? (m.nameEn || m.name) : m.name) : '';
+                                  item.modifierIds.length > 0 && (
+                                    <p className="text-xs text-gray-400 mt-1">
+                                      + {item.modifierIds.map(mid => {
+                                        const m = modifiers.find(mod => mod.id === mid);
+                                        return m ? (lang === 'en' ? (m.nameEn || m.name) : m.name) : mid;
                                       }).join(', ')}
                                     </p>
-                                  ) : (
-                                    <p className="text-xs text-gray-400 mt-0.5 pl-[42px]">{t.noNotes}</p>
                                   )
                                 ) : (
                                   <p className="text-sm text-gray-400 mt-1 pl-[42px]">{lang === 'en' ? 'No Add-ons' : '無客製化'}</p>
@@ -1521,7 +1531,7 @@ export default function DashboardPage() {
                 const showIndex = sameProductItems.length > 1;
 
                 const displayName = lang === 'en' ? (item.nameEn || item.name) : item.name;
-                const product = PRODUCTS.find(p => p.id === item.productId);
+                const product = products.find(p => p.id === item.productId);
                 const isSide = product?.category_id === 'cat_sides' || product?.category_id === 'cat_drinks' || false;
 
                 return (
@@ -1545,7 +1555,7 @@ export default function DashboardPage() {
                       {item.modifierIds.length > 0 && (
                         <p className="text-sm opacity-80 mt-1 truncate">
                           {item.modifierIds.map(mid => {
-                            const m = MODIFIERS.find(mod => mod.id === mid);
+                            const m = modifiers.find(mod => mod.id === mid);
                             return m ? (lang === 'en' ? (m.nameEn || m.name) : m.name) : null;
                           }).filter(Boolean).join(', ')}
                         </p>
