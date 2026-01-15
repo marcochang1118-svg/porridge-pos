@@ -155,7 +155,7 @@ export default function MenuManager({
         setEditingProduct(null);
         setFormData({
             category_id: categories.length > 0 ? categories[0].id : '',
-            price: 0,
+            price: undefined,
             name: '',
             image: ''
         });
@@ -178,6 +178,7 @@ export default function MenuManager({
                     category_id: formData.category_id,
                     image: formData.image
                 });
+                setIsModalOpen(false); // Close on edit success
             } else {
                 // Create new
                 await addProduct({
@@ -188,8 +189,20 @@ export default function MenuManager({
                     image: formData.image,
                     type: 'product' // default
                 });
+
+                // Continuous Entry Flow
+                alert(lang === 'en' ? 'Product added successfully!' : '新增成功！');
+
+                // Reset form but keep category and clear logic
+                setFormData({
+                    category_id: formData.category_id,
+                    price: undefined, // Clear price to avoid 0
+                    name: '',
+                    nameEn: '',
+                    image: ''
+                });
+                // Do NOT close modal to allow next entry
             }
-            setIsModalOpen(false);
         } catch (error) {
             console.error("Failed to save product:", error);
             alert("Failed to save");
@@ -639,8 +652,8 @@ export default function MenuManager({
                                             <span className="absolute left-3 top-2 text-gray-500">$</span>
                                             <input
                                                 type="number"
-                                                value={formData.price || 0}
-                                                onChange={e => setFormData({ ...formData, price: Number(e.target.value) })}
+                                                value={formData.price === undefined ? '' : formData.price}
+                                                onChange={e => setFormData({ ...formData, price: e.target.value === '' ? undefined : Number(e.target.value) })}
                                                 className="w-full border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 rounded-lg pl-6 pr-3 py-2 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 dark:text-white"
                                             />
                                         </div>
