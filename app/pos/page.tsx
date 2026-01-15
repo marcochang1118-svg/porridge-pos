@@ -49,7 +49,7 @@ const UI_TEXT = {
     noGrouping: 'List View',
     customization: 'Customizations',
     noNotes: 'No notes',
-    canCustomize: 'Customizable'
+    canCustomize: 'Custom'
   }
 };
 
