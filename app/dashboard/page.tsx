@@ -1,7 +1,10 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { CATEGORIES, PRODUCTS, MODIFIERS } from '@/lib/mockData';
+import { MODIFIERS } from '@/lib/mockData';
+import { subscribeToCategories, subscribeToProducts, Category, Product } from '@/lib/services'; // Only need categories here for tabs, MenuManager handles its own data? Actually MenuManager needs products too.
+// Ideally MenuManager should fetch its own data or we pass it down. 
+// Current design passes categories down. Let's subscribe here.
 import { Trash2, ChevronDown, ChevronRight, Layers, List, Globe, TrendingUp, TrendingDown, DollarSign, Pencil, X } from 'lucide-react';
 import { clsx } from 'clsx';
 import ModifierModal from '../components/ModifierModal';
@@ -139,13 +142,67 @@ const ProductCard = ({ product, addToCart, lang }: { product: any, addToCart: (p
 };
 
 import MenuManager from '../components/MenuManager';
+import { seedDatabase } from '@/lib/seed'; // Import seed utility
 
 export default function DashboardPage() {
   console.log('DashboardPage Rendered');
 
   // Products & Categories State (Uplifted)
-  const [categories, setCategories] = useState(CATEGORIES);
-  const [activeCategory, setActiveCategory] = useState(CATEGORIES[0].id);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [activeCategory, setActiveCategory] = useState('');
+
+  // Subscribe to Categories
+  useEffect(() => {
+    const unsubscribe = subscribeToCategories((newCategories) => {
+      // Logic: If we have a locally saved order, try to respect it, otherwise utilize DB order
+      const savedOrder = localStorage.getItem('categoryOrder');
+      if (savedOrder) {
+        try {
+          const parsedOrder = JSON.parse(savedOrder) as Category[];
+          // Map incoming categories to a map for quick lookup
+          const catMap = new Map(newCategories.map(c => [c.id, c]));
+
+          // Reconstruct based on saved ID order, filtering out deleted ones, appending new ones
+          const mergedCategories = parsedOrder
+            .filter(c => catMap.has(c.id))
+            .map(c => catMap.get(c.id)!);
+
+          // Add any new categories that weren't in saved order
+          newCategories.forEach(c => {
+            if (!mergedCategories.find(mc => mc.id === c.id)) {
+              mergedCategories.push(c);
+            }
+          });
+          setCategories(mergedCategories);
+        } catch (e) {
+          setCategories(newCategories);
+        }
+      } else {
+        setCategories(newCategories);
+      }
+
+      if (!activeCategory && newCategories.length > 0) {
+        setActiveCategory(newCategories[0].id);
+      }
+    });
+
+    const unsubscribeProducts = subscribeToProducts((newProducts) => {
+      setProducts(newProducts);
+    });
+
+    return () => {
+      unsubscribe();
+      unsubscribeProducts();
+    };
+  }, []);
+
+  // Sync active category
+  useEffect(() => {
+    if (!activeCategory && categories.length > 0) {
+      setActiveCategory(categories[0].id);
+    }
+  }, [categories]);
   const [cart, setCart] = useState<CartItem[]>([]);
 
   // Dashboard State
@@ -986,6 +1043,22 @@ export default function DashboardPage() {
                       type="button"
                       disabled={isGenerating}
                       onClick={async () => {
+                        if (!confirm(lang === 'en' ? 'Seed Firestore Database?' : '確定要上傳初始資料到 Firestore 嗎？(會覆寫現有 Cloud 資料)')) return;
+                        setIsGenerating(true);
+                        const success = await seedDatabase();
+                        setIsGenerating(false);
+                        if (success) alert(lang === 'en' ? 'Database seeded!' : '資料庫初始化成功！');
+                        else alert(lang === 'en' ? 'Seeding failed.' : '初始化失敗，請檢查 Console');
+                      }}
+                      className="text-sm hover:underline ml-4 text-purple-500 hover:text-purple-700"
+                    >
+                      {isGenerating ? 'Seeding...' : 'Initializing DB (Seed)'}
+                    </button>
+
+                    <button
+                      type="button"
+                      disabled={isGenerating}
+                      onClick={async () => {
                         if (!confirm(lang === 'en' ? 'Generate smart profit data?' : '確定要生成「獲利模式」測試資料嗎？\n(這會模擬真實經營：成本約佔營收 35%，並產生每月固定開銷)')) return;
 
                         setIsGenerating(true);
@@ -1122,13 +1195,13 @@ export default function DashboardPage() {
             <>
               {/* Mobile View: Single Grid (Sorted) */}
               <div className="grid grid-cols-2 gap-4 md:hidden">
-                {PRODUCTS
+                {products
                   .filter((p) => p.category_id === activeCategory)
                   .sort((a, b) => {
                     const typeOrder: Record<string, number> = { meat: 1, seafood: 2, cheese: 3, special: 4, side: 5, addon: 6, drink: 7 };
                     return (typeOrder[a.type] || 99) - (typeOrder[b.type] || 99);
                   })
-                  .map((product: any) => (
+                  .map((product) => (
                     <ProductCard key={product.id} product={product} addToCart={addToCart} lang={lang} />
                   ))}
               </div>
@@ -1136,7 +1209,7 @@ export default function DashboardPage() {
               {/* Tablet/Desktop View: Separated Rows by Type */}
               <div className="hidden md:block space-y-8">
                 {['meat', 'seafood', 'cheese', 'special', 'side', 'addon', 'drink'].map((type) => {
-                  const items = PRODUCTS.filter(p => p.category_id === activeCategory && p.type === type);
+                  const items = products.filter(p => p.category_id === activeCategory && p.type === type);
                   if (items.length === 0) return null;
 
                   return (
@@ -1219,13 +1292,13 @@ export default function DashboardPage() {
                 if (firstItem.type === 'special') { groupColor = 'border-purple-100 hover:border-purple-300 text-purple-900'; bgColor = 'bg-purple-50'; }
 
                 const displayName = lang === 'en' ? (firstItem.nameEn || firstItem.name) : firstItem.name;
-                const product = PRODUCTS.find(p => p.id === firstItem.productId);
+                const product = products.find(p => p.id === firstItem.productId);
                 const isSide = product?.category_id === 'cat_sides' || product?.category_id === 'cat_drinks' || false;
 
                 // Single item render (Standard)
                 if (count === 1) {
                   const item = firstItem;
-                  const product = PRODUCTS.find(p => p.id === item.productId);
+                  const product = products.find(p => p.id === item.productId);
                   const isSide = product?.category_id === 'cat_sides' || product?.category_id === 'cat_drinks' || false;
 
                   return (
@@ -1373,7 +1446,7 @@ export default function DashboardPage() {
                     {isExpanded && (
                       <div className="border-t border-gray-100 bg-gray-50/50 p-2 space-y-2">
                         {items.map((item, idx) => {
-                          const product = PRODUCTS.find(p => p.id === item.productId);
+                          const product = products.find(p => p.id === item.productId);
                           const isSide = product?.category_id === 'cat_sides' || product?.category_id === 'cat_drinks' || false;
                           const displayName = lang === 'en' ? (item.nameEn || item.name) : item.name;
 

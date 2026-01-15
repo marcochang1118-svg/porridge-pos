@@ -1,31 +1,16 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Pencil, Trash2, Plus, Image as ImageIcon, Save, X, List, ChevronUp, ChevronDown } from 'lucide-react';
-import { PRODUCTS, CATEGORIES } from '@/lib/mockData';
+// import { PRODUCTS, CATEGORIES } from '@/lib/mockData'; // No longer needed
+import { subscribeToProducts, addProduct, updateProduct, deleteProduct, addCategory, updateCategory, deleteCategory, updateCategoryOrder, Product, Category, uploadImage } from '@/lib/services';
 import { clsx } from 'clsx';
-
 import { Reorder } from 'framer-motion';
+import { Loader2 } from 'lucide-react';
 
-// Mock Product Type (copy from lib/mockData or define locally for proto)
-type Product = {
-    id: string;
-    category_id: string; // Changed from category to match mockData
-    category?: string; // Optional overlap
-    name: string;
-    nameEn?: string;
-    price: number;
-    image?: string;
-    type?: string;
-};
-
-// Category Type (if not already imported, define it to match mockData)
-type Category = {
-    id: string;
-    name: string;
-    nameEn: string;
-    sort_order: number;
-};
+// Types are imported from services now, removing local definitions to avoid collision/redundancy
+// But if we want to keep props simple we can alias or use them directly.
+// We'll use the imported types.
 
 export default function MenuManager({
     lang,
@@ -36,8 +21,17 @@ export default function MenuManager({
     categories: Category[];
     onUpdateCategories: (cats: Category[]) => void;
 }) {
-    // Local state to simulate database
-    const [products, setProducts] = useState<Product[]>(PRODUCTS);
+    // Local state to simulate database -> Now Real Data
+    const [products, setProducts] = useState<Product[]>([]);
+
+    // Subscribe to products
+    useEffect(() => {
+        const unsubscribe = subscribeToProducts((newProducts) => {
+            setProducts(newProducts);
+        });
+        return () => unsubscribe();
+    }, []);
+
     // Use uplifted categories via props
     const [selectedCategory, setSelectedCategory] = useState<string>('all');
 
@@ -46,16 +40,17 @@ export default function MenuManager({
     const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
 
     const [editingProduct, setEditingProduct] = useState<Product | null>(null);
-    const [editingCategory, setEditingCategory] = useState<{ id: string, name: string, nameEn: string } | null>(null);
+    const [editingCategory, setEditingCategory] = useState<Category | null>(null);
 
     // Form States
     const [formData, setFormData] = useState<Partial<Product>>({});
     const [catForm, setCatForm] = useState<{ name: string, nameEn: string }>({ name: '', nameEn: '' });
+    const [isUploading, setIsUploading] = useState(false);
 
     // Filtering Logic
     const filteredProducts = selectedCategory === 'all'
         ? products
-        : products.filter(p => p.category_id === selectedCategory || p.category === selectedCategory);
+        : products.filter(p => p.category_id === selectedCategory); // Standardized to category_id
 
     const handleEdit = (product: Product) => {
         setEditingProduct(product);
@@ -66,7 +61,7 @@ export default function MenuManager({
     const handleCreate = () => {
         setEditingProduct(null);
         setFormData({
-            category_id: categories[0].id,
+            category_id: categories.length > 0 ? categories[0].id : '',
             price: 0,
             name: '',
             image: ''
@@ -74,52 +69,88 @@ export default function MenuManager({
         setIsModalOpen(true);
     };
 
-    const handleSave = () => {
-        if (editingProduct) {
-            // Update existing
-            setProducts(products.map(p => p.id === editingProduct.id ? { ...p, ...formData } as Product : p));
-        } else {
-            // Create new
-            const newProduct = {
-                ...formData,
-                id: `p${Date.now()}`,
-                type: 'product' // default
-            } as Product;
-            setProducts([newProduct, ...products]);
+    const handleSave = async () => {
+        if (!formData.name || !formData.category_id) {
+            alert("Name and Category are required");
+            return;
         }
-        setIsModalOpen(false);
-        alert(lang === 'en' ? 'Simulated: Data Saved!' : '模擬提示：資料已儲存！(這只是預覽)');
+
+        try {
+            if (editingProduct) {
+                // Update existing
+                await updateProduct(editingProduct.id, {
+                    name: formData.name,
+                    nameEn: formData.nameEn,
+                    price: formData.price,
+                    category_id: formData.category_id,
+                    image: formData.image
+                });
+            } else {
+                // Create new
+                await addProduct({
+                    name: formData.name!,
+                    nameEn: formData.nameEn,
+                    price: formData.price || 0,
+                    category_id: formData.category_id,
+                    image: formData.image,
+                    type: 'product' // default
+                });
+            }
+            setIsModalOpen(false);
+        } catch (error) {
+            console.error("Failed to save product:", error);
+            alert("Failed to save");
+        }
     };
 
-    const handleDelete = (id: string) => {
-        if (confirm(lang === 'en' ? 'Are you sure?' : '確定要刪除嗎？')) {
-            setProducts(products.filter(p => p.id !== id));
+    const handleDelete = async (id: string) => {
+        if (confirm(lang === 'en' ? 'Are you sure to delete this product?' : '確定要刪除此商品嗎？')) {
+            await deleteProduct(id);
         }
     };
 
     // --- Category Handlers ---
-    const handleSaveCategory = () => {
-        if (editingCategory) {
-            // Edit
-            onUpdateCategories(categories.map(c => c.id === editingCategory.id ? { ...c, ...catForm } : c));
-        } else {
-            // Create
-            const newCat = {
-                id: `cat_${Date.now()}`,
-                ...catForm,
-                sort_order: categories.length + 1
-            };
-            onUpdateCategories([...categories, newCat]);
+    const handleSaveCategory = async () => {
+        if (!catForm.name) return;
+
+        try {
+            if (editingCategory) {
+                // Edit
+                await updateCategory(editingCategory.id, {
+                    name: catForm.name,
+                    nameEn: catForm.nameEn
+                });
+            } else {
+                // Create
+                await addCategory({
+                    name: catForm.name,
+                    nameEn: catForm.nameEn,
+                    sort_order: categories.length + 1
+                });
+            }
+            // onUpdateCategories is not needed if parent also subscribes, but parent might be controlling logic
+            setEditingCategory(null);
+            setCatForm({ name: '', nameEn: '' });
+        } catch (error) {
+            console.error("Failed to save category:", error);
+            alert("Failed to save category");
         }
-        setEditingCategory(null);
-        setCatForm({ name: '', nameEn: '' });
     };
 
-    const handleDeleteCategory = (id: string) => {
-        if (confirm(lang === 'en' ? 'Delete this category?' : '確定要刪除此分類嗎？')) {
-            onUpdateCategories(categories.filter(c => c.id !== id));
+    const handleDeleteCategory = async (id: string) => {
+        if (confirm(lang === 'en' ? 'Delete this category? Products in it might be hidden.' : '確定要刪除此分類嗎？其中的商品可能會無法顯示。')) {
+            await deleteCategory(id);
             if (selectedCategory === id) setSelectedCategory('all');
         }
+    };
+
+    // Use Reorder.onReorder prop which only updates local state in framer motion
+    // We need to trigger DB update
+    const handleReorderCategories = (newOrder: Category[]) => {
+        // Optimistically update local parent state (if passed down)
+        onUpdateCategories(newOrder);
+        // Update DB
+        updateCategoryOrder(newOrder);
     };
 
     return (
@@ -170,7 +201,7 @@ export default function MenuManager({
                     <Reorder.Group
                         axis="x"
                         values={categories}
-                        onReorder={onUpdateCategories}
+                        onReorder={handleReorderCategories}
                         className="flex gap-2"
                     >
                         {categories.map((cat) => (
@@ -227,7 +258,7 @@ export default function MenuManager({
                                 </td>
                                 <td className="p-4">
                                     <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">
-                                        {categories.find(c => c.id === product.category_id || c.id === product.category)?.name || product.category_id}
+                                        {categories.find(c => c.id === product.category_id)?.name || product.category_id}
                                     </span>
                                 </td>
                                 <td className="p-4 font-mono font-medium text-gray-700">
@@ -369,19 +400,52 @@ export default function MenuManager({
                             {/* Image Preview */}
                             <div className="flex justify-center mb-4">
                                 <div className="w-32 h-32 bg-gray-100 rounded-xl border-2 border-dashed border-gray-300 flex items-center justify-center relative overflow-hidden group cursor-pointer hover:border-blue-400 transition-colors">
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                                        onChange={async (e) => {
+                                            const file = e.target.files?.[0];
+                                            if (!file) return;
+
+                                            setIsUploading(true);
+                                            try {
+                                                const url = await uploadImage(file);
+                                                setFormData(prev => ({ ...prev, image: url }));
+                                            } catch (err) {
+                                                console.error(err);
+                                                alert(lang === 'en' ? 'Upload failed' : '上傳失敗');
+                                            } finally {
+                                                setIsUploading(false);
+                                            }
+                                        }}
+                                    />
                                     {formData.image ? (
                                         <img src={formData.image} className="w-full h-full object-cover" />
                                     ) : (
                                         <div className="text-center text-gray-400">
-                                            <ImageIcon className="mx-auto mb-1" />
-                                            <span className="text-xs">Upload</span>
+                                            {isUploading ? (
+                                                <Loader2 className="mx-auto mb-1 animate-spin" />
+                                            ) : (
+                                                <ImageIcon className="mx-auto mb-1" />
+                                            )}
+                                            <span className="text-xs">{isUploading ? 'Uploading...' : 'Upload'}</span>
                                         </div>
                                     )}
-                                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-white font-bold text-sm">
-                                        Change Image
-                                    </div>
                                 </div>
                             </div>
+
+                            {formData.image && (
+                                <div className="flex justify-center -mt-2 mb-4">
+                                    <button
+                                        onClick={() => setFormData(prev => ({ ...prev, image: '' }))}
+                                        className="text-xs text-red-500 hover:text-red-700 hover:underline flex items-center gap-1"
+                                    >
+                                        <Trash2 size={12} />
+                                        {lang === 'en' ? 'Remove Image' : '移除圖片'}
+                                    </button>
+                                </div>
+                            )}
 
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">{lang === 'en' ? 'Product Name (ZH)' : '商品名稱 (中文)'}</label>
@@ -430,10 +494,19 @@ export default function MenuManager({
                             </button>
                             <button
                                 onClick={handleSave}
-                                className="py-3 bg-blue-600 text-white font-bold hover:bg-blue-700 rounded-xl transition-colors shadow-lg shadow-blue-600/20 flex items-center justify-center gap-2"
+                                disabled={isUploading}
+                                className={clsx(
+                                    "py-3 font-bold rounded-xl transition-colors shadow-lg flex items-center justify-center gap-2",
+                                    isUploading
+                                        ? "bg-gray-300 text-gray-500 cursor-not-allowed shadow-none"
+                                        : "bg-blue-600 text-white hover:bg-blue-700 shadow-blue-600/20"
+                                )}
                             >
                                 <Save size={18} />
-                                {lang === 'en' ? 'Save Changes' : '儲存變更'}
+                                {isUploading
+                                    ? (lang === 'en' ? 'Uploading...' : '圖片上傳中...')
+                                    : (lang === 'en' ? 'Save Changes' : '儲存變更')
+                                }
                             </button>
                         </div>
                     </div>

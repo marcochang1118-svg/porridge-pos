@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { CATEGORIES, PRODUCTS, MODIFIERS } from '@/lib/mockData';
+import { MODIFIERS } from '@/lib/mockData'; // Keep modifiers static for now or fetch too
+import { subscribeToProducts, subscribeToCategories, Product, Category } from '@/lib/services';
 import { Trash2, ChevronDown, ChevronRight, Layers, List, Globe, TrendingUp, TrendingDown, DollarSign, Pencil, X } from 'lucide-react';
 import { clsx } from 'clsx';
 import { Reorder } from 'framer-motion';
@@ -141,7 +142,7 @@ const ProductCard = ({ product, addToCart, lang }: { product: any, addToCart: (p
 
 export default function PosPage() {
   console.log('PosPage Rendered - Fullscreen Fix v2');
-  const [activeCategory, setActiveCategory] = useState(CATEGORIES[0].id);
+  const [activeCategory, setActiveCategory] = useState('');
   const [cart, setCart] = useState<CartItem[]>([]);
 
   // Dashboard State
@@ -241,12 +242,65 @@ export default function PosPage() {
   const [customEnd, setCustomEnd] = useState('');
 
   // Reorder State
-  const [categories, setCategories] = useState(CATEGORIES);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
 
-  // Sync state if CATEGORIES constant changes (though it's constant for now)
-  // Removed to allow persistence
+  // Subscribe to Firestore Data
+  useEffect(() => {
+    // 1. Subscribe to Products
+    const unsubscribeProducts = subscribeToProducts((newProducts) => {
+      setProducts(newProducts);
+      setIsLoaded(true);
+    });
 
+    // 2. Subscribe to Categories
+    const unsubscribeCategories = subscribeToCategories((newCategories) => {
+      // Logic: If we have a locally saved order, try to respect it, otherwise utilize DB order
+      const savedOrder = localStorage.getItem('categoryOrder');
+      if (savedOrder) {
+        try {
+          const parsedOrder = JSON.parse(savedOrder) as Category[];
+          // Map incoming categories to a map for quick lookup
+          const catMap = new Map(newCategories.map(c => [c.id, c]));
+
+          // Reconstruct based on saved ID order, filtering out deleted ones, appending new ones
+          const mergedCategories = parsedOrder
+            .filter(c => catMap.has(c.id))
+            .map(c => catMap.get(c.id)!);
+
+          // Add any new categories that weren't in saved order
+          newCategories.forEach(c => {
+            if (!mergedCategories.find(mc => mc.id === c.id)) {
+              mergedCategories.push(c);
+            }
+          });
+          setCategories(mergedCategories);
+        } catch (e) {
+          setCategories(newCategories);
+        }
+      } else {
+        setCategories(newCategories);
+      }
+
+      // Set active category to first one if none selected and categories exist
+      if (!activeCategory && newCategories.length > 0) {
+        setActiveCategory(newCategories[0].id);
+      }
+    });
+
+    return () => {
+      unsubscribeProducts();
+      unsubscribeCategories();
+    };
+  }, []); // Run once on mount
+
+  // Sync active category initial state
+  useEffect(() => {
+    if (!activeCategory && categories.length > 0) {
+      setActiveCategory(categories[0].id);
+    }
+  }, [categories]);
 
   // Scroll Container Ref for Drag-to-Scroll
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -1069,7 +1123,8 @@ export default function PosPage() {
                               let orderTotal = 0;
 
                               for (let j = 0; j < itemCount; j++) {
-                                const product = PRODUCTS[Math.floor(Math.random() * PRODUCTS.length)];
+                                const product = products[Math.floor(Math.random() * products.length)];
+                                if (!product) continue;
                                 items.push({
                                   internalId: Math.random().toString().slice(2, 8),
                                   productId: product.id,
@@ -1174,7 +1229,7 @@ export default function PosPage() {
             <>
               {/* Mobile View: Single Grid (Sorted) */}
               <div className="grid grid-cols-2 gap-4 md:hidden">
-                {PRODUCTS
+                {products
                   .filter((p) => p.category_id === activeCategory)
                   .sort((a, b) => {
                     const typeOrder: Record<string, number> = { meat: 1, seafood: 2, cheese: 3, special: 4, side: 5, addon: 6, drink: 7 };
@@ -1188,7 +1243,7 @@ export default function PosPage() {
               {/* Tablet/Desktop View: Separated Rows by Type */}
               <div className="hidden md:block space-y-8">
                 {['meat', 'seafood', 'cheese', 'special', 'side', 'addon', 'drink'].map((type) => {
-                  const items = PRODUCTS.filter(p => p.category_id === activeCategory && p.type === type);
+                  const items = products.filter(p => p.category_id === activeCategory && p.type === type);
                   if (items.length === 0) return null;
 
                   return (
@@ -1271,13 +1326,13 @@ export default function PosPage() {
                 if (firstItem.type === 'special') { groupColor = 'border-purple-100 hover:border-purple-300 text-purple-900'; bgColor = 'bg-purple-50'; }
 
                 const displayName = lang === 'en' ? (firstItem.nameEn || firstItem.name) : firstItem.name;
-                const product = PRODUCTS.find(p => p.id === firstItem.productId);
+                const product = products.find(p => p.id === firstItem.productId);
                 const isSide = product?.category_id === 'cat_sides' || product?.category_id === 'cat_drinks' || false;
 
                 // Single item render (Standard)
                 if (count === 1) {
                   const item = firstItem;
-                  const product = PRODUCTS.find(p => p.id === item.productId);
+                  const product = products.find(p => p.id === item.productId);
                   const isSide = product?.category_id === 'cat_sides' || product?.category_id === 'cat_drinks' || false;
 
                   return (
@@ -1425,7 +1480,7 @@ export default function PosPage() {
                     {isExpanded && (
                       <div className="border-t border-gray-100 bg-gray-50/50 p-2 space-y-2">
                         {items.map((item, idx) => {
-                          const product = PRODUCTS.find(p => p.id === item.productId);
+                          const product = products.find(p => p.id === item.productId);
                           const isSide = product?.category_id === 'cat_sides' || product?.category_id === 'cat_drinks' || false;
                           const displayName = lang === 'en' ? (item.nameEn || item.name) : item.name;
 
@@ -1500,7 +1555,7 @@ export default function PosPage() {
                 const showIndex = sameProductItems.length > 1;
 
                 const displayName = lang === 'en' ? (item.nameEn || item.name) : item.name;
-                const product = PRODUCTS.find(p => p.id === item.productId);
+                const product = products.find(p => p.id === item.productId);
                 const isSide = product?.category_id === 'cat_sides' || product?.category_id === 'cat_drinks' || false;
 
                 return (
