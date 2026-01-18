@@ -466,88 +466,140 @@ export default function MenuManager({
                     <div className="bg-white dark:bg-zinc-900 rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden scale-100 animate-in zoom-in-95">
                         <div className="p-4 border-b border-gray-100 dark:border-zinc-800 flex justify-between items-center bg-gray-50 dark:bg-zinc-800/50">
                             <h3 className="font-bold text-xl text-gray-800 dark:text-white">{lang === 'en' ? 'Manage Categories' : '管理分類'}</h3>
-                            <button onClick={() => setIsCategoryModalOpen(false)} className="p-1 hover:bg-gray-200 rounded-full transition-colors">
+                            <button onClick={() => { setIsCategoryModalOpen(false); setEditingCategory(null); setCatForm({ name: '', nameEn: '' }); }} className="p-1 hover:bg-gray-200 rounded-full transition-colors">
                                 <X size={20} className="text-gray-500" />
                             </button>
                         </div>
-                        <div className="p-4 h-[400px] overflow-y-auto">
-                            {/* Create Category Form */}
-                            <div className="flex flex-col gap-2 mb-6 p-4 bg-gray-50 dark:bg-zinc-800/30 rounded-xl border border-gray-100 dark:border-zinc-800">
-                                <span className="text-sm font-bold text-gray-500">{lang === 'en' ? 'New Category' : '新增分類'}</span>
-                                <div className="flex gap-2">
-                                    <input
-                                        type="text"
-                                        placeholder={lang === 'en' ? "Name (ZH)" : "名稱 (中文)"}
-                                        value={catForm.name}
-                                        onChange={e => setCatForm({ ...catForm, name: e.target.value })}
-                                        className="flex-1 border dark:border-zinc-700 bg-white dark:bg-zinc-800 rounded-lg px-3 py-2 text-sm dark:text-white"
-                                    />
-                                    <input
-                                        type="text"
-                                        placeholder={lang === 'en' ? "Name (EN)" : "名稱 (英文)"}
-                                        value={catForm.nameEn}
-                                        onChange={e => setCatForm({ ...catForm, nameEn: e.target.value })}
-                                        className="flex-1 border dark:border-zinc-700 bg-white dark:bg-zinc-800 rounded-lg px-3 py-2 text-sm dark:text-white"
-                                    />
+                        <div className="p-4 h-[500px] overflow-y-auto flex flex-col">
+                            {/* Unified Category Form */}
+                            <div className={clsx(
+                                "flex flex-col gap-3 mb-4 p-5 rounded-xl border transition-colors",
+                                editingCategory
+                                    ? "bg-blue-50 border-blue-200 dark:bg-blue-900/20 dark:border-blue-800"
+                                    : "bg-gray-50 dark:bg-zinc-800/30 border-gray-100 dark:border-zinc-800"
+                            )}>
+                                <div className="flex justify-between items-center">
+                                    <span className={clsx("text-sm font-bold", editingCategory ? "text-blue-600 dark:text-blue-400" : "text-gray-500")}>
+                                        {editingCategory
+                                            ? (lang === 'en' ? 'Editing Category' : '編輯分類中...')
+                                            : (lang === 'en' ? 'New Category' : '新增分類')
+                                        }
+                                    </span>
+                                    {editingCategory && (
+                                        <button
+                                            onClick={() => { setEditingCategory(null); setCatForm({ name: '', nameEn: '' }); }}
+                                            className="text-xs text-gray-500 hover:text-gray-700 flex items-center gap-1 bg-white px-2 py-1 rounded border border-gray-200"
+                                        >
+                                            <X size={12} /> {lang === 'en' ? 'Cancel Edit' : '取消編輯'}
+                                        </button>
+                                    )}
                                 </div>
+
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div className="col-span-1">
+                                        <label className="text-xs text-gray-400 mb-1 block">{lang === 'en' ? "Name (ZH)" : "名稱 (中文)"}</label>
+                                        <input
+                                            type="text"
+                                            placeholder="例如：主食"
+                                            value={catForm.name}
+                                            onChange={e => setCatForm({ ...catForm, name: e.target.value })}
+                                            className="w-full border dark:border-zinc-700 bg-white dark:bg-zinc-800 rounded-lg px-3 py-2 text-sm dark:text-white outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                                        />
+                                    </div>
+                                    <div className="col-span-1">
+                                        <label className="text-xs text-gray-400 mb-1 block">{lang === 'en' ? "Name (EN)" : "名稱 (英文)"}</label>
+                                        <input
+                                            type="text"
+                                            placeholder="e.g. Main"
+                                            value={catForm.nameEn}
+                                            onChange={e => setCatForm({ ...catForm, nameEn: e.target.value })}
+                                            className="w-full border dark:border-zinc-700 bg-white dark:bg-zinc-800 rounded-lg px-3 py-2 text-sm dark:text-white outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                                        />
+                                    </div>
+                                </div>
+
                                 <button
                                     onClick={handleSaveCategory}
-                                    className="bg-gray-800 text-white py-2 rounded-lg font-bold text-sm hover:bg-black transition-colors"
+                                    disabled={!catForm.name}
+                                    className={clsx(
+                                        "w-full py-2.5 rounded-lg font-bold text-sm transition-all shadow-sm flex items-center justify-center gap-2",
+                                        editingCategory
+                                            ? "bg-blue-600 hover:bg-blue-700 text-white shadow-blue-600/20"
+                                            : "bg-gray-800 hover:bg-black text-white dark:bg-white dark:text-black hover:shadow-md",
+                                        !catForm.name && "opacity-50 cursor-not-allowed"
+                                    )}
                                 >
-                                    {lang === 'en' ? 'Add Category' : '新增分類'}
+                                    {editingCategory ? <Save size={16} /> : <Plus size={16} />}
+                                    {editingCategory
+                                        ? (lang === 'en' ? 'Save Changes' : '儲存變更')
+                                        : (lang === 'en' ? 'Add Category' : '新增分類')
+                                    }
                                 </button>
                             </div>
 
-                            {/* List (Reorderable not implemented here yet, showing list) */}
-                            {/* Actually we can allow reorder here too if needed, but existing code had edit/delete */}
-                            {/* Reorderable List */}
-                            <Reorder.Group axis="y" values={localCategories} onReorder={handleReorderCategories} layoutScroll>
-                                {localCategories.map(cat => (
-                                    <Reorder.Item
-                                        key={cat.id}
-                                        value={cat}
-                                        onDragStart={() => setIsDragging(true)}
-                                        onDragEnd={handleDragEnd}
-                                        dragMomentum={false}
-                                        whileDrag={{ scale: 1.02, boxShadow: "0 10px 20px rgba(0,0,0,0.1)", zIndex: 10 }}
-                                    >
-                                        <div className="flex items-center justify-between p-3 border dark:border-zinc-800 rounded-xl hover:bg-gray-50 dark:hover:bg-zinc-800 bg-white dark:bg-zinc-900 mb-2 select-none">
-                                            {editingCategory?.id === cat.id ? (
-                                                <div className="flex-1 flex gap-2">
-                                                    <input
-                                                        value={editingCategory.name}
-                                                        onChange={e => setEditingCategory({ ...editingCategory, name: e.target.value })}
-                                                        className="border dark:border-zinc-700 bg-white dark:bg-zinc-800 rounded px-2 py-1 w-24 dark:text-white"
-                                                    />
-                                                    <input
-                                                        value={editingCategory.nameEn || ''}
-                                                        onChange={e => setEditingCategory({ ...editingCategory, nameEn: e.target.value })}
-                                                        className="border dark:border-zinc-700 bg-white dark:bg-zinc-800 rounded px-2 py-1 w-24 dark:text-white"
-                                                    />
-                                                    <button onClick={handleSaveCategory} className="text-green-600"><Save size={18} /></button>
-                                                    <button onClick={() => setEditingCategory(null)} className="text-gray-400"><X size={18} /></button>
+                            <div className="flex-1 overflow-y-auto pr-2">
+                                <Reorder.Group axis="y" values={localCategories} onReorder={handleReorderCategories}>
+                                    {localCategories.map(cat => (
+                                        <Reorder.Item
+                                            key={cat.id}
+                                            value={cat}
+                                            onDragStart={() => setIsDragging(true)}
+                                            onDragEnd={handleDragEnd}
+                                            dragMomentum={false}
+                                            whileDrag={{ scale: 1.02, boxShadow: "0 10px 20px rgba(0,0,0,0.1)", zIndex: 10 }}
+                                        >
+                                            <div className={clsx(
+                                                "flex items-center justify-between p-3 border dark:border-zinc-800 rounded-xl mb-2 select-none transition-colors",
+                                                editingCategory?.id === cat.id
+                                                    ? "bg-blue-50 border-blue-200 dark:bg-blue-900/10 dark:border-blue-800/50"
+                                                    : "bg-white dark:bg-zinc-900 hover:bg-gray-50 dark:hover:bg-zinc-800"
+                                            )}>
+                                                <div className="flex items-center gap-3">
+                                                    <div className="cursor-grab text-gray-300 hover:text-gray-500 active:cursor-grabbing p-1">
+                                                        <GripVertical size={20} />
+                                                    </div>
+                                                    <div>
+                                                        <div className={clsx("font-bold text-gray-800 dark:text-gray-200", editingCategory?.id === cat.id && "text-blue-600 dark:text-blue-400")}>
+                                                            {cat.name}
+                                                        </div>
+                                                        <div className="text-xs text-gray-400">{cat.nameEn}</div>
+                                                    </div>
                                                 </div>
-                                            ) : (
-                                                <>
-                                                    <div className="flex items-center gap-3">
-                                                        <div className="cursor-grab text-gray-300 hover:text-gray-500 active:cursor-grabbing">
-                                                            <GripVertical size={20} />
-                                                        </div>
-                                                        <div>
-                                                            <div className="font-bold text-gray-800 dark:text-gray-200">{cat.name}</div>
-                                                            <div className="text-xs text-gray-400">{cat.nameEn}</div>
-                                                        </div>
-                                                    </div>
-                                                    <div className="flex gap-1">
-                                                        <button onClick={() => setEditingCategory(cat)} className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-full"><Pencil size={16} /></button>
-                                                        <button onClick={() => handleDeleteCategory(cat.id)} className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-full"><Trash2 size={16} /></button>
-                                                    </div>
-                                                </>
-                                            )}
-                                        </div>
-                                    </Reorder.Item>
-                                ))}
-                            </Reorder.Group>
+                                                <div className="flex gap-1">
+                                                    <button
+                                                        onClick={() => {
+                                                            setEditingCategory(cat);
+                                                            setCatForm({ name: cat.name, nameEn: cat.nameEn || '' });
+                                                        }}
+                                                        className={clsx(
+                                                            "p-2 rounded-full transition-colors",
+                                                            editingCategory?.id === cat.id
+                                                                ? "bg-blue-100 text-blue-600"
+                                                                : "text-gray-400 hover:text-blue-600 hover:bg-blue-50"
+                                                        )}
+                                                    >
+                                                        <Pencil size={18} />
+                                                    </button>
+
+                                                    {!editingCategory && (
+                                                        <button
+                                                            onClick={() => handleDeleteCategory(cat.id)}
+                                                            className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors"
+                                                        >
+                                                            <Trash2 size={18} />
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </Reorder.Item>
+                                    ))}
+                                </Reorder.Group>
+                                {localCategories.length === 0 && (
+                                    <div className="text-center py-8 text-gray-400 text-sm">
+                                        {lang === 'en' ? 'No categories yet.' : '尚無分類'}
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     </div>
                 </div>
